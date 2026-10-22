@@ -17,8 +17,10 @@ import sys
 import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PHOTO = os.path.join(os.path.dirname(ROOT), 'mongha', '望廈舊相_整理交付_2026-10-22', '照片', '01_屋邨外觀與街景',
-                     'MH001_CBMoreno建築師作品集：舊望廈平民屋全景俯瞰.jpg')
+_MH001 = os.path.join('望廈舊相_整理交付_2026-10-22', '照片', '01_屋邨外觀與街景', 'MH001_CBMoreno建築師作品集：舊望廈平民屋全景俯瞰.jpg')
+# the private repository keeps the photos in photos/; the original folder sits beside the project on the author's computer
+PHOTO = next((p for p in (os.path.join(ROOT, 'photos', _MH001), os.path.join(os.path.dirname(ROOT), 'mongha', _MH001))
+              if os.path.exists(p)), os.path.join(ROOT, 'photos', _MH001))
 W_IMG, H_IMG = 1445, 1180
 CX0, CY0 = W_IMG / 2, H_IMG / 2
 ARGS = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []

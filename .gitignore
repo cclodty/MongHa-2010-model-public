@@ -1,8 +1,8 @@
-# ---- never in the repository -------------------------------------------------------------------------------
-# reference photos and notes about them (residents' and third-party photos: reference only, not ours to publish)
-refs/
-GOAL_社屋細節還原.md
-# renders and comparisons (several overlay images contain the reference photos), backups, local tools
+# ---- not in the repository ---------------------------------------------------------------------------------
+# The repository is PRIVATE (since 2026-10-23): it holds the reference photos (photos/) and the notes about them
+# (refs/, GOAL_社屋細節還原.md). They are residents' and third-party photos, so keep the repository private while
+# they are in it.
+# renders and comparisons (large; several overlay images contain the reference photos), backups, local tools
 export/*
 !export/cams/
 !export/markers.json
