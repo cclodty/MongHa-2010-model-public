@@ -1,0 +1,2 @@
+# keep shell scripts runnable in Git Bash on Windows
+*.sh text eol=lf

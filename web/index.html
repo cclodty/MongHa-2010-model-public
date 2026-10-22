@@ -1,0 +1,671 @@
+<title>望廈平民新邨 2010</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the estate fills the screen; a name card top-left, viewpoints along the bottom, mode switch top-right.
+   Single dark look on purpose: the overlay sits on a live 3D view, whatever the host theme. */
+:root {
+  color-scheme: dark;
+  --ink: #f2ede3;          /* old paper white */
+  --muted: #b8b1a3;
+  --panel: rgba(20, 22, 21, 0.72);
+  --panel-solid: #161817;
+  --line: rgba(242, 237, 227, 0.16);
+  --tile: #d9773a;         /* the orange roof-tile band */
+  --mosaic: #c9a95a;       /* yellow mosaic parapet */
+  --sky: #9fb4c4;
+  --font-display: "LXGW WenKai TC", "Noto Serif TC", "PMingLiU", serif;
+  --font-ui: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Consolas", monospace;
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--panel-solid); color: var(--ink); font-family: var(--font-ui); overflow: hidden; }
+#stage { position: fixed; inset: 0; }
+#c { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+#c:active { cursor: grabbing; }
+
+.card {
+  position: fixed; top: calc(14px + env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px));
+  max-width: min(360px, calc(100vw - 32px)); padding: 14px 16px 12px; border-radius: 6px;
+  background: var(--panel); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--line); display: grid; gap: 6px;
+}
+.card h1 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(1.45rem, 4.2vw, 1.9rem); letter-spacing: 0.04em; line-height: 1.15; text-wrap: balance; }
+.card h1 .yr { color: var(--tile); font-family: var(--font-mono); font-weight: 500; font-size: 0.62em; letter-spacing: 0; margin-left: 0.35em; vertical-align: 0.18em; }
+.card .pt { margin: 0; font-size: 0.82rem; color: var(--muted); letter-spacing: 0.02em; }
+.card .coord { margin: 0; font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.card details { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+.card summary { cursor: pointer; color: var(--ink); font-size: 0.8rem; list-style: none; }
+.card summary::before { content: "＋ "; color: var(--tile); }
+.card details[open] summary::before { content: "－ "; }
+.card details p { margin: 6px 0 0; max-width: 34em; }
+
+.modes {
+  position: fixed; top: calc(14px + env(safe-area-inset-top, 0px)); right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; gap: 6px; padding: 4px; border-radius: 6px; background: var(--panel); border: 1px solid var(--line);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+button { font: inherit; color: inherit; }
+.modes button, .views button {
+  border: 1px solid transparent; background: transparent; border-radius: 4px; padding: 7px 12px; cursor: pointer;
+  font-size: 0.86rem; letter-spacing: 0.04em; white-space: nowrap;
+}
+.modes button[aria-pressed="true"], .views button[aria-pressed="true"] { background: var(--ink); color: var(--panel-solid); }
+.modes button:hover:not([aria-pressed="true"]), .views button:hover:not([aria-pressed="true"]) { border-color: var(--line); }
+button:focus-visible { outline: 2px solid var(--tile); outline-offset: 2px; }
+
+.dock {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  padding: 0 max(16px, env(safe-area-inset-right, 0px)) calc(14px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  display: grid; justify-items: center; gap: 8px; pointer-events: none;
+}
+.views {
+  pointer-events: auto; max-width: 100%; overflow-x: auto; display: flex; gap: 4px; padding: 4px; border-radius: 6px;
+  background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  scrollbar-width: none;
+}
+.views::-webkit-scrollbar { display: none; }
+.views .lbl { align-self: center; padding: 0 8px 0 6px; font-family: var(--font-mono); font-size: 0.68rem; color: var(--tile); letter-spacing: 0.12em; }
+.hint { pointer-events: none; font-size: 0.76rem; color: var(--muted); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7); text-align: center; }
+
+#loader {
+  position: fixed; inset: 0; display: grid; place-items: center; background: var(--panel-solid); transition: opacity 0.6s ease;
+}
+#loader .box { display: grid; gap: 12px; justify-items: center; padding: 0 16px; text-align: center; }
+#loader .nm { font-family: var(--font-display); font-size: clamp(1.6rem, 6vw, 2.4rem); letter-spacing: 0.08em; }
+#loader .bar { width: min(280px, 70vw); height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
+#loader .bar i { display: block; height: 100%; width: 0; background: var(--tile); transition: width 0.2s; }
+#loader .st { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+#loader.done { opacity: 0; pointer-events: none; }
+
+#joy { position: fixed; left: calc(24px + env(safe-area-inset-left, 0px)); bottom: calc(96px + env(safe-area-inset-bottom, 0px)); width: 112px; height: 112px; border-radius: 50%; border: 1px solid var(--line); background: rgba(20, 22, 21, 0.35); touch-action: none; }
+#joy i { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: rgba(242, 237, 227, 0.55); }
+@media (max-width: 560px) {
+  .card details { display: none; }
+  .card { padding: 10px 12px; }
+  .modes { top: auto; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+  #joy { bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) { #loader, #loader .bar i { transition: none; } }
+</style>
+
+<div id="stage"><canvas id="c" aria-label="望廈平民新邨三維模型"></canvas></div>
+
+<header class="card">
+  <h1>望廈平民新邨<span class="yr">2010</span></h1>
+  <p class="pt">Bairro Social de Mong-Há · 澳門慕拉士大馬路</p>
+  <p class="coord">22.2066°N 113.5519°E · 1988 落成 · 2011 拆卸</p>
+  <details>
+    <summary>這個模型是怎樣做的</summary>
+    <p>按居民提供的舊相、2008 年街景和設計師的資料，重建拆卸前的屋邨：十四座住宅圍着約 42 × 106 米的中庭，八角形圖書館、一樓走廊和天橋、四道折返樓梯、鐵籠球場。中庭比例是用 1990 年代那張高處舊相反推相機位置量出來的，佈置以那張相為準。</p>
+    <p>有相片根據的部分照相片做；看不到的地方，例如部分座的顏色次序，是推斷，歡迎指正。地舖當年大多關閘，只有鞋宜樂和利誠美食仍在營業。周邊建築暫時沒有放進模型。</p>
+    <p>天空和部分材質（批盪、混凝土地、柏油、瓦片、捲閘）來自 Poly Haven 的 CC0 掃描素材。</p>
+  </details>
+</header>
+
+<div class="modes" role="group" aria-label="觀看方式">
+  <button id="m-orbit" type="button" aria-pressed="true">環視</button>
+  <button id="m-walk" type="button" aria-pressed="false">漫步</button>
+</div>
+
+<div class="dock">
+  <div class="hint" id="hint">拖曳旋轉　滾輪或雙指縮放　右鍵平移</div>
+  <nav class="views" id="views" aria-label="視點"><span class="lbl">視點</span></nav>
+</div>
+
+<div id="joy" hidden><i></i></div>
+
+<div id="loader" role="status" aria-live="polite">
+  <div class="box">
+    <div class="nm">望廈平民新邨</div>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="st" id="st">載入模型 0%</div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+  "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+  "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.3/build/index.module.js",
+  "postprocessing": "https://cdn.jsdelivr.net/npm/postprocessing@6.35.6/build/index.js",
+  "n8ao": "https://cdn.jsdelivr.net/npm/n8ao@1.8.1/dist/N8AO.js"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { Sky } from 'three/addons/objects/Sky.js';
+import { computeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+
+THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
+THREE.Mesh.prototype.raycast = acceleratedRaycast;
+
+const $ = (id) => document.getElementById(id);
+const canvas = $('c');
+const VIEW_NAMES = { gallery_deck: '一樓走廊', court_1990: '1990年代舊相角度', courtyard_aerial: '中庭鳥瞰', avenue_2008: '慕拉士大馬路',
+  library: '圖書館前', sports_hall: '望廈體育館', hill_food: '望廈飲食' };
+// extra viewpoints matched to residents' photos (site metres: x along the avenue, y up, z into the estate);
+// the post office / nursery views went with those two shops (user, 2026-10-21)
+const EXTRA_VIEWS = {
+  sports_hall: { p: [-18, 14, -10], t: [25, 4, 40], fov: 56 },   // from the 龍園 corner along 俾利喇街 (MH041, 2011)
+  hill_food: { p: [120, 4.7, 134.8], t: [132, 8.5, 124], fov: 64 },   // top of the 利誠 steps, the hillside shops (MH006, 2011)
+};
+const START_VIEW = 'gallery_deck';   // the page opens on the first-floor gallery (user)
+
+// ---------------------------------------------------------------- renderer, sky, environment
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.AgXToneMapping;
+renderer.toneMappingExposure = 1.15;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(55, 1, 0.15, 4000);
+
+const manifest = await (await fetch('assets/manifest.json')).json();
+const LMAX = manifest.lmax;
+const sunDir = new THREE.Vector3(...manifest.sun).normalize();
+
+// sky: Poly Haven 'kloofendal 48d partly cloudy' (CC0), rotated so its sun matches the baked one; stored as value / K
+const SKY_K = manifest.sky_K;
+const skyTex = await new THREE.TextureLoader(new THREE.LoadingManager()).loadAsync('tex/sky.jpg');
+skyTex.mapping = THREE.EquirectangularReflectionMapping;
+skyTex.colorSpace = THREE.SRGBColorSpace;
+scene.background = skyTex;
+scene.backgroundIntensity = SKY_K;
+const pmrem = new THREE.PMREMGenerator(renderer);
+const envMap = pmrem.fromEquirectangular(skyTex).texture;
+const hz = manifest.horizon;
+scene.fog = new THREE.Fog(new THREE.Color().setRGB(hz[0] * SKY_K, hz[1] * SKY_K, hz[2] * SKY_K), 260, 2200);
+// the sun is shaded live (normal maps and bevels catch it); the bake supplies sky, bounce light and the sun's shadows
+const sunLight = new THREE.DirectionalLight(new THREE.Color().setRGB(...manifest.sun_color), manifest.sun_strength);
+sunLight.position.copy(sunDir).multiplyScalar(100);
+scene.add(sunLight);
+
+// ---------------------------------------------------------------- textures and material table
+let needs = true;
+let texturesSettled = null;
+const texDone = new Promise((r) => (texturesSettled = r));
+THREE.DefaultLoadingManager.onProgress = () => { needs = true; };
+THREE.DefaultLoadingManager.onLoad = () => { needs = true; texturesSettled(); };
+const texLoader = new THREE.TextureLoader();
+const texCache = {};
+function tex(file, rep = 1, srgb = true, repY = rep, rot = 0) {
+  const key = file + '|' + rep + '|' + repY + '|' + rot;
+  if (texCache[key]) return texCache[key];
+  const base = texCache[file] || (texCache[file] = texLoader.load('tex/' + file + '.jpg'));
+  base.flipY = false;   // every UV comes from glTF (origin top-left), so atlases must not be flipped
+  const t = base.clone();
+  t.source = base.source;
+  t.flipY = false;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(rep, repY);
+  if (rot) { t.center.set(0.5, 0.5); t.rotation = rot; }
+  t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+  t.anisotropy = 8;
+  t.needsUpdate = true;
+  return (texCache[key] = t);
+}
+// UV0 is in metres for building surfaces; rep = texture repeats per metre. Photo scans (Poly Haven, CC0) are stored with
+// mean 0.5, so 'gain' 2 keeps the model's colour. 'detail' multiplies a large-scale stain map over the base map.
+const PHOTO = (name, rep, extra = {}) => ({ map: name, normal: name + '_n', rough: 1.0, roughMap: name + '_r', rep, gain: 2.0, ...extra });
+const GRIME = (scale) => ({ detail: 'grime', detailScale: scale });
+function config(name) {
+  if (/^M_(Plaster|SlabEdge)_(Yellow|Green|Brick|Red)$/.test(name) || name === 'M_Tile_White' || name === 'M_Lib_YellowTile')
+    return { map: 'mosaic2', normal: 'mosaic2_n', rep: 2, gain: 1.35, rough: 0.42, ...GRIME(1 / 6) };
+  if (/^M_Mosaic_/.test(name)) return { map: 'mosaic2', normal: 'mosaic2_n', rep: 2, gain: 1.3, rough: 0.42, ...GRIME(1 / 5) };
+  if (/^M_(Plaster_White|Lib_Cream|Hall_White|Plaster_Ground|Plaster_Arcade|Concrete_Soffit)$/.test(name))
+    return PHOTO('plaster', 0.5, { gain: 2.0 });
+  if (name === 'M_Tile_Deck') return { map: 'paving', normal: 'paving_n', rep: 2.5, gain: 2.4, rough: 0.7, ...GRIME(0.2) };
+  if (name === 'M_Paving_Courtyard') return { map: 'courtpave', normal: 'courtpave_n', rep: 0.25, rot: Math.PI / 4, white: true, gainC: 1.0, rough: 0.8, ...GRIME(1.2) };
+  if (name === 'M_Paving_Sidewalk') return { map: 'paving', normal: 'cfloor_n', rep: 1.25, gain: 2.4, rough: 0.85, detail: 'cfloor', detailScale: 0.4 };
+  if (/^M_(Roof_Screed|Concrete_Curb|Ground_Dirt|Concrete_Bench|Court_Surface|Hall_Grey|Context_Roof)$/.test(name)) return PHOTO('cfloor', 0.5);
+  if (name === 'M_Asphalt') return PHOTO('asphalt', 0.25, { white: true, gainC: 0.36 });
+  if (name === 'M_RoofTile_Terracotta') return PHOTO('roof', 0.7, { white: true, gainC: 0.9 });
+  if (/^M_Shop_Shutter/.test(name)) return PHOTO('shutter', 0.6);
+  if (name === 'M_BreezeBlock') return { map: 'breeze', alpha: 'breeze_a', rep: 1 / 0.6, gain: 1.3, rough: 0.9 };
+  if (name === 'M_ChainLink') return { alpha: 'chain_a', rep: 10, rough: 0.5 };
+  if (name === 'M_Cloth_Atlas') return { map: 'cloth', alpha: 'cloth_a', rep: 1, white: true, rough: 0.95 };
+  if (name === 'M_Sign_Atlas') return { map: 'signs', rep: 1, white: true, rough: 0.5 };
+  if (name === 'M_PostOffice_Sign') return { map: 'post', rep: 1, white: true, rough: 0.5 };
+  if (name === 'M_Billboard') return { map: 'billboard', rep: 1, white: true, rough: 0.6 };
+  if (/^M_Context_(Concrete|Facade_B|Facade_C)$/.test(name)) return { map: 'facade', rep: 1 / 12, gain: 1.15, rough: 0.8 };
+  if (name === 'M_Hall_Stone') return { map: 'granite', rep: 1 / 2.4, gain: 1.7, rough: 0.6 };
+  if (name === 'M_Leaves') return { map: 'leaves', alpha: 'leaves_a', rep: 1, white: true, rough: 0.8, leaf: true };
+  return {};
+}
+const GLASS = { M_Glass_Residential: ['win', 0.75], M_Shop_Glass: ['shop', 1.1] };
+
+// direct light from the live sun, scaled by the baked sun visibility (lightmap: _SM texture; vertex-lit: colour alpha)
+const SUN_GATE = THREE.ShaderChunk.lights_fragment_begin.replace(
+  'getDirectionalLightInfo( directionalLight, directLight );',
+  'getDirectionalLightInfo( directionalLight, directLight );\n\t\tdirectLight.color *= bakeSun;');
+if (SUN_GATE === THREE.ShaderChunk.lights_fragment_begin) console.warn('sun gate patch did not apply');
+const SUN_PRE = `
+float bakeSun = 1.0;
+#ifdef USE_LIGHTMAP
+  bakeSun = texture2D( sunMask, vLightMapUv ).r;
+#endif
+#ifdef BAKE_VC
+  bakeSun = vBakeMask;
+#endif
+#ifdef NO_SUN
+  bakeSun = 0.0;
+#endif
+`;
+const BAKED_LIGHTS = `
+vec3 bakeL = vec3( 0.0 );
+#ifdef USE_LIGHTMAP
+  bakeL = texture2D( lightMap, vLightMapUv ).rgb * lightMapIntensity;
+#endif
+#ifdef BAKE_VC
+  bakeL = vBakeVC * vBakeVC * bakeScale;
+#endif
+irradiance += bakeL;
+#if defined( USE_ENVMAP ) && defined( RE_IndirectSpecular )
+  float bakeLum = dot( bakeL, vec3( 0.2126, 0.7152, 0.0722 ) );
+  radiance += getIBLRadiance( geometryViewDir, geometryNormal, material.roughness ) * clamp( bakeLum / 1.2 + bakeSun * 0.5, 0.08, 1.0 );
+#endif
+`;
+function bakePatch(m, kind, boost = 1.0, mask = null, detail = null) {
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.bakeScale = { value: Math.PI * LMAX * boost };
+    sh.uniforms.sunMask = { value: mask };
+    if (kind === 'VC') {
+      sh.defines = Object.assign(sh.defines || {}, { BAKE_VC: '' });
+      sh.vertexShader = sh.vertexShader
+        .replace('#include <common>', '#include <common>\nattribute vec4 color;\nvarying vec3 vBakeVC;\nvarying float vBakeMask;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvBakeVC = color.rgb;\nvBakeMask = color.a;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vBakeVC;\nvarying float vBakeMask;');
+    }
+    if (detail) {
+      sh.uniforms.detailMap = { value: detail.tex };
+      sh.uniforms.detailScale = { value: detail.scale };
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <common>', '#include <common>\nuniform sampler2D detailMap;\nuniform float detailScale;')
+        .replace('#include <map_fragment>', '#include <map_fragment>\n#ifdef USE_MAP\n  diffuseColor.rgb *= texture2D( detailMap, vMapUv * detailScale ).rgb * 2.0;\n#endif');
+    }
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform float bakeScale;\nuniform sampler2D sunMask;')
+      .replace('#include <lights_fragment_begin>', SUN_PRE + SUN_GATE)
+      .replace('#include <lights_fragment_maps>', BAKED_LIGHTS);
+  };
+  m.customProgramCacheKey = () => 'baked-' + kind + (boost !== 1 ? '-b' : '') + (detail ? '-d' : '');
+}
+function noSunPatch(m) {   // glass and other unbaked surfaces: no sun glints where the bake says there is shade
+  m.onBeforeCompile = (sh) => {
+    sh.defines = Object.assign(sh.defines || {}, { NO_SUN: '' });
+    sh.fragmentShader = sh.fragmentShader.replace('#include <lights_fragment_begin>', SUN_PRE + SUN_GATE);
+  };
+  m.customProgramCacheKey = () => 'nosun';
+}
+
+const matCache = new Map();
+function material(name, kind, lm, mask) {
+  const key = name + '|' + kind + '|' + (lm ? lm.uuid : '');
+  if (matCache.has(key)) return matCache.get(key);
+  const info = manifest.materials[name] || { color: [0.6, 0.6, 0.6], rough: 0.85, metal: 0 };
+  let m;
+  if (kind === 'NB') {
+    if (GLASS[name]) {
+      m = new THREE.MeshStandardMaterial({ color: 0x07090a, roughness: 0.05, metalness: 0, envMap, envMapIntensity: SKY_K,
+        emissive: 0xffffff, emissiveMap: tex(GLASS[name][0], 1), emissiveIntensity: GLASS[name][1] });
+    } else if (name === 'M_Glass_Library') {   // frosted: nothing of the inside shows, only a soft glow and the sky
+      m = new THREE.MeshStandardMaterial({ color: 0x9aa7a3, roughness: 0.32, metalness: 0, envMap, envMapIntensity: SKY_K * 0.8,
+        emissive: 0xdfe6e2, emissiveIntensity: 0.32 });
+    } else if (name === 'M_TrafficLight_Green') {
+      m = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.2, 2.6, 1.2) });
+    } else if (name === 'M_Lamp_Globe') {
+      m = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.1, 1.05, 0.95) });
+    } else {
+      m = new THREE.MeshStandardMaterial({ color: 0x14191b, roughness: 0.1, envMap, envMapIntensity: SKY_K });
+    }
+    if (m.isMeshStandardMaterial) noSunPatch(m);
+  } else {
+    const c = config(name);
+    const col = c.white ? new THREE.Color(1, 1, 1).multiplyScalar(c.gainC || 1)
+      : new THREE.Color().setRGB(...info.color).multiplyScalar(c.gain || 1);
+    m = new THREE.MeshStandardMaterial({ color: col, roughness: c.rough ?? info.rough, metalness: Math.min(info.metal, 0.6), envMap, envMapIntensity: SKY_K });
+    if (c.map) m.map = tex(c.map, c.rep, true, c.rep, c.rot || 0);
+    if (c.normal) { m.normalMap = tex(c.normal, c.rep, false, c.rep, c.rot || 0); m.normalScale.set(0.8, 0.8); }
+    if (c.roughMap) m.roughnessMap = tex(c.roughMap, c.rep, false, c.rep, c.rot || 0);
+    if (c.alpha) { m.alphaMap = tex(c.alpha, c.rep, false); m.alphaTest = 0.5; m.side = THREE.DoubleSide; }
+    if (kind === 'LM' && lm) { m.lightMap = lm; m.lightMapIntensity = Math.PI * LMAX; }
+    const detail = c.detail && c.map ? { tex: tex(c.detail, 1, false), scale: c.detailScale } : null;
+    bakePatch(m, kind, c.leaf ? 1.35 : 1.0, kind === 'LM' ? mask : null, detail);
+  }
+  m.name = name;
+  matCache.set(key, m);
+  return m;
+}
+
+// ---------------------------------------------------------------- load the baked estate
+const draco = new DRACOLoader();
+draco.setDecoderPath('draco/');
+draco.setDecoderConfig({ type: 'wasm' });
+const gltfLoader = new GLTFLoader();
+gltfLoader.setDRACOLoader(draco);
+const progress = {};
+const total = manifest.files.reduce((a, f) => a + (f.packed ? f.packed_bytes : f.bytes), 0);
+function showProgress() {
+  const done = Object.values(progress).reduce((a, b) => a + b, 0);
+  const pct = Math.min(100, Math.round((done / total) * 100));
+  $('bar').style.width = pct + '%';
+  $('st').textContent = `載入模型 ${pct}%  ·  ${(done / 1048576).toFixed(1)} / ${(total / 1048576).toFixed(1)} MB`;
+}
+const lightmaps = {}, sunMasks = {};
+function sunMaskFor(objName) {
+  const e = manifest.objects[objName];
+  if (!e || !e.mask) return null;
+  if (!sunMasks[objName]) {
+    const t = texLoader.load('assets/' + e.mask);
+    t.flipY = false; t.colorSpace = THREE.NoColorSpace;
+    sunMasks[objName] = t;
+  }
+  return sunMasks[objName];
+}
+function lightmapFor(objName) {
+  const e = manifest.objects[objName];
+  if (!e || !e.lightmap) return null;
+  if (!lightmaps[objName]) {
+    const t = texLoader.load('assets/' + e.lightmap);
+    t.flipY = false; t.channel = 1; t.colorSpace = THREE.SRGBColorSpace;
+    lightmaps[objName] = t;
+  }
+  return lightmaps[objName];
+}
+const walkables = [];
+function prepare(root) {
+  root.traverse((o) => {
+    if (!o.isMesh) return;
+    let p = o, objName = null;
+    while (p && !objName) { if (manifest.objects[p.name]) objName = p.name; p = p.parent; }
+    const kind = objName ? manifest.objects[objName].kind : 'VC';
+    const lm = kind === 'LM' ? lightmapFor(objName) : null;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    const mask = kind === 'LM' ? sunMaskFor(objName) : null;
+    const out = mats.map((mm) => material(mm.name, kind, lm, mask));
+    o.material = Array.isArray(o.material) ? out : out[0];
+    o.matrixAutoUpdate = false; o.updateMatrix();
+    if (kind !== 'NB' && !out.some((m) => m.alphaTest > 0)) walkables.push(o);
+  });
+}
+// on claude.ai the GLBs ship base64-wrapped in JSON (that host serves JSON, not .glb); the standalone copy for other
+// hosts ships plain .glb. Either way they are streamed for the progress bar.
+async function loadPacked(f) {
+  const name = f.packed || f.glb;
+  const resp = await fetch('assets/' + name);
+  if (!resp.ok) throw new Error(name + ' ' + resp.status);
+  const reader = resp.body.getReader();
+  const chunks = [];
+  let got = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value); got += value.length;
+    progress[name] = got; showProgress();
+  }
+  let buffer = await new Blob(chunks).arrayBuffer();
+  if (f.packed) {
+    const bin = atob(JSON.parse(new TextDecoder().decode(buffer)).data);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    buffer = bytes.buffer;
+  }
+  const g = await new Promise((res, rej) => gltfLoader.parse(buffer, 'assets/', res, rej));
+  prepare(g.scene);
+  scene.add(g.scene);
+}
+await Promise.all(manifest.files.map(loadPacked))
+  .catch((err) => { $('st').textContent = '載入失敗，請重新整理頁面再試。'; throw err; });
+
+// ---------------------------------------------------------------- views and orbit mode
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.maxPolarAngle = Math.PI * 0.495;
+controls.minDistance = 2;
+controls.maxDistance = 900;
+controls.addEventListener('change', () => (needs = true));
+const viewBtns = {};
+let tween = null;
+const ALL_VIEWS = Object.assign({}, manifest.views, EXTRA_VIEWS);
+function goView(key, instant = false) {
+  const v = ALL_VIEWS[key];
+  const p = new THREE.Vector3(...v.p), t = new THREE.Vector3(...v.t);
+  setMode('orbit');
+  Object.entries(viewBtns).forEach(([k, b]) => b.setAttribute('aria-pressed', String(k === key)));
+  if (instant || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    camera.position.copy(p); controls.target.copy(t); camera.fov = v.fov; camera.updateProjectionMatrix(); controls.update(); needs = true; return;
+  }
+  tween = { p0: camera.position.clone(), t0: controls.target.clone(), f0: camera.fov, p, t, f: v.fov, s: performance.now() };
+}
+for (const key of Object.keys(VIEW_NAMES).filter((k) => ALL_VIEWS[k])) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.textContent = VIEW_NAMES[key]; b.setAttribute('aria-pressed', 'false');
+  b.addEventListener('click', () => goView(key));
+  $('views').appendChild(b); viewBtns[key] = b;
+}
+controls.addEventListener('start', () => { tween = null; Object.values(viewBtns).forEach((b) => b.setAttribute('aria-pressed', 'false')); });
+
+// ---------------------------------------------------------------- walk mode (keyboard + mouse, or joystick + drag on touch)
+let mode = 'orbit';
+const keys = new Set();
+let yaw = 0, pitch = 0, bvhReady = false;
+const ray = new THREE.Raycaster();
+ray.firstHitOnly = true;
+const touch = matchMedia('(pointer: coarse)').matches;
+function ensureBVH() {
+  if (bvhReady) return;
+  for (const m of walkables) m.geometry.computeBoundsTree();
+  bvhReady = true;
+}
+function groundAt(pos) {
+  ray.set(new THREE.Vector3(pos.x, pos.y + 0.6, pos.z), new THREE.Vector3(0, -1, 0));
+  ray.far = 30;
+  const hit = ray.intersectObjects(walkables, false)[0];
+  return hit ? hit.point.y : 0;
+}
+function blocked(pos, dir) {
+  for (const h of [-1.2, -0.6]) {
+    ray.set(new THREE.Vector3(pos.x, pos.y + h, pos.z), dir);
+    ray.far = 0.45;
+    if (ray.intersectObjects(walkables, false).length) return true;
+  }
+  return false;
+}
+function setMode(m) {
+  if (m === mode) return;
+  mode = m;
+  $('m-orbit').setAttribute('aria-pressed', String(m === 'orbit'));
+  $('m-walk').setAttribute('aria-pressed', String(m === 'walk'));
+  controls.enabled = m === 'orbit';
+  $('joy').hidden = !(m === 'walk' && touch);
+  if (m === 'walk') {
+    ensureBVH();
+    const fwd = new THREE.Vector3(); camera.getWorldDirection(fwd);
+    yaw = Math.atan2(-fwd.x, -fwd.z); pitch = 0;
+    const p = camera.position.clone();
+    if (p.y > 30) { p.copy(controls.target); }
+    p.y = groundAt(new THREE.Vector3(p.x, 40, p.z)) + 1.62;
+    camera.position.copy(p); camera.fov = 62; camera.updateProjectionMatrix();
+    $('hint').textContent = touch ? '左下搖桿行走　拖曳畫面轉向' : '按畫面鎖定滑鼠　WASD 行走　Shift 快步　Esc 放開滑鼠';
+  } else {
+    if (document.pointerLockElement) document.exitPointerLock();
+    const fwd = new THREE.Vector3(); camera.getWorldDirection(fwd);
+    controls.target.copy(camera.position).addScaledVector(fwd, 8);
+    $('hint').textContent = touch ? '單指旋轉　雙指縮放及平移' : '拖曳旋轉　滾輪或雙指縮放　右鍵平移';
+  }
+  needs = true;
+}
+$('m-orbit').addEventListener('click', () => setMode('orbit'));
+$('m-walk').addEventListener('click', () => setMode('walk'));
+canvas.addEventListener('click', () => { if (mode === 'walk' && !touch && !document.pointerLockElement) canvas.requestPointerLock?.()?.catch?.(() => {}); });
+document.addEventListener('mousemove', (e) => {
+  if (mode !== 'walk' || document.pointerLockElement !== canvas) return;
+  yaw -= e.movementX * 0.0022; pitch = Math.max(-1.3, Math.min(1.3, pitch - e.movementY * 0.0022));
+});
+addEventListener('keydown', (e) => { keys.add(e.code); });
+addEventListener('keyup', (e) => { keys.delete(e.code); });
+// touch: joystick moves, dragging elsewhere looks around
+const joy = { x: 0, y: 0, id: null };
+$('joy').addEventListener('pointerdown', (e) => { joy.id = e.pointerId; $('joy').setPointerCapture(e.pointerId); });
+$('joy').addEventListener('pointermove', (e) => {
+  if (e.pointerId !== joy.id) return;
+  const r = $('joy').getBoundingClientRect();
+  let dx = (e.clientX - r.left - r.width / 2) / (r.width / 2), dy = (e.clientY - r.top - r.height / 2) / (r.height / 2);
+  const l = Math.hypot(dx, dy); if (l > 1) { dx /= l; dy /= l; }
+  joy.x = dx; joy.y = dy;
+  $('joy').firstElementChild.style.transform = `translate(${dx * 34}px, ${dy * 34}px)`;
+});
+const joyEnd = () => { joy.id = null; joy.x = joy.y = 0; $('joy').firstElementChild.style.transform = ''; };
+$('joy').addEventListener('pointerup', joyEnd); $('joy').addEventListener('pointercancel', joyEnd);
+let look = null;
+canvas.addEventListener('pointerdown', (e) => { if (mode === 'walk' && touch) look = { x: e.clientX, y: e.clientY, id: e.pointerId }; });
+canvas.addEventListener('pointermove', (e) => {
+  if (!look || e.pointerId !== look.id) return;
+  yaw -= (e.clientX - look.x) * 0.005; pitch = Math.max(-1.3, Math.min(1.3, pitch - (e.clientY - look.y) * 0.005));
+  look.x = e.clientX; look.y = e.clientY;
+});
+canvas.addEventListener('pointerup', () => (look = null));
+
+const clock = new THREE.Clock();
+function walkStep(dt) {
+  let f = 0, s = 0;
+  if (keys.has('KeyW') || keys.has('ArrowUp')) f += 1;
+  if (keys.has('KeyS') || keys.has('ArrowDown')) f -= 1;
+  if (keys.has('KeyA') || keys.has('ArrowLeft')) s -= 1;
+  if (keys.has('KeyD') || keys.has('ArrowRight')) s += 1;
+  f -= joy.y; s += joy.x;
+  const speed = (keys.has('ShiftLeft') || keys.has('ShiftRight') ? 4.2 : 1.6) * dt;
+  const fwd = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw)), right = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
+  const mv = fwd.multiplyScalar(f).add(right.multiplyScalar(s));
+  if (mv.lengthSq() > 1e-6) {
+    mv.normalize();
+    if (!blocked(camera.position, mv)) {
+      const next = camera.position.clone().addScaledVector(mv, speed);
+      const g = groundAt(new THREE.Vector3(next.x, camera.position.y - 1.62 + 0.45, next.z));
+      if (g - (camera.position.y - 1.62) < 0.45) { next.y = THREE.MathUtils.lerp(camera.position.y, g + 1.62, 0.35); camera.position.copy(next); }
+    }
+  }
+  camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
+}
+
+// ---------------------------------------------------------------- auto exposure: meter the linear frame like a camera would
+const AE_W = 48, AE_H = 27;
+const aeRT = new THREE.WebGLRenderTarget(AE_W, AE_H, { type: THREE.HalfFloatType });
+const aeBuf = new Uint16Array(AE_W * AE_H * 4);
+let exposure = 1.15, exposureTarget = 1.15, aeLast = 0;
+// calibrated on the avenue view (log-average 0.028 looks right at 1.15); shade is only partly compensated, like a camera
+const AE_REF = 0.028, AE_EXP = 1.15;
+function meter() {
+  renderer.setRenderTarget(aeRT);
+  renderer.render(scene, camera);
+  renderer.setRenderTarget(null);
+  renderer.readRenderTargetPixels(aeRT, 0, 0, AE_W, AE_H, aeBuf);
+  let sum = 0;
+  const h = THREE.DataUtils.fromHalfFloat;
+  for (let i = 0; i < aeBuf.length; i += 4) {
+    const l = 0.2126 * h(aeBuf[i]) + 0.7152 * h(aeBuf[i + 1]) + 0.0722 * h(aeBuf[i + 2]);
+    sum += Math.log(1e-4 + l);
+  }
+  const avg = Math.exp(sum / (AE_W * AE_H));
+  exposureTarget = THREE.MathUtils.clamp(AE_EXP * Math.pow(AE_REF / avg, 0.8), 0.8, 2.6);
+}
+
+// ---------------------------------------------------------------- post-processing (desktop): contact shadows, bloom, film grade
+// Phones skip it and render straight to the screen, as before.
+let composer = null, aoPass = null;
+const GRADE = {
+  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uAspect: { value: 1 } },
+  vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: `
+    uniform sampler2D tDiffuse; uniform float uTime; uniform float uAspect; varying vec2 vUv;
+    float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+    void main() {
+      vec3 c = texture2D(tDiffuse, vUv).rgb;                          // display-referred (after tone mapping)
+      float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
+      c = mix(vec3(l), c, 1.06);                                         // a touch more colour
+      c = c * vec3(1.015, 1.0, 0.975) + vec3(0.006, 0.008, 0.014) * (1.0 - l);   // warm highlights, cool lifted shadows
+      c = (c - 0.5) * 1.04 + 0.5;
+      vec2 d = (vUv - 0.5) * vec2(uAspect, 1.0);
+      c *= 1.0 - 0.22 * smoothstep(0.35, 1.05, length(d));              // lens vignette
+      c += (hash(vUv * 1024.0 + uTime) - 0.5) * 0.018;                   // fine film grain
+      gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
+    }`,
+};
+let gradePass = null;
+if (!touch) {
+  try {
+    const { N8AOPass } = await import('n8ao');
+    composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 0 }));
+    aoPass = new N8AOPass(scene, camera, 1, 1);
+    aoPass.configuration.aoRadius = 1.6;
+    aoPass.configuration.distanceFalloff = 0.8;
+    aoPass.configuration.intensity = 2.2;
+    aoPass.configuration.halfRes = false;
+    aoPass.configuration.gammaCorrection = false;
+    aoPass.setQualityMode('Medium');
+    composer.addPass(aoPass);
+    composer.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.18, 0.55, 2.4));
+    composer.addPass(new OutputPass());
+    gradePass = new ShaderPass(GRADE);
+    composer.addPass(gradePass);
+    composer.addPass(new SMAAPass(1, 1));
+  } catch (err) {
+    console.warn('post-processing unavailable, rendering plain', err);
+    composer = null;
+  }
+}
+function resize() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); needs = true;
+  if (composer) {
+    composer.setPixelRatio(renderer.getPixelRatio());
+    composer.setSize(w, h);
+    gradePass.uniforms.uAspect.value = w / h;
+  }
+}
+addEventListener('resize', resize);
+resize();
+goView(START_VIEW, true);
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(clock.getDelta(), 0.1);
+  if (tween) {
+    const k = Math.min(1, (performance.now() - tween.s) / 1400), e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    camera.position.lerpVectors(tween.p0, tween.p, e); controls.target.lerpVectors(tween.t0, tween.t, e);
+    camera.fov = THREE.MathUtils.lerp(tween.f0, tween.f, e); camera.updateProjectionMatrix();
+    if (k >= 1) tween = null;
+    needs = true;
+  }
+  if (mode === 'orbit') controls.update(); else { walkStep(dt); needs = true; }
+  const now = performance.now();
+  if (needs && now - aeLast > 250) { aeLast = now; meter(); }
+  if (Math.abs(exposureTarget - exposure) > 0.004) {
+    exposure += (exposureTarget - exposure) * Math.min(1, dt * 2.5);
+    renderer.toneMappingExposure = exposure;
+    needs = true;
+  }
+  if (!needs) return;
+  needs = false;
+  if (composer) { gradePass.uniforms.uTime.value = (now % 1000) / 1000; composer.render(dt); }
+  else renderer.render(scene, camera);
+});
+$('st').textContent = '載入貼圖…';
+await Promise.race([texDone, new Promise((r) => setTimeout(r, 20000))]);
+$('st').textContent = '準備光影…';
+try { await renderer.compileAsync(scene, camera); } catch (e) { /* older drivers: compile on first frame instead */ }
+needs = true;
+$('loader').classList.add('done');
+</script>

@@ -1,0 +1,1353 @@
+{
+ "lmax": 1.6,
+ "vc_encoding": "sqrt",
+ "lm_encoding": "srgb",
+ "objects": {
+  "SM_Courtyard_LM": {
+   "family": "SM_Courtyard",
+   "kind": "LM",
+   "lightmap": "SM_Courtyard_LM.jpg",
+   "mask": "SM_Courtyard_LM_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.12518678605556488,
+    "p99": 0.5121594071388245,
+    "max": 2.7731728553771973,
+    "lit": 0.1715993881225586
+   }
+  },
+  "SM_Courtyard_VC": {
+   "family": "SM_Courtyard",
+   "kind": "VC"
+  },
+  "SM_Courtyard_NB": {
+   "family": "SM_Courtyard",
+   "kind": "NB"
+  },
+  "SM_Estate_BACK_LM": {
+   "family": "SM_Estate_BACK",
+   "kind": "LM",
+   "lightmap": "SM_Estate_BACK_LM.jpg",
+   "mask": "SM_Estate_BACK_LM_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.07899701595306396,
+    "p99": 0.6710819005966187,
+    "max": 1.0142199993133545,
+    "lit": 0.06315779685974121
+   }
+  },
+  "SM_Estate_BACK_VC": {
+   "family": "SM_Estate_BACK",
+   "kind": "VC"
+  },
+  "SM_Estate_BACK_NB": {
+   "family": "SM_Estate_BACK",
+   "kind": "NB"
+  },
+  "SM_Estate_FRONT_LM": {
+   "family": "SM_Estate_FRONT",
+   "kind": "LM",
+   "lightmap": "SM_Estate_FRONT_LM.jpg",
+   "mask": "SM_Estate_FRONT_LM_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.08342690020799637,
+    "p99": 0.6655226349830627,
+    "max": 1.0461921691894531,
+    "lit": 0.07894372940063477
+   }
+  },
+  "SM_Estate_FRONT_VC": {
+   "family": "SM_Estate_FRONT",
+   "kind": "VC"
+  },
+  "SM_Estate_FRONT_NB": {
+   "family": "SM_Estate_FRONT",
+   "kind": "NB"
+  },
+  "SM_Estate_NW_LM0": {
+   "family": "SM_Estate_NW",
+   "kind": "LM",
+   "lightmap": "SM_Estate_NW_LM0.jpg",
+   "mask": "SM_Estate_NW_LM0_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.08139700442552567,
+    "p99": 0.6691344976425171,
+    "max": 0.9746280908584595,
+    "lit": 0.08112335205078125
+   }
+  },
+  "SM_Estate_NW_LM1": {
+   "family": "SM_Estate_NW",
+   "kind": "LM",
+   "lightmap": "SM_Estate_NW_LM1.jpg",
+   "mask": "SM_Estate_NW_LM1_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.08363574743270874,
+    "p99": 0.6788372993469238,
+    "max": 0.9998596906661987,
+    "lit": 0.0812373161315918
+   }
+  },
+  "SM_Estate_NW_VC": {
+   "family": "SM_Estate_NW",
+   "kind": "VC"
+  },
+  "SM_Estate_NW_NB": {
+   "family": "SM_Estate_NW",
+   "kind": "NB"
+  },
+  "SM_Estate_SE_LM0": {
+   "family": "SM_Estate_SE",
+   "kind": "LM",
+   "lightmap": "SM_Estate_SE_LM0.jpg",
+   "mask": "SM_Estate_SE_LM0_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.0908082127571106,
+    "p99": 0.6659248471260071,
+    "max": 1.2549080848693848,
+    "lit": 0.08193206787109375
+   }
+  },
+  "SM_Estate_SE_LM1": {
+   "family": "SM_Estate_SE",
+   "kind": "LM",
+   "lightmap": "SM_Estate_SE_LM1.jpg",
+   "mask": "SM_Estate_SE_LM1_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.09447767585515976,
+    "p99": 0.669162392616272,
+    "max": 1.1150836944580078,
+    "lit": 0.08939337730407715
+   }
+  },
+  "SM_Estate_SE_VC": {
+   "family": "SM_Estate_SE",
+   "kind": "VC"
+  },
+  "SM_Estate_SE_NB": {
+   "family": "SM_Estate_SE",
+   "kind": "NB"
+  },
+  "SM_Estate_SlopeBlocks_LM": {
+   "family": "SM_Estate_SlopeBlocks",
+   "kind": "LM",
+   "lightmap": "SM_Estate_SlopeBlocks_LM.jpg",
+   "mask": "SM_Estate_SlopeBlocks_LM_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.11270857602357864,
+    "p99": 0.6916247010231018,
+    "max": 0.9761802554130554,
+    "lit": 0.09557557106018066
+   }
+  },
+  "SM_Estate_SlopeBlocks_VC": {
+   "family": "SM_Estate_SlopeBlocks",
+   "kind": "VC"
+  },
+  "SM_Estate_SlopeBlocks_NB": {
+   "family": "SM_Estate_SlopeBlocks",
+   "kind": "NB"
+  },
+  "SM_Galleries_Bridges_LM": {
+   "family": "SM_Galleries_Bridges",
+   "kind": "LM",
+   "lightmap": "SM_Galleries_Bridges_LM.jpg",
+   "mask": "SM_Galleries_Bridges_LM_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.07974403351545334,
+    "p99": 0.4787179231643677,
+    "max": 1.0153578519821167,
+    "lit": 0.06266427040100098
+   }
+  },
+  "SM_Galleries_Bridges_VC": {
+   "family": "SM_Galleries_Bridges",
+   "kind": "VC"
+  },
+  "SM_Ground_Far_LM": {
+   "family": "SM_Ground_Far",
+   "kind": "LM",
+   "lightmap": "SM_Ground_Far_LM.jpg",
+   "mask": "SM_Ground_Far_LM_SM.jpg",
+   "res": 512,
+   "stats": {
+    "mean": 0.4827156066894531,
+    "p99": 0.7942260503768921,
+    "max": 0.8619939088821411,
+    "lit": 0.8324623107910156
+   }
+  },
+  "SM_Ground_Streets_LM": {
+   "family": "SM_Ground_Streets",
+   "kind": "LM",
+   "lightmap": "SM_Ground_Streets_LM.jpg",
+   "mask": "SM_Ground_Streets_LM_SM.jpg",
+   "res": 4096,
+   "stats": {
+    "mean": 0.07598305493593216,
+    "p99": 0.7606204748153687,
+    "max": 0.958202600479126,
+    "lit": 0.11446201801300049
+   }
+  },
+  "SM_Ground_Streets_VC": {
+   "family": "SM_Ground_Streets",
+   "kind": "VC"
+  },
+  "SM_Ground_Streets_NB": {
+   "family": "SM_Ground_Streets",
+   "kind": "NB"
+  },
+  "SM_Library_LM": {
+   "family": "SM_Library",
+   "kind": "LM",
+   "lightmap": "SM_Library_LM.jpg",
+   "mask": "SM_Library_LM_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.08776813000440598,
+    "p99": 0.6122927069664001,
+    "max": 1.2056055068969727,
+    "lit": 0.10971307754516602
+   }
+  },
+  "SM_Library_VC": {
+   "family": "SM_Library",
+   "kind": "VC"
+  },
+  "SM_Library_NB": {
+   "family": "SM_Library",
+   "kind": "NB"
+  },
+  "SM_Shrubs_VC": {
+   "family": "SM_Shrubs",
+   "kind": "VC"
+  },
+  "SM_SportsHall_Simple_LM": {
+   "family": "SM_SportsHall_Simple",
+   "kind": "LM",
+   "lightmap": "SM_SportsHall_Simple_LM.jpg",
+   "mask": "SM_SportsHall_Simple_LM_SM.jpg",
+   "res": 4096,
+   "stats": {
+    "mean": 0.10760889202356339,
+    "p99": 0.7747669219970703,
+    "max": 1.5865778923034668,
+    "lit": 0.12424594163894653
+   }
+  },
+  "SM_SportsHall_Simple_VC": {
+   "family": "SM_SportsHall_Simple",
+   "kind": "VC"
+  },
+  "SM_SportsHall_Simple_NB": {
+   "family": "SM_SportsHall_Simple",
+   "kind": "NB"
+  },
+  "SM_Trees_VC": {
+   "family": "SM_Trees",
+   "kind": "VC"
+  }
+ },
+ "samples": 1536,
+ "sun": [
+  0.5378,
+  0.7415,
+  -0.401
+ ],
+ "sun_strength": 5.0,
+ "sun_color": [
+  0.9927,
+  1.0,
+  0.9093
+ ],
+ "sky_K": 2.3855,
+ "horizon": [
+  0.1615,
+  0.1689,
+  0.2056
+ ],
+ "views": {
+  "courtyard_aerial": {
+   "p": [
+    75.0,
+    125,
+    167.0
+   ],
+   "t": [
+    83.0,
+    0,
+    55.0
+   ],
+   "fov": 46
+  },
+  "court_1990": {
+   "p": [
+    84.4,
+    26.2,
+    119.1
+   ],
+   "t": [
+    83.7,
+    11.1,
+    93.2
+   ],
+   "fov": 56.7
+  },
+  "avenue_2008": {
+   "p": [
+    75.0,
+    1.7,
+    -24
+   ],
+   "t": [
+    75.0,
+    10,
+    8
+   ],
+   "fov": 66
+  },
+  "library": {
+   "p": [
+    69.0,
+    1.7,
+    55.0
+   ],
+   "t": [
+    83.0,
+    6.0,
+    66.0
+   ],
+   "fov": 60
+  },
+  "gallery_deck": {
+   "p": [
+    102.5,
+    5.4,
+    106.0
+   ],
+   "t": [
+    83.0,
+    5.8,
+    71.0
+   ],
+   "fov": 62
+  },
+  "hall_corner": {
+   "p": [
+    -14,
+    1.7,
+    -16
+   ],
+   "t": [
+    22,
+    7,
+    14
+   ],
+   "fov": 62
+  }
+ },
+ "materials": {
+  "M_AC_Unit": {
+   "color": [
+    0.7529,
+    0.7379,
+    0.6867
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_Asphalt": {
+   "color": [
+    0.1095,
+    0.1144,
+    0.1144
+   ],
+   "rough": 0.95,
+   "metal": 0.0
+  },
+  "M_Awning_Canvas": {
+   "color": [
+    0.6867,
+    0.6584,
+    0.5776
+   ],
+   "rough": 0.9,
+   "metal": 0.0
+  },
+  "M_Awning_Green": {
+   "color": [
+    0.0284,
+    0.147,
+    0.0685
+   ],
+   "rough": 0.8,
+   "metal": 0.0
+  },
+  "M_Awning_Stripe": {
+   "color": [
+    0.4452,
+    0.1441,
+    0.107
+   ],
+   "rough": 0.9,
+   "metal": 0.0
+  },
+  "M_Bark": {
+   "color": [
+    0.1095,
+    0.0823,
+    0.0612
+   ],
+   "rough": 0.9,
+   "metal": 0.0
+  },
+  "M_BreezeBlock": {
+   "color": [
+    0.4851,
+    0.4564,
+    0.3916
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_BusShelter_Metal": {
+   "color": [
+    0.3663,
+    0.3916,
+    0.3813
+   ],
+   "rough": 0.45,
+   "metal": 0.7
+  },
+  "M_ChainLink": {
+   "color": [
+    0.0123,
+    0.0137,
+    0.013
+   ],
+   "rough": 0.5,
+   "metal": 0.6
+  },
+  "M_Cloth_Atlas": {
+   "color": [
+    0.6939,
+    0.6584,
+    0.5776
+   ],
+   "rough": 0.95,
+   "metal": 0.0
+  },
+  "M_Concrete_Bench": {
+   "color": [
+    0.624,
+    0.5841,
+    0.5029
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Concrete_Curb": {
+   "color": [
+    0.3864,
+    0.3613,
+    0.305
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Concrete_Soffit": {
+   "color": [
+    0.5089,
+    0.4621,
+    0.3763
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Context_Concrete": {
+   "color": [
+    0.624,
+    0.5841,
+    0.5089
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Context_Facade_B": {
+   "color": [
+    0.6724,
+    0.5457,
+    0.4793
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Context_Facade_C": {
+   "color": [
+    0.521,
+    0.5647,
+    0.5776
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Context_Glass": {
+   "color": [
+    0.0908,
+    0.1248,
+    0.1441
+   ],
+   "rough": 0.15,
+   "metal": 0.0
+  },
+  "M_Context_Roof": {
+   "color": [
+    0.2705,
+    0.2582,
+    0.2307
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Court_Line": {
+   "color": [
+    0.8148,
+    0.7835,
+    0.6724
+   ],
+   "rough": 0.8,
+   "metal": 0.0
+  },
+  "M_Court_Surface": {
+   "color": [
+    0.2747,
+    0.2918,
+    0.2502
+   ],
+   "rough": 0.9,
+   "metal": 0.0
+  },
+  "M_Dark_Void": {
+   "color": [
+    0.0194,
+    0.0203,
+    0.0185
+   ],
+   "rough": 1.0,
+   "metal": 0.0
+  },
+  "M_Frame_Green": {
+   "color": [
+    0.0284,
+    0.2542,
+    0.0595
+   ],
+   "rough": 0.4,
+   "metal": 0.3
+  },
+  "M_Glass_Library": {
+   "color": [
+    0.4851,
+    0.5647,
+    0.5395
+   ],
+   "rough": 0.35,
+   "metal": 0.0
+  },
+  "M_Glass_Residential": {
+   "color": [
+    0.0423,
+    0.0723,
+    0.0908
+   ],
+   "rough": 0.08,
+   "metal": 0.0
+  },
+  "M_GlassBlock": {
+   "color": [
+    0.4851,
+    0.624,
+    0.6038
+   ],
+   "rough": 0.2,
+   "metal": 0.0
+  },
+  "M_Grass": {
+   "color": [
+    0.159,
+    0.2542,
+    0.0908
+   ],
+   "rough": 1.0,
+   "metal": 0.0
+  },
+  "M_Ground_Dirt": {
+   "color": [
+    0.2664,
+    0.2582,
+    0.227
+   ],
+   "rough": 1.0,
+   "metal": 0.0
+  },
+  "M_Hall_Grey": {
+   "color": [
+    0.1022,
+    0.117,
+    0.1221
+   ],
+   "rough": 0.7,
+   "metal": 0.0
+  },
+  "M_Hall_RedTile": {
+   "color": [
+    0.3916,
+    0.0369,
+    0.0252
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_Hall_Stone": {
+   "color": [
+    0.3325,
+    0.3372,
+    0.314
+   ],
+   "rough": 0.7,
+   "metal": 0.0
+  },
+  "M_Hall_White": {
+   "color": [
+    0.7605,
+    0.7379,
+    0.6724
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Lamp_Globe": {
+   "color": [
+    0.9216,
+    0.8796,
+    0.7454
+   ],
+   "rough": 0.3,
+   "metal": 0.0
+  },
+  "M_Laundry_Pole": {
+   "color": [
+    0.2747,
+    0.2542,
+    0.2016
+   ],
+   "rough": 0.5,
+   "metal": 0.5
+  },
+  "M_Leaves": {
+   "color": [
+    0.32,
+    0.42,
+    0.22
+   ],
+   "rough": 0.8,
+   "metal": 0.0
+  },
+  "M_Lib_Cream": {
+   "color": [
+    0.7157,
+    0.624,
+    0.4452
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Lib_GreenMetal": {
+   "color": [
+    0.0423,
+    0.1248,
+    0.0742
+   ],
+   "rough": 0.45,
+   "metal": 0.6
+  },
+  "M_Lib_GreenPlinth": {
+   "color": [
+    0.0356,
+    0.0953,
+    0.0685
+   ],
+   "rough": 0.8,
+   "metal": 0.0
+  },
+  "M_Lib_Sign": {
+   "color": [
+    0.0284,
+    0.1095,
+    0.0648
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_Lib_YellowTile": {
+   "color": [
+    0.6724,
+    0.4564,
+    0.1144
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_Metal_Awning": {
+   "color": [
+    0.2542,
+    0.2747,
+    0.2542
+   ],
+   "rough": 0.5,
+   "metal": 0.6
+  },
+  "M_Metal_BalconyRail": {
+   "color": [
+    0.0242,
+    0.0369,
+    0.0319
+   ],
+   "rough": 0.5,
+   "metal": 0.6
+  },
+  "M_Metal_CreamRail": {
+   "color": [
+    0.7758,
+    0.7231,
+    0.6038
+   ],
+   "rough": 0.45,
+   "metal": 0.3
+  },
+  "M_Metal_Gate": {
+   "color": [
+    0.1529,
+    0.1651,
+    0.15
+   ],
+   "rough": 0.4,
+   "metal": 0.8
+  },
+  "M_Metal_KerbRail": {
+   "color": [
+    0.0176,
+    0.0648,
+    0.0437
+   ],
+   "rough": 0.45,
+   "metal": 0.5
+  },
+  "M_Metal_Pipe": {
+   "color": [
+    0.0423,
+    0.0467,
+    0.0452
+   ],
+   "rough": 0.4,
+   "metal": 0.8
+  },
+  "M_Metal_Railing": {
+   "color": [
+    0.6308,
+    0.6038,
+    0.5395
+   ],
+   "rough": 0.45,
+   "metal": 0.4
+  },
+  "M_Metal_StreetPole": {
+   "color": [
+    0.2542,
+    0.2747,
+    0.2623
+   ],
+   "rough": 0.5,
+   "metal": 0.7
+  },
+  "M_Metal_WindowBars": {
+   "color": [
+    0.0452,
+    0.0497,
+    0.0482
+   ],
+   "rough": 0.45,
+   "metal": 0.6
+  },
+  "M_Mosaic_Red": {
+   "color": [
+    0.4621,
+    0.0382,
+    0.0273
+   ],
+   "rough": 0.4,
+   "metal": 0.0
+  },
+  "M_Mosaic_Yellow": {
+   "color": [
+    0.7605,
+    0.6514,
+    0.3231
+   ],
+   "rough": 0.45,
+   "metal": 0.0
+  },
+  "M_Paint_Green": {
+   "color": [
+    0.0782,
+    0.2542,
+    0.1329
+   ],
+   "rough": 0.8,
+   "metal": 0.0
+  },
+  "M_Paving_Courtyard": {
+   "color": [
+    0.3864,
+    0.3763,
+    0.3372
+   ],
+   "rough": 0.9,
+   "metal": 0.0
+  },
+  "M_Paving_Sidewalk": {
+   "color": [
+    0.5089,
+    0.4735,
+    0.402
+   ],
+   "rough": 0.9,
+   "metal": 0.0
+  },
+  "M_Planter_Tile": {
+   "color": [
+    0.2542,
+    0.0685,
+    0.0356
+   ],
+   "rough": 0.6,
+   "metal": 0.0
+  },
+  "M_Plaster_Arcade": {
+   "color": [
+    0.6445,
+    0.5776,
+    0.4508
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Plaster_Brick": {
+   "color": [
+    0.305,
+    0.1095,
+    0.0685
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Plaster_Green": {
+   "color": [
+    0.2122,
+    0.3095,
+    0.2086
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Plaster_Ground": {
+   "color": [
+    0.5841,
+    0.5149,
+    0.3916
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Plaster_Red": {
+   "color": [
+    0.4072,
+    0.147,
+    0.0908
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Plaster_White": {
+   "color": [
+    0.7157,
+    0.6724,
+    0.5841
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Plaster_Yellow": {
+   "color": [
+    0.521,
+    0.3663,
+    0.1301
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Play_Blue": {
+   "color": [
+    0.0423,
+    0.1356,
+    0.3467
+   ],
+   "rough": 0.4,
+   "metal": 0.3
+  },
+  "M_Play_Red": {
+   "color": [
+    0.4793,
+    0.063,
+    0.0423
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_Play_Rubber": {
+   "color": [
+    0.0284,
+    0.0319,
+    0.0307
+   ],
+   "rough": 0.95,
+   "metal": 0.0
+  },
+  "M_Play_Timber": {
+   "color": [
+    0.2542,
+    0.1274,
+    0.0513
+   ],
+   "rough": 0.8,
+   "metal": 0.0
+  },
+  "M_PostOffice_Red": {
+   "color": [
+    0.4508,
+    0.0144,
+    0.0137
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_PostOffice_Sign": {
+   "color": [
+    0.4508,
+    0.0144,
+    0.0137
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_Road_Paint": {
+   "color": [
+    0.807,
+    0.7913,
+    0.7157
+   ],
+   "rough": 0.7,
+   "metal": 0.0
+  },
+  "M_Rock": {
+   "color": [
+    0.2384,
+    0.227,
+    0.1946
+   ],
+   "rough": 0.9,
+   "metal": 0.0
+  },
+  "M_Roof_Screed": {
+   "color": [
+    0.5029,
+    0.4793,
+    0.4233
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Roof_Tank": {
+   "color": [
+    0.624,
+    0.6445,
+    0.6308
+   ],
+   "rough": 0.35,
+   "metal": 0.8
+  },
+  "M_RoofTile_Terracotta": {
+   "color": [
+    0.6584,
+    0.1714,
+    0.0284
+   ],
+   "rough": 0.7,
+   "metal": 0.0
+  },
+  "M_Sand": {
+   "color": [
+    0.6724,
+    0.5457,
+    0.2831
+   ],
+   "rough": 1.0,
+   "metal": 0.0
+  },
+  "M_Shop_Glass": {
+   "color": [
+    0.0331,
+    0.0545,
+    0.0685
+   ],
+   "rough": 0.08,
+   "metal": 0.0
+  },
+  "M_Shop_Interior": {
+   "color": [
+    0.0232,
+    0.0273,
+    0.0252
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Shop_Shutter": {
+   "color": [
+    0.2747,
+    0.2831,
+    0.2623
+   ],
+   "rough": 0.45,
+   "metal": 0.7
+  },
+  "M_Shop_Shutter_Green": {
+   "color": [
+    0.0931,
+    0.162,
+    0.1144
+   ],
+   "rough": 0.45,
+   "metal": 0.6
+  },
+  "M_Shop_Shutter_Pale": {
+   "color": [
+    0.4793,
+    0.491,
+    0.4508
+   ],
+   "rough": 0.45,
+   "metal": 0.6
+  },
+  "M_Sign_Atlas": {
+   "color": [
+    0.6867,
+    0.6308,
+    0.5271
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_Sign_Black": {
+   "color": [
+    0.0137,
+    0.0137,
+    0.0123
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_Sign_Blue": {
+   "color": [
+    0.0123,
+    0.0762,
+    0.2747
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_Sign_Purple": {
+   "color": [
+    0.0437,
+    0.0284,
+    0.1559
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_Sign_White": {
+   "color": [
+    0.9131,
+    0.8796,
+    0.7913
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_Sign_Yellow": {
+   "color": [
+    0.8879,
+    0.6445,
+    0.0452
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_SlabEdge_Brick": {
+   "color": [
+    0.3467,
+    0.1248,
+    0.0762
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_SlabEdge_Green": {
+   "color": [
+    0.2423,
+    0.3515,
+    0.2384
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_SlabEdge_Red": {
+   "color": [
+    0.4621,
+    0.1651,
+    0.1022
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_SlabEdge_Yellow": {
+   "color": [
+    0.5906,
+    0.4179,
+    0.147
+   ],
+   "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Soil": {
+   "color": [
+    0.0685,
+    0.0437,
+    0.0252
+   ],
+   "rough": 1.0,
+   "metal": 0.0
+  },
+  "M_Steel_Black": {
+   "color": [
+    0.016,
+    0.0185,
+    0.0176
+   ],
+   "rough": 0.5,
+   "metal": 0.6
+  },
+  "M_Tile_Dado": {
+   "color": [
+    0.4851,
+    0.3968,
+    0.2623
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_Tile_Deck": {
+   "color": [
+    0.5089,
+    0.4735,
+    0.3813
+   ],
+   "rough": 0.7,
+   "metal": 0.0
+  },
+  "M_Tile_Maroon": {
+   "color": [
+    0.1441,
+    0.0242,
+    0.0194
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_Tile_White": {
+   "color": [
+    0.7758,
+    0.7529,
+    0.6867
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_TrafficLight_Box": {
+   "color": [
+    0.0116,
+    0.0123,
+    0.0123
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_TrafficLight_Green": {
+   "color": [
+    0.0497,
+    0.7454,
+    0.2542
+   ],
+   "rough": 0.3,
+   "metal": 0.0
+  },
+  "M_TrafficLight_Red": {
+   "color": [
+    0.1022,
+    0.0075,
+    0.006
+   ],
+   "rough": 0.3,
+   "metal": 0.0
+  },
+  "M_Water_Pond": {
+   "color": [
+    0.0497,
+    0.1119,
+    0.0953
+   ],
+   "rough": 0.05,
+   "metal": 0.0
+  },
+  "M_WindowFrame": {
+   "color": [
+    0.6939,
+    0.6584,
+    0.5776
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_Wood_Door": {
+   "color": [
+    0.1022,
+    0.0612,
+    0.0319
+   ],
+   "rough": 0.6,
+   "metal": 0.0
+  }
+ },
+ "files": [
+  {
+   "family": "SM_Courtyard",
+   "glb": "SM_Courtyard.glb",
+   "bytes": 305272,
+   "packed": "SM_Courtyard.glb.json",
+   "packed_bytes": 407096
+  },
+  {
+   "family": "SM_Estate_BACK",
+   "glb": "SM_Estate_BACK.glb",
+   "bytes": 1538616,
+   "packed": "SM_Estate_BACK.glb.json",
+   "packed_bytes": 2051554
+  },
+  {
+   "family": "SM_Estate_FRONT",
+   "glb": "SM_Estate_FRONT.glb",
+   "bytes": 1571700,
+   "packed": "SM_Estate_FRONT.glb.json",
+   "packed_bytes": 2095667
+  },
+  {
+   "family": "SM_Estate_NW",
+   "glb": "SM_Estate_NW.glb",
+   "bytes": 3202292,
+   "packed": "SM_Estate_NW.glb.json",
+   "packed_bytes": 4269788
+  },
+  {
+   "family": "SM_Estate_SE",
+   "glb": "SM_Estate_SE.glb",
+   "bytes": 3296344,
+   "packed": "SM_Estate_SE.glb.json",
+   "packed_bytes": 4395192
+  },
+  {
+   "family": "SM_Estate_SlopeBlocks",
+   "glb": "SM_Estate_SlopeBlocks.glb",
+   "bytes": 1080268,
+   "packed": "SM_Estate_SlopeBlocks.glb.json",
+   "packed_bytes": 1440433
+  },
+  {
+   "family": "SM_Galleries_Bridges",
+   "glb": "SM_Galleries_Bridges.glb",
+   "bytes": 503436,
+   "packed": "SM_Galleries_Bridges.glb.json",
+   "packed_bytes": 671320
+  },
+  {
+   "family": "SM_Ground_Far",
+   "glb": "SM_Ground_Far.glb",
+   "bytes": 1408,
+   "packed": "SM_Ground_Far.glb.json",
+   "packed_bytes": 1945
+  },
+  {
+   "family": "SM_Ground_Streets",
+   "glb": "SM_Ground_Streets.glb",
+   "bytes": 404132,
+   "packed": "SM_Ground_Streets.glb.json",
+   "packed_bytes": 538913
+  },
+  {
+   "family": "SM_Library",
+   "glb": "SM_Library.glb",
+   "bytes": 320652,
+   "packed": "SM_Library.glb.json",
+   "packed_bytes": 427598
+  },
+  {
+   "family": "SM_Shrubs",
+   "glb": "SM_Shrubs.glb",
+   "bytes": 73964,
+   "packed": "SM_Shrubs.glb.json",
+   "packed_bytes": 98681
+  },
+  {
+   "family": "SM_SportsHall_Simple",
+   "glb": "SM_SportsHall_Simple.glb",
+   "bytes": 877756,
+   "packed": "SM_SportsHall_Simple.glb.json",
+   "packed_bytes": 1170416
+  },
+  {
+   "family": "SM_Trees",
+   "glb": "SM_Trees.glb",
+   "bytes": 247416,
+   "packed": "SM_Trees.glb.json",
+   "packed_bytes": 329948
+  }
+ ]
+}

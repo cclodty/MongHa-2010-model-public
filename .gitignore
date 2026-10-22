@@ -1,0 +1,34 @@
+# ---- never in the repository -------------------------------------------------------------------------------
+# reference photos and notes about them (residents' and third-party photos: reference only, not ours to publish)
+refs/
+GOAL_社屋細節還原.md
+# renders and comparisons (several overlay images contain the reference photos), backups, local tools
+export/*
+!export/cams/
+!export/markers.json
+!export/sky.json
+!export/cloth_cells.json
+!export/camsolve.json
+backups/
+.claude/
+__pycache__/
+*.pyc
+*.bak
+*.bak?
+*.bak_*
+*.blend1
+_dbg*
+
+# CC0 downloads from Poly Haven: fetch them again (see cc0/README.md)
+cc0/*
+!cc0/README.md
+
+# Unreal project: only the project file, its config and the editor bridge script are ours to share;
+# Content holds Fab / Quixel assets (licensed per user) and generated .uasset files (rebuilt by tools/ue_*.py)
+MongHa2010/*
+!MongHa2010/MongHa2010.uproject
+!MongHa2010/Config/
+!MongHa2010/Content/
+MongHa2010/Content/*
+!MongHa2010/Content/Python/
+MongHa2010/Config/DefaultEditorPerProjectUserSettings.ini

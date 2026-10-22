@@ -1,0 +1,27 @@
+{
+ "source": "Poly Haven kloofendal_48d_partly_cloudy_puresky (CC0)",
+ "sun_dir_site": [
+  0.5378,
+  0.7415,
+  -0.401
+ ],
+ "sun_dir_blender": [
+  0.5378444537755476,
+  0.4010361388500965,
+  0.7415479477950764
+ ],
+ "sun_strength": 5.0,
+ "sun_color": [
+  0.9927,
+  1.0,
+  0.9093
+ ],
+ "sun_elevation_deg": 47.87,
+ "web_sky_K": 2.3855,
+ "horizon_rgb_web": [
+  0.1615,
+  0.1689,
+  0.2056
+ ],
+ "hdri_scale": 1.1210260890919777
+}
