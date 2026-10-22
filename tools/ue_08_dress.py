@@ -141,7 +141,7 @@ if CAR:
 POT = load('/Game/Fab/_FREE__Pothos_Potted_Plant_-_Money_Plant/free_pothos_potted_plant_money_plant/StaticMeshes/free_pothos_potted_plant_money_plant')
 if POT:
     n_pot = 0
-    for x0, z in [(62.7, z) for z in range(18, 116, 5)] + [(103.3, z) for z in range(18, 116, 5)]:
+    for x0, z in [(69.7, z) for z in range(25, 123, 5)] + [(110.3, z) for z in range(25, 123, 5)]:   # courtyard faces
         x = x0 + rng.uniform(-0.15, 0.15)
         z = z + rng.uniform(-1, 1)
         hit = trace(ue(x, 5.2, z), ue(x, 2.5, z))

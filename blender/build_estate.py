@@ -88,13 +88,15 @@ scene.unit_settings.system = 'METRIC'
 scene.unit_settings.scale_length = 1.0
 
 # ------------------------------------------------------------------ dimensions & layout (same as the web model)
-D, HZ, GF, FH, NF = 10.0, 5.0, 3.8, 2.9, 6
+D, HZ, GF, FH, NF = 17.0, 8.5, 3.8, 2.9, 6   # block depth: MH001 camera solve (2026-10-23), was 10 m
 ROOF = GF + FH * NF
 PAR = 1.4
 TOP = ROOF + PAR
 RFS = TOP - 0.6     # finished roof surface: the parapet stands 0.6 m above it (MH001)
 JW, ARC, GW, SAW, LOG = 4.2, 2.6, 3.0, 1.3, 1.1
-EX0, EX1, EZ0, EZ1 = 52.0, 114.0, 3.0, 129.0   # courtyard 42 x 106 m (camera solve + OSM lot)
+COURT_W, COURT_L = 42.0, 106.0                  # courtyard face to face (photo 14 camera solve + OSM lot)
+EX0, EZ0 = 52.0, 3.0                            # lane by the sports hall; avenue building line
+EX1, EZ1 = EX0 + 2 * D + COURT_W, EZ0 + 2 * D + COURT_L
 CX0, CX1, CZ0, CZ1 = EX0 + D, EX1 - D, EZ0 + D, EZ1 - D
 
 
@@ -116,7 +118,7 @@ Y, G, K, R = 'yellow', 'green', 'brick', 'red'
 # (from the top of the steps) and the aerial MH001: they stand south-east of the 利誠 side street on the raised ground and
 # face the level top of 馬交石斜坡 across a paved forecourt. Seen from the street, north-west first: block A green |
 # yellow | yellow | yellow, a white stair tower with a breeze-block strip, block B green | red-brown. Bays ~5 m (MH068).
-HILL = dict(x0=121.5, x1=121.5 + 6 * 5.0 + JW, zf=127.0, y0=3.0)   # x0/x1 north-west / south-east ends, zf street face (MH006 camera)
+HILL = dict(x0=EX1 + 7.5, x1=EX1 + 7.5 + 6 * 5.0 + JW, zf=EZ1 - 2.0, y0=3.0)   # x0/x1 NW / SE ends, zf street face (MH006 camera)
 ROWS = [
     # per-bay colours, listed in each row's own direction. Back row's south-east end red-brown (MH033). Front row from photos (NW end red-brown then yellow, MH007 and
     # photo 21; red-brown over the post office corner, MH022); the other rows follow the same grammar (MH002, MH005, MH080),
@@ -159,20 +161,20 @@ HILL_BW = ROWS[4]['bw']
 HX = [HILL['x0'] + (k + 0.5) * HILL_BW + (JW if k > 3 else 0) for k in range(6)]
 OPEN_SHOPS.update({k: (HX[i], HILL['zf'], c) for i, (k, c) in enumerate((('mhfood', 0), ('kamfu', 1), ('hill3', None),
                                                                          ('hill4', None), ('hill5', None), ('maria', 2)))})
-FRONT_TREES = [(61.0, -1.5, 2.0), (72.5, -1.5, 3.0), (92.0, -1.5, 1.9), (109.0, -1.5, 2.0)]   # avenue frontage, photos 21, 22
+FRONT_TREES = [(EX0 + f * (EX1 - EX0), -1.5, r) for f, r in ((0.145, 2.0), (0.33, 3.0), (0.645, 1.9), (0.92, 2.0))]   # photos 21, 22
 SHOP_LOOK = {'shoes': (1, None), 'lisheng': (3, 'canvas'), 'lisheng2': (3, 'awninggreen'), 'mhfood': (6, 'awning'), 'kamfu': (6, None), 'hill3': (3, None),
              'hill4': (3, 'awninggreen'), 'hill5': (3, 'canvasred'), 'maria': (7, None)}   # board colour (MAT['signs'] index), awning
 REC = 1.6   # depth of the covered recess at the two ends of the frontage
 LX, LZ = (CX0 + CX1) / 2, (CZ0 + CZ1) / 2
 CAGE = dict(x0=LX - 9, x1=LX + 9, z0=CZ0 + GW + 3.5, z1=CZ0 + GW + 29.5, h=6.0)   # long axis along z (user, round 4)
-HALL = dict(x0=6.0, x1=EX0 - 8.0, z0=EZ0 + 2.0, zr=111.0, z1=EZ1 + 2.5, h=11.4)   # 2026-10-22 photos, see build_hall
-SLOPE = dict(x0=116.0, x1=172.0, z0=96.0, z1=141.0)
+HALL = dict(x0=6.0, x1=EX0 - 8.0, z0=EZ0 + 2.0, zr=EZ1 - 18.0, z1=EZ1 + 2.5, h=11.4)   # 2026-10-22 photos, see build_hall
+SLOPE = dict(x0=EX1 + 2.0, x1=EX1 + 58.0, z0=EZ1 - 33.0, z1=EZ1 + 12.0)
+SIDE_X1 = EX1 + 7.0   # the 利誠 side street runs between the south-east row (x = EX1) and the raised ground at x = SIDE_X1
 # back street (user, 2026-10-22, street photo): it climbs from the north-west back corner (by the nursery) to the south-east
 # back corner (by 利誠), where steps lead down to the 利誠 side street. A granite retaining wall with a railing runs between
 # the pavement and a sunken planted strip along the back of the blocks, so the rising street hides their lower floors.
-BACK = dict(x_lo=EX0 - 2.0, x_hi=121.0, H=HILL['y0'], strip=EZ1 + 4.0, wall=EZ1 + 4.6, kerb=EZ1 + 7.5, far=EZ1 + 15.5,
+BACK = dict(x_lo=EX0 - 2.0, x_hi=SIDE_X1, H=HILL['y0'], strip=EZ1 + 4.0, wall=EZ1 + 4.6, kerb=EZ1 + 7.5, far=EZ1 + 15.5,
             far_kerb=EZ1 + 18.5, end=EZ1 + 31.0)
-SIDE_X1 = 121.0   # the 利誠 side street runs between the south-east row (x = EX1) and the raised ground at x = SIDE_X1
 
 
 def back_h(x):
@@ -769,12 +771,14 @@ def build_block(mb, row, it):
     vr = random.Random(ROW_SEED[row['id']] * 1000 + int(x0 * 10))
     for i in range(n):
         xa_, xb_ = x0 + i * bw + 0.7, x0 + (i + 1) * bw - 0.7
-        posts = [(vr.uniform(xa_, xb_), 2.6 + vr.uniform(-0.45, 0.3))]
+        posts = [(vr.uniform(xa_, xb_), HZ - 2.4 + vr.uniform(-0.45, 0.3))]                 # courtyard side
+        if vr.random() < 0.4:
+            posts.append((vr.uniform(xa_, xb_), vr.uniform(0.3, 1.6)))                      # middle
         if vr.random() < 0.3:
-            posts.append((vr.uniform(xa_, xb_), -2.6 + vr.uniform(-0.3, 0.45)))
+            posts.append((vr.uniform(xa_, xb_), -(HZ - 2.4) + vr.uniform(-0.3, 0.45)))     # street side
         for xp, zp in posts:
             box(mb, fr, xp - 0.28, xp + 0.28, RFS, RFS + vr.uniform(1.0, 1.3), zp - 0.28, zp + 0.28, MAT['white'])
-    box(mb, fr, x0, x1, RFS, RFS + 0.03, -1.56, -1.44, MAT['mred'])
+    box(mb, fr, x0, x1, RFS, RFS + 0.03, -0.3 * HZ - 0.06, -0.3 * HZ + 0.06, MAT['mred'])
     # open-topped square enclosure in the middle of each block, walls with posts at the corners and a cross wall (MH001)
     xm, ex, ez, zc_, hw = (x0 + x1) / 2, 1.6, 1.45, -0.5, RFS + 1.25
     for xa_, xb_, za_, zb_ in ((xm - ex, xm + ex, zc_ - ez, zc_ - ez + 0.18), (xm - ex, xm + ex, zc_ + ez - 0.18, zc_ + ez),
@@ -1505,7 +1509,7 @@ def build_ground(mb):
         cylx(mb, f0, xh, xh + 1.2, ym + 0.98, zr, 0.03, 8, MAT['kerbrail'])
         cylx(mb, f0, xh, xh + 1.2, ym + 0.55, zr, 0.025, 8, MAT['kerbrail'])
         xh += 1.65
-    for xl in (EX0 + 14.0, EX0 + 44.0):                                       # street lamps on the back pavement
+    for xl in [EX0 + 14.0 + 30.0 * k for k in range(int((EX1 - EX0 - 10) / 30) + 1)]:   # street lamps, back pavement
         yb = back_h(xl) + 0.15
         zl = B['wall'] + 0.4
         cylv(mb, f0, xl, zl, yb, yb + 8.8, 0.1, 10, MAT['lamppole'], r1=0.065)
@@ -1562,7 +1566,7 @@ def build_ground(mb):
             box(mb, f0, xx - 0.27, xx + 0.27, 0.02, 0.036, z - 2.3, z + 2.3, MAT['paint'])
     # dark-green U-hoop barriers along the kerb (gaps at the zebra crossing, junction and bus stop)
     zr = -2.7
-    for xa, xb in ((-40, -12), (2, PASS_X - 5.4), (PASS_X + 5.4, 88), (96, 190)):
+    for xa, xb in ((-40, -12), (2, PASS_X - 5.4), (PASS_X + 13.0, 190)):
         xh = xa
         while xh + 1.2 <= xb:
             for xp in (xh, xh + 1.2):
@@ -1575,10 +1579,10 @@ def build_ground(mb):
         cylv(mb, f0, xl, zl, 0.15, 9.0, 0.1, 10, MAT['lamppole'], r1=0.065)
         beam(mb, (xl, 8.9, zl), (xl, 9.3, zl + sgn * 1.9), 0.07, MAT['lamppole'])
         box(mb, f0, xl - 0.17, xl + 0.17, 9.2, 9.38, zl + sgn * 1.8 - 0.38, zl + sgn * 1.8 + 0.38, MAT['lamppole'])
-    for tx, tz, _ in FRONT_TREES + [(101.0, -1.2, 2.2)]:   # raised concrete tree planters on the avenue pavement (photo 22)
+    for tx, tz, _ in FRONT_TREES:   # raised concrete tree planters on the avenue pavement (photo 22)
         box(mb, f0, tx - 0.85, tx + 0.85, 0.15, 0.62, tz - 0.55, tz + 0.55, {'py': MAT['soil'], 'ny': None, '*': MAT['curb']})
     # bus shelter (photos 21, 22): steel frame, glass back, flat roof, bench
-    bs = Fr((SHOES_X + ROWS[0]['bw'] + 0.7, 0.15, -1.6))   # in front of the bay south-east of 鞋宜樂, clear of the signal pole
+    bs = Fr((min(SHOES_X + ROWS[0]['bw'] + 0.7, PASS_X - 8.3), 0.15, -1.6))   # in front of the bay south-east of 鞋宜樂, clear of the signal pole
     for ex in (-1.9, 1.9):
         for ez in (-0.65, 0.65):
             box(mb, bs, ex - 0.05, ex + 0.05, 0, 2.45, ez - 0.05, ez + 0.05, MAT['shelter'])
@@ -1726,10 +1730,10 @@ def build_context(mb):
     for (x, w, d, hgt) in ((-70, 40, 30, 30), (-20, 36, 34, 42), (30, 44, 30, 36), (84, 40, 36, 48), (134, 36, 30, 32), (182, 40, 34, 40), (232, 44, 30, 28)):
         box(mb, f0, x, x + w, 0, hgt, -27 - d, -27, {'py': MAT['ctxroof'], '*': MAT[irng.choice(['ctx', 'ctxB', 'ctxC'])]})
     box(mb, f0, -37, -11, 0, 84, 1, 27, {'py': MAT['ctxroof'], '*': MAT['ctxB']})                       # 龍園
-    box(mb, f0, EX1 + 3, 163, 0, 14, 4, 67, {'py': MAT['ctxroof'], '*': MAT['ctx']})                    # 望善樓 podium
-    for (x, z, w, d) in ((140, 22, 34, 14), (139, 50, 30, 14)):
+    box(mb, f0, SIDE_X1 + 2, EX1 + 49, 0, 14, 4, 67, {'py': MAT['ctxroof'], '*': MAT['ctx']})            # 望善樓 podium
+    for (x, z, w, d) in ((EX1 + 26, 22, 34, 14), (EX1 + 25, 50, 30, 14)):
         box(mb, f0, x - w / 2, x + w / 2, 14, 100, z - d / 2, z + d / 2, {'py': MAT['ctxroof'], '*': MAT['ctxC']})
-    for (x, z) in ((78, 172), (111, 170), (112, 205), (80, 207)):         # 新益花園
+    for (x, z) in ((LX - 5, EZ1 + 43), (LX + 28, EZ1 + 41), (LX + 29, EZ1 + 76), (LX - 3, EZ1 + 78)):   # 新益花園
         cylv(mb, Fr((x, 0, z)), 0, 0, 0, 76, 12, 8, MAT['ctx'], phase=OCT)
 
 
@@ -1772,7 +1776,8 @@ for rid in ('front', 'back'):   # the end rows' outer ends face the side streets
         for f in range(NF):
             y = GF + FH * f
             ribbon = rid == 'front' and sgn == 1 and f == 0   # post office's first floor (MH022)
-            for zl in (-2.4, 0.0, 2.4):
+            nwin = max(3, int((2 * HZ - 2.4) / 2.6) + 1)
+            for zl in [-(HZ - 1.6) + k * (2 * HZ - 3.2) / (nwin - 1) for k in range(nwin)]:
                 xw = zl * (1 if ex.dot(fr.ez) > 0 else -1)
                 window(SCRATCH if ribbon else ROW_MB[rid], ef, xw - 0.6, xw + 0.6, y + 0.95, y + 2.25, 0.0, bars=irng.random() < 0.3)
             if ribbon:   # red-framed band of windows over the post office, same span as its glazing below
@@ -1833,15 +1838,15 @@ print('FACES', json.dumps(stats))
 # courtyard: young trees in the planters (1990s photo); the big canopy of the 2000s is left out on purpose
 trees = list(YOUNG_TREES)
 SPECIES = [('feathery', 'broad', 'bauhinia')[i % 3] for i in range(len(trees))]
-trees += [(x, -1.2, 2.2) for x in (-30, -18, 12, 26, 40, 101, 124, 150, 176)]
-trees += [(2.4, z, 2.0) for z in range(50, 140, 9)]
+trees += [(x, -1.2, 2.2) for x in (-30, -18, 12, 26, 40, 150, 176) if not EX0 - 2 < x < EX1 + 2]
+trees += [(2.4, z, 2.0) for z in range(50, int(EZ1) + 8, 9)]
 for _ in range(78):   # 26 garden trees used to stand where the full-length hall now is; keep the shared stream in step
     rnd.random()
 for _ in range(66):   # the old back-garden trees used 66 draws; keep the shared stream where it was
     rnd.random()
 _brng = random.Random(129)
 trees += [(EX0 + 5 + 7.4 * k + _brng.uniform(-1.2, 1.2), EZ1 + 2.0 + _brng.uniform(-0.4, 0.4), 2.0 + _brng.random() * 0.7)
-          for k in range(8)]   # trees in the sunken strip behind the blocks, growing up past the wall (street photo)
+          for k in range(int((EX1 - EX0 - 8) / 7.4) + 1)]   # trees in the sunken strip behind the blocks, growing up past the wall (street photo)
 views = {
     'courtyard_aerial': dict(p=(LX - 8, 125, CZ1 + 48), t=(LX, 0, CZ0 + 42), fov=46),
     'court_1990': dict(p=(LX + 1.4, 26.2, LZ + 53.1), t=(LX + 0.7, 11.1, LZ + 27.2), fov=56.7),   # solved camera of photo 14
@@ -1849,6 +1854,7 @@ views = {
     'library': dict(p=(LX - 14, 1.7, LIB_Z - 11), t=(LX, 6.0, LIB_Z), fov=60),
     'gallery_deck': dict(p=(CX1 - 1.5, GF + 1.6, LZ + 40), t=(LX, GF + 2, LZ + 5), fov=62),
     'hall_corner': dict(p=(-14, 1.7, -16), t=(22, 7, 14), fov=62),
+    'hill_food': dict(p=(HILL['x0'] - 1.5, 4.7, HILL['zf'] + 7.8), t=(HILL['x0'] + 10.5, 8.5, HILL['zf'] - 3.0), fov=64),   # MH006
 }
 trees += FRONT_TREES
 trees += [(MKS['x1'] + 1.4, MKS['zf'] + 0.4, 1.8)]   # the young tree beside the 馬交石 (MH078)

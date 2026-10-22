@@ -74,7 +74,7 @@ SPLIT = [load('/Game/StaticMeshes/SM_OldConditioner'), load('/Game/StaticMeshes/
 n_ac = 0
 for i, a in enumerate(M['ac']):
     x, y, z = a['p']
-    if not (50 <= x <= 116 and 1.5 <= z <= 131):   # hillside blocks are not in the Unreal model
+    if not (50 <= x <= 130 and 1.5 <= z <= 145):   # hillside blocks are not in the Unreal model (17 m blocks, 2026-10-23)
         continue
     ox, oz = a['out'][0], a['out'][2]
     yaw = yaw_for(ox, oz) + rng.uniform(-1.2, 1.2)

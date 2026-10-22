@@ -25,12 +25,13 @@ ARGS = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 opt = {a.split('=', 1)[0]: (a.split('=', 1)[1] if '=' in a else True) for a in ARGS}
 
 # ---- model constants (blender/build_estate.py)
-EX0, EX1, EZ0, EZ1, HZ = 52.0, 114.0, 3.0, 129.0, 5.0
+EX0, EX1, EZ0, EZ1, HZ = 52.0, 128.0, 3.0, 143.0, 8.5   # 17 m deep blocks since 2026-10-23
 TOPC = 22.72                      # top of the parapet cap
 CAP = HZ + 0.6                    # cap edge, out from a row's centre line
-LX, LZ = 83.0, 66.0
+LX, LZ = 90.0, 73.0
+CI0, CI1 = EX0 + 2 * HZ + 0.6, EX1 - 2 * HZ - 0.6   # courtyard-side cap edges of the side rows
 OCT = math.pi / 8
-LIB_S = 0.8
+LIB_S = 0.705
 
 # ---- correspondences (pixel coordinates in the original 1445 x 1180 photo)
 # library column bases (k = 6, 7, 0 face the camera), apex (roof height less certain)
@@ -143,27 +144,30 @@ def outlines():
     for x, z in ((cx0, cz0), (cx1, cz0), (cx1, cz1), (cx0, cz1)):
         segs.append(([(x, 0, z), (x, Y, z)], (0.2, 1, 0.3)))
     # stair towers (joints): a cross on the roof at each one
-    bw_end = (62 - 2 * 4.2) / 13
+    bw_end = (EX1 - EX0 - 2 * 4.2) / 13
     for xc in (EX0 + 4 * bw_end + 2.1, EX1 - 4 * bw_end - 2.1):
         for zc in (EZ0 + HZ, EZ1 - HZ):
             segs.append(([(xc, Y + 2.5, zc - HZ), (xc, Y + 2.5, zc + HZ)], (0.2, 0.6, 1)))
-    bw_side = (106 - 3 * 4.2) / 24
+    bw_side = (EZ1 - EZ0 - 4 * HZ - 3 * 4.2) / 24
     for k in range(1, 4):
         zc = EZ0 + 2 * HZ + k * 6 * bw_side + (k - 0.5) * 4.2
         for xc in (EX0 + HZ, EX1 - HZ):
             segs.append(([(xc - HZ, Y + 2.5, zc), (xc + HZ, Y + 2.5, zc)], (0.2, 0.6, 1)))
     # library: column lines, eave octagon, apex
-    r_col, r_eave = 9.3 * LIB_S, 8.25 * LIB_S
+    r_col, r_eave = 9.3 * LIB_S, 9.2 * LIB_S
+    lx, lz = LX - 1.0, LZ + 8.2                       # library ring centre (build_estate LIB_X, LIB_Z)
+    ux, uz = lx - 2.0 * LIB_S, lz - 3.0 * LIB_S       # top floor and roof, off-centre (LIB_UP)
     for k in range(8):
         a = OCT + k * math.pi / 4
-        x, z = LX + math.sin(a) * r_col, LZ + math.cos(a) * r_col
+        x, z = lx + math.sin(a) * r_col, lz + math.cos(a) * r_col
         segs.append(([(x, 0, z), (x, 9.25, z)], (1, 0.3, 1)))
-    ring = [(LX + math.sin(OCT + k * math.pi / 4) * r_eave, 12.0, LZ + math.cos(OCT + k * math.pi / 4) * r_eave) for k in range(9)]
+    ring = [(ux + math.sin(OCT + k * math.pi / 4) * r_eave, 12.9, uz + math.cos(OCT + k * math.pi / 4) * r_eave) for k in range(9)]
     segs.append((ring, (1, 0.3, 1)))
     for k in range(8):
-        segs.append(([ring[k], (LX, 15.2, LZ)], (1, 0.3, 1)))
+        segs.append(([ring[k], (ux, 14.4, uz)], (1, 0.3, 1)))
     # caged court
-    c = (LX - 9, LX + 9, 13 + 3 + 3.5, 13 + 3 + 29.5)
+    cz0 = EZ0 + 2 * HZ + 3
+    c = (LX - 9, LX + 9, cz0 + 3.5, cz0 + 29.5)
     segs.append(([(c[0], 0, c[2]), (c[1], 0, c[2]), (c[1], 0, c[3]), (c[0], 0, c[3]), (c[0], 0, c[2])], (0.3, 1, 1)))
     return segs
 
@@ -217,22 +221,22 @@ if SHAPE:
     # inner edges z0c, z1c, the back row's street edge z_out, the library centre and column radius. x[9:15]
     NAMES += ['z0c', 'z1c', 'z_out', 'lib_x', 'lib_z', 'lib_r']
     if len(X0) == 9:
-        X0 = np.concatenate([X0, [13.6, 118.4, 129.6, LX, LZ, 9.3 * LIB_S]])
+        X0 = np.concatenate([X0, [EZ0 + 2 * HZ + 0.6, EZ1 - 2 * HZ - 0.6, EZ1 + 0.6, LX, LZ + 8.2, 9.3 * LIB_S]])
     _colS = lambda x, k: (x[12] + math.sin(OCT + k * math.pi / 4) * x[14], 0.0, x[13] + math.cos(OCT + k * math.pi / 4) * x[14])
     POINTS[:] = [(lambda x, k=k: _colS(x, k), q, 1.0) for k, q in ((6, (467.5, 772.5)), (7, (525.0, 781.0)), (0, (576.0, 760.0)))]
-    LINES[0] = (lambda x: ((83.0, TOPC, x[9]), (1, 0, 0)), LINES[0][1], LINES[0][2])
-    LINES[1] = (lambda x: ((103.4, TOPC, 66.0), (0, 0, 1)), LINES[1][1], LINES[1][2])
+    LINES[0] = (lambda x: ((LX, TOPC, x[9]), (1, 0, 0)), LINES[0][1], LINES[0][2])
+    LINES[1] = (lambda x: ((CI1, TOPC, LZ), (0, 0, 1)), LINES[1][1], LINES[1][2])
     BACK_DY = float(opt.get('--backdy', 0.0))   # test: back row taller (+2.9 = one more floor)
-    LINES[2] = (lambda x: ((83.0, TOPC + BACK_DY, x[10]), (1, 0, 0)), LINES[2][1], LINES[2][2])
-    LINES[3] = (lambda x: ((62.6, TOPC, 66.0), (0, 0, 1)), LINES[3][1], LINES[3][2])
-    LINES[4] = (lambda x: ((83.0, TOPC + BACK_DY, x[11]), (1, 0, 0)), LINES[4][1], LINES[4][2])
+    LINES[2] = (lambda x: ((LX, TOPC + BACK_DY, x[10]), (1, 0, 0)), LINES[2][1], LINES[2][2])
+    LINES[3] = (lambda x: ((CI0, TOPC, LZ), (0, 0, 1)), LINES[3][1], LINES[3][2])
+    LINES[4] = (lambda x: ((LX, TOPC + BACK_DY, x[11]), (1, 0, 0)), LINES[4][1], LINES[4][2])
     if opt.get('--outer'):   # outer (street-side) cap edges of the side rows, free x: x[15] NW, x[16] SE
         NAMES += ['x_nw_out', 'x_se_out']
         if len(X0) == 15:
-            X0 = np.concatenate([X0, [51.4, 114.6]])
-        LINES.append((lambda x: ((x[16], TOPC, 66.0), (0, 0, 1)), [(633, 238), (808, 346), (867, 375), (1033, 488), (1067, 508),
+            X0 = np.concatenate([X0, [EX0 - 0.6, EX1 + 0.6]])
+        LINES.append((lambda x: ((x[16], TOPC, LZ), (0, 0, 1)), [(633, 238), (808, 346), (867, 375), (1033, 488), (1067, 508),
                                                                   (1183, 575)], 1.0))
-        LINES.append((lambda x: ((x[15], TOPC, 66.0), (0, 0, 1)), [(40, 600), (65, 700), (90, 800), (140, 1000)], 0.6))
+        LINES.append((lambda x: ((x[15], TOPC, LZ), (0, 0, 1)), [(40, 600), (65, 700), (90, 800), (140, 1000)], 0.6))
 
 x = X0.copy()
 if opt.get('--solve'):

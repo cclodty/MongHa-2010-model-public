@@ -160,7 +160,7 @@ const VIEW_NAMES = { gallery_deck: '一樓走廊', court_1990: '1990年代舊相
 // the post office / nursery views went with those two shops (user, 2026-10-21)
 const EXTRA_VIEWS = {
   sports_hall: { p: [-18, 14, -10], t: [25, 4, 40], fov: 56 },   // from the 龍園 corner along 俾利喇街 (MH041, 2011)
-  hill_food: { p: [120, 4.7, 134.8], t: [132, 8.5, 124], fov: 64 },   // top of the 利誠 steps, the hillside shops (MH006, 2011)
+  hill_food: { p: [120, 4.7, 134.8], t: [132, 8.5, 124], fov: 64 },   // fallback for bakes made before it moved into markers.json
 };
 const START_VIEW = 'gallery_deck';   // the page opens on the first-floor gallery (user)
 
@@ -440,7 +440,7 @@ controls.maxDistance = 900;
 controls.addEventListener('change', () => (needs = true));
 const viewBtns = {};
 let tween = null;
-const ALL_VIEWS = Object.assign({}, manifest.views, EXTRA_VIEWS);
+const ALL_VIEWS = Object.assign({}, EXTRA_VIEWS, manifest.views);   // views baked into the manifest win
 function goView(key, instant = false) {
   const v = ALL_VIEWS[key];
   const p = new THREE.Vector3(...v.p), t = new THREE.Vector3(...v.t);
