@@ -132,16 +132,19 @@ ROWS = [
          items=[Bi(4, [K, Y, Y, Y]), Ji(), Bi(5, [Y, K, K, G, G], [2]), Ji(), Bi(4, [Y, Y, K, K])]),
     dict(id='back', o=(EX1, EZ1 - HZ), d=(-1, 0), L=EX1 - EX0, outer='street', gallery=True,
          items=[Bi(4, [K, K, Y, Y]), Ji(), Bi(5, [Y, R, R, G, G], [2]), Ji(), Bi(4, [Y, Y, K, K])]),
-    # NW row (user, 2026-10-23, photo 1 and MH001): no block in the two bays at the back end but a passage from the lane
-    # into the estate, and the first stair tower two bays nearer the back than first laid out. 'draws' is that first
-    # layout: the shared random streams are tuned to it, so it is drawn into the scratch mesh before the row is built.
+    # side rows (user, 2026-10-23, photo 1 and MH001): no block in the two bays at either end but a passage from the street
+    # into the estate, alike at all four corners, and the towers nearest the ends two bays nearer them than first laid out
+    # (the bays keep their colours). 'draws' is that first layout: the shared random streams are tuned to it, so it is
+    # drawn into the scratch mesh before the row is built.
     dict(id='nw', o=(EX0 + HZ, CZ1), d=(0, -1), L=CZ1 - CZ0, outer='street', gallery=True, gap=2,
-         items=[Gi(2), Bi(2, [Y, Y]), Ji(), Bi(8, [Y, K, K, G, Y, Y, K, K], [5]), Ji(), Bi(6, [K, K, G, Y, Y, G]), Ji(),
-                Bi(6, [R, R, Y, Y, G, G])],   # yellow, yellow | tower | yellow, brick, brick from photo 1
+         items=[Gi(2), Bi(2, [Y, Y]), Ji(), Bi(8, [Y, K, K, G, Y, Y, K, K], [5]), Ji(), Bi(8, [K, K, G, Y, Y, G, R, R]), Ji(),
+                Bi(2, [Y, Y]), Gi(2)],   # back end: yellow, yellow | tower | yellow, brick, brick from photo 1
          draws=[Bi(6, [Y, Y, G, G, K, K]), Ji(), Bi(6, [G, G, Y, Y, K, K], [3]), Ji(), Bi(6, [K, K, G, Y, Y, G]), Ji(),
                 Bi(6, [R, R, Y, Y, G, G])]),
-    dict(id='se', o=(EX1 - HZ, CZ0), d=(0, 1), L=CZ1 - CZ0, outer='street', gallery=True,
-         items=[Bi(6, [K, K, Y, Y, G, G]), Ji(), Bi(6, [G, G, Y, Y, K, K], [2]), Ji(), Bi(6, [G, Y, Y, R, R, G]), Ji(),
+    dict(id='se', o=(EX1 - HZ, CZ0), d=(0, 1), L=CZ1 - CZ0, outer='street', gallery=True, gap=2,
+         items=[Gi(2), Bi(2, [Y, Y]), Ji(), Bi(8, [G, G, G, G, Y, Y, K, K], [4]), Ji(), Bi(8, [G, Y, Y, R, R, G, G, G]), Ji(),
+                Bi(2, [K, K]), Gi(2)],
+         draws=[Bi(6, [K, K, Y, Y, G, G]), Ji(), Bi(6, [G, G, Y, Y, K, K], [2]), Ji(), Bi(6, [G, Y, Y, R, R, G]), Ji(),
                 Bi(6, [G, G, K, K, Y, Y])]),
     dict(id='slope1', o=(HILL['x1'], HILL['zf'] - HZ), d=(-1, 0), L=HILL['x1'] - HILL['x0'], outer='street', gallery=None,
          y0=HILL['y0'], items=[Bi(2, [K, G]), Ji(), Bi(4, [Y, Y, Y, G])]),   # listed from the south-east end
@@ -166,6 +169,8 @@ PASS_X = EX0 + ROWS[0]['items'][2]['x0'] + 2.5 * ROWS[0]['bw']
 SHOES_X = EX0 + ROWS[0]['items'][2]['x0'] + 0.5 * ROWS[0]['bw']
 OPEN_SHOPS = {'shoes': (SHOES_X, EZ0, 11), 'lisheng': (EX1, CZ1 - 0.5 * ROWS[3]['bw'], 3),
               'lisheng2': (EX1, CZ1 - 1.5 * ROWS[3]['bw'], None)}
+ROWS[3]['shops'] = {'lisheng': (EX1, CZ1 - 2.5 * ROWS[3]['bw'], 3),   # the back end of the south-east row is a passage now:
+                    'lisheng2': (EX1, CZ1 - 3.5 * ROWS[3]['bw'], None)}   # 利誠 in the last two bays before it
 # the hillside shops, north-west first (MH068, MH006): 望廈飲食 and 金富美食 (black boards, red characters), an eatery with
 # an unreadable pale board, a green canvas awning (MH033), a striped awning, Maria Beauty Center (purple board)
 HILL_BW = ROWS[4]['bw']
@@ -212,10 +217,10 @@ BRIDGE_Z = LIB_Z
 NWG, SEG = CX0 + GW, CX1 - GW          # inner edges of the side galleries
 GZ0, GZ1 = CZ0 + GW, CZ1 - GW          # inner edges of the end galleries
 STAIRS = [LZ + 29.0, LZ - 29.0]       # four U-stairs (photo 14: back pair 29 m behind the library)
-# the NW gallery's back stair stands in front of the NW row's first stair tower, and the playground in front of both
-# (photo 1): all three are two NW bays nearer the back than first laid out (user, 2026-10-23)
-BACK_SHIFT = 2 * ROWS[2]['bw']
-STAIRS_SIDE = {'nw': [STAIRS[0] + BACK_SHIFT, STAIRS[1]], 'se': STAIRS}
+# each stair stands in front of the side row's tower nearest its end, and the playground in front of the back pair
+# (photo 1): all of them two bays nearer the ends than first laid out, like the towers (user, 2026-10-23)
+END_SHIFT = 2 * ROWS[2]['bw']
+STAIRS = [STAIRS[0] + END_SHIFT, STAIRS[1] - END_SHIFT]
 ZC = HZ - 0.3                          # courtyard facade plane (row-local z)
 ZL = ZC - 1.3                          # back wall of the courtyard loggias
 
@@ -238,7 +243,7 @@ def special_bay(row, xl, bw):
         if xl > row['L'] - 3 * bw:
             return 'post', int((row['L'] - xl) // bw)
     g = row.get('gap', 0)
-    if row['id'] == 'nw' and g * bw <= xl < (g + 2) * bw:   # the NW row's first bays at the back (after the passage)
+    if row['id'] == 'nw' and g * bw <= xl < (g + 2) * bw:   # the NW row's first bays at the back, after the passage
         return 'nursery', int(xl // bw) - g
     if row['id'] == 'back' and xl > row['L'] - 2 * bw:   # and its glass-block windows turn the corner onto the back street (MH080)
         return 'nursery', 2 + int((row['L'] - xl) // bw)
@@ -822,6 +827,19 @@ def build_block(mb, row, it):
 
 
 # ------------------------------------------------------------------ stair towers, gables, corners
+def end_wall(mb, o, ez):
+    """White wall across a passage between blocks, facing ez, centred on site point o at ground level: small windows and floor
+    bands on every floor (MH001)."""
+    ez = Vector(ez)
+    ef = Fr(o, tuple(Vector((0, 1, 0)).cross(ez)), tuple(ez))
+    box(mb, ef, -HZ, HZ, GF - 0.3, ROOF, -0.2, 0.0, MAT['white'])
+    for f in range(NF):
+        y = GF + FH * f
+        for xw in [-(HZ - 1.6) + k * (2 * HZ - 3.2) / 4 for k in range(5)]:
+            window(mb, ef, xw - 0.6, xw + 0.6, y + 0.95, y + 2.25, 0.0, bars=irng.random() < 0.3)
+        box(mb, ef, -HZ, HZ, y - 0.1, y + 0.08, 0.0, 0.05, MAT['white'])
+
+
 def gable(mb, fr, w, base):
     """Arched gable facing local +z, front face at z=0, with the fan-light."""
     r = w / 2
@@ -1062,14 +1080,15 @@ def build_galleries(mb):
     box(mb, f0, SEG, CX1, GF - 0.3, GF, GZ0, GZ1, deck)
     parapet_run(mb, f0, NWG, SEG, GZ0 - 0.11, GF)
     parapet_run(mb, Fr((0, 0, 0), (-1, 0, 0), (0, 0, -1)), -SEG, -NWG, -(GZ1 + 0.11), GF)
-    for x, side in ((NWG - 0.11, 'nw'), (SEG + 0.11, 'se')):
-        zrun(mb, x, GZ0, GZ1, GF, [(BRIDGE_Z - 2.0, BRIDGE_Z + 2.0)] + [stair_flight_z(z) for z in STAIRS_SIDE[side]])
+    gaps = [(BRIDGE_Z - 2.0, BRIDGE_Z + 2.0)] + [stair_flight_z(z) for z in STAIRS]
+    zrun(mb, NWG - 0.11, GZ0, GZ1, GF, gaps)
+    zrun(mb, SEG + 0.11, GZ0, GZ1, GF, gaps)
     for x in [NWG + 0.5 + k * 4.4 for k in range(int((SEG - NWG) / 4.4) + 1)]:
         for z in (GZ0 - 0.4, GZ1 + 0.4):
             cylv(mb, f0, x, z, 0, GF - 0.3, 0.3, 16, MAT['mred'], caps=False)
     for z in [GZ0 + 2.2 + k * 4.4 for k in range(int((GZ1 - GZ0) / 4.4))]:
-        for x, side in ((NWG - 0.4, 'nw'), (SEG + 0.4, 'se')):
-            if all(abs(z - c) > 2.6 for c in [BRIDGE_Z] + STAIRS_SIDE[side]):
+        if all(abs(z - c) > 2.6 for c in [BRIDGE_Z] + STAIRS):
+            for x in (NWG - 0.4, SEG + 0.4):
                 cylv(mb, f0, x, z, 0, GF - 0.3, 0.3, 16, MAT['mred'], caps=False)
     for (x, z) in ((CX0, CZ0), (CX1, CZ0), (CX0, CZ1), (CX1, CZ1)):   # inner corners: close the facade slot
         sx, sz = (1 if x == CX0 else -1), (1 if z == CZ0 else -1)
@@ -1436,9 +1455,9 @@ PLANTERS[:2] = [(-5.8, 13.4, 'L', 4.4, 1.6, 315, True), (2.5, 13.95, 'L', 4.4, 1
 # playground has moved back. The planter photo 14 shows behind the sandpit would stand inside the moved playground:
 # left out until the user decides (drawn into the scratch mesh so the random stream stays in step)
 PLANTERS_GONE = {5}
-for i in (6, 7):   # the two planters either side of the playground's far end go back with it (the NW stair now stands
-    x, z, k, ln, w, r, t = PLANTERS[i]   # where the left one was)
-    PLANTERS[i] = (x, z + BACK_SHIFT, k, ln, w, r, t)
+for i, dz in ((6, END_SHIFT), (7, END_SHIFT), (12, -END_SHIFT), (13, -END_SHIFT)):   # the planters either side of the playground's
+    x, z, k, ln, w, r, t = PLANTERS[i]   # far end go back with it, and their mirror images in the front half forward (the stairs
+    PLANTERS[i] = (x, z + dz, k, ln, w, r, t)   # stand where the left ones were)
 DISCS = [(-5.9, 20.5), (5.9, 20.5), (-11.7, 9.3), (12.0, 8.4), (-11.7, -9.3), (12.0, -8.4)]
 LAMPS = [(9.0, 13.0), (-6.4, -9.4), (-10.6, -25.0), (10.6, -25.0)]   # the one at (-1.5, 36.4) stood in the moved playground
 
@@ -1471,7 +1490,7 @@ YOUNG_TREES = []
 def build_playground(mb):
     """Playground (photo 14, 1990s): sandpit with a yellow timber rail, tyre climber, two arched monkey bars, a double
     swing. By 2008-10 (photo 1) the same frames stand on black rubber safety tiles inside a timber edging, sandpit included."""
-    pz = LZ + BACK_SHIFT   # two NW bays further back than photo 14's sandpit (user, 2026-10-23, photo 1)
+    pz = LZ + END_SHIFT   # two bays further back than photo 14's sandpit (user, 2026-10-23, photo 1)
     pg = Fr((LX, 0, pz + 28.5)).sub(rot=math.pi / 4)
     f0 = Fr()
     for k in range(4):   # timber edging round the safety surface, 12 m side
@@ -1859,7 +1878,7 @@ ROW_MB = {r: MB(f'SM_Estate_{r.upper()}', C_EST) for r in ('front', 'back', 'nw'
 SCRATCH = MB('_scratch', C_MARK)   # never finished: geometry drawn here only keeps the random streams in step
 slope = MB('SM_Estate_SlopeBlocks', C_SLOPE)
 _irng_main = irng
-for row in ROWS:
+for ri, row in enumerate(ROWS):
     mb = slope if row['id'].startswith('slope') else ROW_MB[row['id']]
     irng = random.Random(2011) if mb is slope else _irng_main   # hillside edits leave the estate's draws alone
     if 'draws' in row:   # keep the shared streams where the first layout left them (its air-conditioner marks dropped)
@@ -1868,14 +1887,16 @@ for row in ROWS:
             (build_block if it['t'] == 'b' else build_joint)(SCRATCH, first, it)
         del AC_MARKS[n_ac:]
         streams = rnd, irng, REC_RNG, LEDGE_RNG
-        rnd, irng, REC_RNG, LEDGE_RNG = (random.Random(2023 + k) for k in range(4))
+        rnd, irng, REC_RNG, LEDGE_RNG = (random.Random(2023 + 10 * (ri - 2) + k) for k in range(4))
+        shops = {k: OPEN_SHOPS[k] for k in row.get('shops', {})}
+        OPEN_SHOPS.update(row.get('shops', {}))
     for it in row['items']:
         if it['t'] == 'b':
             build_block(mb, row, it)
         elif it['t'] == 'j':
             build_joint(mb, row, it)
     if 'draws' in row:
-        nw_streams = rnd, irng
+        OPEN_SHOPS.update(shops)
         rnd, irng, REC_RNG, LEDGE_RNG = streams
 hrow = ROWS[4]
 fr = hrow['fr']
@@ -1929,37 +1950,31 @@ for rid in ('front', 'back'):   # the end rows' outer ends face the side streets
             box(mb_, ef, ga - 0.2, HZ + 0.02, GF - 1.15, GF - 0.25, -0.05, 0.35, MAT['post'])
             mb_.poly([ef.p(ga, GF - 1.12, 0.36), ef.p(HZ - 0.2, GF - 1.12, 0.36), ef.p(HZ - 0.2, GF - 0.28, 0.36), ef.p(ga, GF - 0.28, 0.36)],
                      MAT['postsign'], uvs=[(0.01, 0.02), (0.99, 0.02), (0.99, 0.98), (0.01, 0.98)])
-row = ROWS[2]   # the NW block beside the passage: a white end wall with small windows and floor bands (MH001)
-it = next(i for i in row['items'] if i['t'] == 'b')
-fr = row['fr']
-ez = -fr.ex
-ef = Fr(fr.p(it['x0'], 0, 0), tuple(Vector((0, 1, 0)).cross(ez)), tuple(ez))
-_irng_keep, irng = irng, nw_streams[1]
-for f in range(NF):
-    y = GF + FH * f
-    for zl in [-(HZ - 1.6) + k * (2 * HZ - 4.2) / 4 for k in range(5)]:
-        window(ROW_MB['nw'], ef, zl - 0.6, zl + 0.6, y + 0.95, y + 2.25, 0.0, bars=irng.random() < 0.3)
-    box(ROW_MB['nw'], ef, -HZ, HZ, y - 0.1, y + 0.08, 0.0, 0.05, MAT['white'])
-bf = Fr((EX0 + HZ, 0, CZ1), (-1, 0, 0), (0, 0, -1))   # the back row's corner block across the passage: likewise
-box(ROW_MB['back'], bf, -HZ, HZ, GF - 0.3, ROOF, -0.2, 0.0, MAT['white'])
-for f in range(NF):
-    y = GF + FH * f
-    for zl in [-(HZ - 1.6) + k * (2 * HZ - 3.2) / 4 for k in range(5)]:
-        window(ROW_MB['back'], bf, zl - 0.6, zl + 0.6, y + 0.95, y + 2.25, 0.0, bars=irng.random() < 0.3)
-    box(ROW_MB['back'], bf, -HZ, HZ, y - 0.1, y + 0.08, 0.0, 0.05, MAT['white'])
+_irng_keep, irng = irng, random.Random(2051)   # the passages at the side rows' ends (user): white end walls either side
+for row in (ROWS[2], ROWS[3]):                  # with small windows and floor bands (MH001), on a stream of their own
+    fr = row['fr']
+    for k, it in enumerate(row['items']):
+        if it['t'] == 'g':
+            s_ = -1 if k == 0 else 1   # along the row, from the block to the passage
+            end_wall(ROW_MB[row['id']], fr.p(it['x1'] if k == 0 else it['x0'], 0, 0), fr.ex * s_)
+            xe = it['x0'] if k == 0 else it['x1']
+            end_row = 'back' if abs(fr.p(xe, 0, 0)[2] - CZ1) < 0.5 else 'front'
+            end_wall(ROW_MB[end_row], fr.p(xe, 0, 0), fr.ex * -s_)
 irng = _irng_keep
 gal = MB('SM_Galleries_Bridges', C_EST)
 build_galleries(gal)
-zp0 = CZ1 - row['gap'] * row['bw']   # the gallery crosses the passage: parapet on its open side, two posts under it
-zrun(gal, CX0 + 0.11, zp0, CZ1, GF)
-for zq in (zp0 + 0.5, CZ1 - 0.5):
-    cylv(gal, Fr(), CX0 + 0.4, zq, 0, GF - 0.3, 0.3, 16, MAT['mred'], caps=False)
+for row, xg in ((ROWS[2], CX0), (ROWS[3], CX1)):   # the gallery crosses each passage (user): parapet on its open side, posts
+    for it in row['items']:                        # under it
+        if it['t'] == 'g':
+            za, zb = sorted((row['fr'].p(it['x0'], 0, 0)[2], row['fr'].p(it['x1'], 0, 0)[2]))
+            zrun(gal, xg + (0.11 if xg == CX0 else -0.11), za, zb, GF)
+            for zq in (za + 0.5, zb - 0.5):
+                cylv(gal, Fr(), xg + (0.4 if xg == CX0 else -0.4), zq, 0, GF - 0.3, 0.3, 16, MAT['mred'], caps=False)
 APO = 9.35 * math.cos(OCT) * LIB_S
 build_bridge(gal, NWG, LIB_X - APO, BRIDGE_Z)
 build_bridge(gal, LIB_X + APO, SEG, BRIDGE_Z)
-for z in STAIRS_SIDE['nw']:
+for z in STAIRS:
     build_stair_u(gal, NWG, z, 1)
-for z in STAIRS_SIDE['se']:
     build_stair_u(gal, SEG, z, -1)
 lib = MB('SM_Library', C_LIB)
 _n_shrubs = len(SHRUBS)
