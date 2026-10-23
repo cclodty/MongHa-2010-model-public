@@ -1451,15 +1451,18 @@ PLANTERS = _BACK + [(x, -z, k, ln, w, 90 - r if k == 'L' else -r, t) for (x, z, 
 # the two chevron seats behind the library turned round, opening away from it, and ~2 m further back (user, 2026-10-23;
 # MH001). Same entries in the same order, so the shared random stream is drawn as before.
 PLANTERS[:2] = [(-5.8, 13.4, 'L', 4.4, 1.6, 315, True), (2.5, 13.95, 'L', 4.4, 1.6, 315, True)]
+# the front pair turned round too (user, 2026-10-23), in place about the middle of the L: all four now open away from
+# the library
+PLANTERS[8:10] = [(-5.8, -10.92, 'L', 4.4, 1.6, 135, True), (5.9, -10.72, 'L', 4.4, 1.6, 135, True)]
 # the long planter behind them stands where MH001 has it, turned the other way (user, 2026-10-23); it fits now that the
-# playground has moved back. The planter photo 14 shows behind the sandpit would stand inside the moved playground:
-# left out until the user decides (drawn into the scratch mesh so the random stream stays in step)
+# playground has moved back. The planter photo 14 shows behind the sandpit would stand inside the moved playground, and
+# was gone by 2010 (user, 2026-10-23): left out, drawn into the scratch mesh so the random stream stays in step
 PLANTERS_GONE = {5}
 for i, dz in ((6, END_SHIFT), (7, END_SHIFT), (12, -END_SHIFT), (13, -END_SHIFT)):   # the planters either side of the playground's
     x, z, k, ln, w, r, t = PLANTERS[i]   # far end go back with it, and their mirror images in the front half forward (the stairs
     PLANTERS[i] = (x, z + dz, k, ln, w, r, t)   # stand where the left ones were)
 DISCS = [(-5.9, 20.5), (5.9, 20.5), (-11.7, 9.3), (12.0, 8.4), (-11.7, -9.3), (12.0, -8.4)]
-LAMPS = [(9.0, 13.0), (-6.4, -9.4), (-10.6, -25.0), (10.6, -25.0)]   # the one at (-1.5, 36.4) stood in the moved playground
+LAMPS = [(9.0, 13.0), (-6.4, -9.4), (-10.6, -25.0), (10.6, -25.0)]   # the one at (-1.5, 36.4) stood in the moved playground, gone by 2010
 
 
 def planter_seat(mb, x, z, kind, ln, w, rot, tree):
