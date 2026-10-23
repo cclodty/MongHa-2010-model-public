@@ -112,6 +112,11 @@ def Ji():
     return {'t': 'j'}
 
 
+def Gi(n):
+    """n bays of the row left open: a passage from the street into the courtyard, no block."""
+    return {'t': 'g', 'n': n}
+
+
 # 14 blocks: the end rows run the full frontage and wrap the corners, the side rows sit between them
 Y, G, K, R = 'yellow', 'green', 'brick', 'red'
 # the two hillside blocks up the steps from 利誠 (user, 2026-10-22: part of the estate). MH068 (2011-06-08, frontal), MH006
@@ -127,8 +132,13 @@ ROWS = [
          items=[Bi(4, [K, Y, Y, Y]), Ji(), Bi(5, [Y, K, K, G, G], [2]), Ji(), Bi(4, [Y, Y, K, K])]),
     dict(id='back', o=(EX1, EZ1 - HZ), d=(-1, 0), L=EX1 - EX0, outer='street', gallery=True,
          items=[Bi(4, [K, K, Y, Y]), Ji(), Bi(5, [Y, R, R, G, G], [2]), Ji(), Bi(4, [Y, Y, K, K])]),
-    dict(id='nw', o=(EX0 + HZ, CZ1), d=(0, -1), L=CZ1 - CZ0, outer='street', gallery=True,
-         items=[Bi(6, [Y, Y, G, G, K, K]), Ji(), Bi(6, [G, G, Y, Y, K, K], [3]), Ji(), Bi(6, [K, K, G, Y, Y, G]), Ji(),
+    # NW row (user, 2026-10-23, photo 1 and MH001): no block in the two bays at the back end but a passage from the lane
+    # into the estate, and the first stair tower two bays nearer the back than first laid out. 'draws' is that first
+    # layout: the shared random streams are tuned to it, so it is drawn into the scratch mesh before the row is built.
+    dict(id='nw', o=(EX0 + HZ, CZ1), d=(0, -1), L=CZ1 - CZ0, outer='street', gallery=True, gap=2,
+         items=[Gi(2), Bi(2, [Y, Y]), Ji(), Bi(8, [Y, K, K, G, Y, Y, K, K], [5]), Ji(), Bi(6, [K, K, G, Y, Y, G]), Ji(),
+                Bi(6, [R, R, Y, Y, G, G])],   # yellow, yellow | tower | yellow, brick, brick from photo 1
+         draws=[Bi(6, [Y, Y, G, G, K, K]), Ji(), Bi(6, [G, G, Y, Y, K, K], [3]), Ji(), Bi(6, [K, K, G, Y, Y, G]), Ji(),
                 Bi(6, [R, R, Y, Y, G, G])]),
     dict(id='se', o=(EX1 - HZ, CZ0), d=(0, 1), L=CZ1 - CZ0, outer='street', gallery=True,
          items=[Bi(6, [K, K, Y, Y, G, G]), Ji(), Bi(6, [G, G, Y, Y, K, K], [2]), Ji(), Bi(6, [G, Y, Y, R, R, G]), Ji(),
@@ -137,14 +147,15 @@ ROWS = [
          y0=HILL['y0'], items=[Bi(2, [K, G]), Ji(), Bi(4, [Y, Y, Y, G])]),   # listed from the south-east end
 ]
 for row in ROWS:
-    fixed = sum(JW for it in row['items'] if it['t'] == 'j')
-    bays = sum(it['n'] for it in row['items'] if it['t'] == 'b')
-    row['bw'] = (row['L'] - fixed) / bays
-    x = 0.0
-    for it in row['items']:
-        it['x0'] = x
-        x += it['n'] * row['bw'] if it['t'] == 'b' else JW
-        it['x1'] = x
+    for items in [row['items']] + ([row['draws']] if 'draws' in row else []):
+        fixed = sum(JW for it in items if it['t'] == 'j')
+        bays = sum(it['n'] for it in items if it['t'] != 'j')
+        row['bw'] = (row['L'] - fixed) / bays
+        x = 0.0
+        for it in items:
+            it['x0'] = x
+            x += JW if it['t'] == 'j' else it['n'] * row['bw']
+            it['x1'] = x
     dx, dz = row['d']
     row['fr'] = Fr((row['o'][0], row.get('y0', 0.0), row['o'][1]), (dx, 0, dz), (-dz, 0, dx))
 
@@ -201,6 +212,10 @@ BRIDGE_Z = LIB_Z
 NWG, SEG = CX0 + GW, CX1 - GW          # inner edges of the side galleries
 GZ0, GZ1 = CZ0 + GW, CZ1 - GW          # inner edges of the end galleries
 STAIRS = [LZ + 29.0, LZ - 29.0]       # four U-stairs (photo 14: back pair 29 m behind the library)
+# the NW gallery's back stair stands in front of the NW row's first stair tower, and the playground in front of both
+# (photo 1): all three are two NW bays nearer the back than first laid out (user, 2026-10-23)
+BACK_SHIFT = 2 * ROWS[2]['bw']
+STAIRS_SIDE = {'nw': [STAIRS[0] + BACK_SHIFT, STAIRS[1]], 'se': STAIRS}
 ZC = HZ - 0.3                          # courtyard facade plane (row-local z)
 ZL = ZC - 1.3                          # back wall of the courtyard loggias
 
@@ -222,8 +237,9 @@ def special_bay(row, xl, bw):
             return 'recess', int(xl // bw)
         if xl > row['L'] - 3 * bw:
             return 'post', int((row['L'] - xl) // bw)
-    if row['id'] == 'nw' and xl < 2 * bw:   # the NW row starts at the back corner
-        return 'nursery', int(xl // bw)
+    g = row.get('gap', 0)
+    if row['id'] == 'nw' and g * bw <= xl < (g + 2) * bw:   # the NW row's first bays at the back (after the passage)
+        return 'nursery', int(xl // bw) - g
     if row['id'] == 'back' and xl > row['L'] - 2 * bw:   # and its glass-block windows turn the corner onto the back street (MH080)
         return 'nursery', 2 + int((row['L'] - xl) // bw)
     return None, None
@@ -1046,15 +1062,14 @@ def build_galleries(mb):
     box(mb, f0, SEG, CX1, GF - 0.3, GF, GZ0, GZ1, deck)
     parapet_run(mb, f0, NWG, SEG, GZ0 - 0.11, GF)
     parapet_run(mb, Fr((0, 0, 0), (-1, 0, 0), (0, 0, -1)), -SEG, -NWG, -(GZ1 + 0.11), GF)
-    gaps = [(BRIDGE_Z - 2.0, BRIDGE_Z + 2.0)] + [(stair_flight_z(z)[0], stair_flight_z(z)[1]) for z in STAIRS]
-    zrun(mb, NWG - 0.11, GZ0, GZ1, GF, gaps)
-    zrun(mb, SEG + 0.11, GZ0, GZ1, GF, gaps)
+    for x, side in ((NWG - 0.11, 'nw'), (SEG + 0.11, 'se')):
+        zrun(mb, x, GZ0, GZ1, GF, [(BRIDGE_Z - 2.0, BRIDGE_Z + 2.0)] + [stair_flight_z(z) for z in STAIRS_SIDE[side]])
     for x in [NWG + 0.5 + k * 4.4 for k in range(int((SEG - NWG) / 4.4) + 1)]:
         for z in (GZ0 - 0.4, GZ1 + 0.4):
             cylv(mb, f0, x, z, 0, GF - 0.3, 0.3, 16, MAT['mred'], caps=False)
     for z in [GZ0 + 2.2 + k * 4.4 for k in range(int((GZ1 - GZ0) / 4.4))]:
-        if all(abs(z - c) > 2.6 for c in [BRIDGE_Z] + STAIRS):
-            for x in (NWG - 0.4, SEG + 0.4):
+        for x, side in ((NWG - 0.4, 'nw'), (SEG + 0.4, 'se')):
+            if all(abs(z - c) > 2.6 for c in [BRIDGE_Z] + STAIRS_SIDE[side]):
                 cylv(mb, f0, x, z, 0, GF - 0.3, 0.3, 16, MAT['mred'], caps=False)
     for (x, z) in ((CX0, CZ0), (CX1, CZ0), (CX0, CZ1), (CX1, CZ1)):   # inner corners: close the facade slot
         sx, sz = (1 if x == CX0 else -1), (1 if z == CZ0 else -1)
@@ -1370,7 +1385,13 @@ def build_courtyard(mb):
     for k in range(4):
         blob(mb, pf.p(math.cos(k * 1.7) * 1.2, 0.55, math.sin(k * 1.7) * 1.2), 0.45 + 0.3 * rnd.random(), MAT['rock'], sy=0.7)
     # planter seats (positions read off photo 14 with the solved camera; mirrored for the front half)
-    for spec in PLANTERS:
+    for i, spec in enumerate(PLANTERS):
+        if i in PLANTERS_GONE:
+            n_sh, n_tr = len(SHRUBS), len(YOUNG_TREES)
+            planter_seat(SCRATCH, *spec)
+            del SHRUBS[n_sh:]
+            YOUNG_TREES[n_tr:] = [None] * (len(YOUNG_TREES) - n_tr)   # keeps the other trees' species
+            continue
         planter_seat(mb, *spec)
     for (x, z) in DISCS:
         dfr = Fr((LX + x, 0, LZ + z))
@@ -1405,14 +1426,21 @@ def build_courtyard(mb):
 # two arms from its corner, along local x and z
 _BACK = [(-5.8, 15.6, 'L', 4.4, 1.6, 135, True), (5.9, 15.4, 'L', 4.4, 1.6, 135, True),
          (-12.6, 20.2, 'R', 4.6, 2.6, 45, True), (12.8, 19.3, 'R', 4.6, 2.6, -45, True),
-         (0.6, 19.4, 'R', 7.6, 2.2, 34, True), (-2.6, 37.0, 'R', 6.8, 2.6, 45, True),
+         (-0.9, 24.3, 'R', 7.6, 2.2, -42, True), (-2.6, 37.0, 'R', 6.8, 2.6, 45, True),
          (-12.4, 35.2, 'R', 4.2, 2.4, -45, True), (12.5, 35.0, 'R', 4.2, 2.4, 45, True)]
 PLANTERS = _BACK + [(x, -z, k, ln, w, 90 - r if k == 'L' else -r, t) for (x, z, k, ln, w, r, t) in _BACK if abs(x) > 5 or z < 15]
 # the two chevron seats behind the library turned round, opening away from it, and ~2 m further back (user, 2026-10-23;
 # MH001). Same entries in the same order, so the shared random stream is drawn as before.
-PLANTERS[:2] = [(-5.8, 13.4, 'L', 4.4, 1.6, 315, True), (5.9, 12.7, 'L', 4.4, 1.6, 315, True)]
+PLANTERS[:2] = [(-5.8, 13.4, 'L', 4.4, 1.6, 315, True), (2.5, 13.95, 'L', 4.4, 1.6, 315, True)]
+# the long planter behind them stands where MH001 has it, turned the other way (user, 2026-10-23); it fits now that the
+# playground has moved back. The planter photo 14 shows behind the sandpit would stand inside the moved playground:
+# left out until the user decides (drawn into the scratch mesh so the random stream stays in step)
+PLANTERS_GONE = {5}
+for i in (6, 7):   # the two planters either side of the playground's far end go back with it (the NW stair now stands
+    x, z, k, ln, w, r, t = PLANTERS[i]   # where the left one was)
+    PLANTERS[i] = (x, z + BACK_SHIFT, k, ln, w, r, t)
 DISCS = [(-5.9, 20.5), (5.9, 20.5), (-11.7, 9.3), (12.0, 8.4), (-11.7, -9.3), (12.0, -8.4)]
-LAMPS = [(9.0, 13.0), (-1.5, 36.4), (-6.4, -9.4), (-10.6, -25.0), (10.6, -25.0)]
+LAMPS = [(9.0, 13.0), (-6.4, -9.4), (-10.6, -25.0), (10.6, -25.0)]   # the one at (-1.5, 36.4) stood in the moved playground
 
 
 def planter_seat(mb, x, z, kind, ln, w, rot, tree):
@@ -1443,7 +1471,8 @@ YOUNG_TREES = []
 def build_playground(mb):
     """Playground (photo 14, 1990s): sandpit with a yellow timber rail, tyre climber, two arched monkey bars, a double
     swing. By 2008-10 (photo 1) the same frames stand on black rubber safety tiles inside a timber edging, sandpit included."""
-    pg = Fr((LX, 0, LZ + 28.5)).sub(rot=math.pi / 4)
+    pz = LZ + BACK_SHIFT   # two NW bays further back than photo 14's sandpit (user, 2026-10-23, photo 1)
+    pg = Fr((LX, 0, pz + 28.5)).sub(rot=math.pi / 4)
     f0 = Fr()
     for k in range(4):   # timber edging round the safety surface, 12 m side
         e = pg.sub(rot=k * math.pi / 2)
@@ -1456,7 +1485,7 @@ def build_playground(mb):
         box(mb, e, -2.3, 2.3, 0, 0.4, 2.2, 2.4, MAT['timber'])
         box(mb, e, -2.3, 2.3, 0.95, 1.05, 2.25, 2.35, MAT['myellow'])
         box(mb, e, 2.2, 2.4, 0, 1.05, 2.2, 2.4, MAT['myellow'])
-    sw = Fr((LX + 5.0, 0, LZ + 29.3)).sub(rot=math.radians(-17))   # double swing
+    sw = Fr((LX + 5.0, 0, pz + 29.3)).sub(rot=math.radians(-17))   # double swing
     for ex in (-2.3, 2.3):
         for ez in (-0.8, 0.8):
             beam(mb, sw.p(ex, 0, ez), sw.p(ex, 2.4, 0), 0.08, MAT['pblue'])
@@ -1465,14 +1494,14 @@ def build_playground(mb):
         box(mb, sw, ex - 0.25, ex + 0.25, 0.45, 0.5, -0.12, 0.12, MAT['steel'])
         for kx in (-0.22, 0.22):
             beam(mb, sw.p(ex + kx, 0.5, 0), sw.p(ex + kx, 2.38, 0), 0.02, MAT['pipe'])
-    ty = Fr((LX - 4.0, 0, LZ + 27.6))   # tyre climber
+    ty = Fr((LX - 4.0, 0, pz + 27.6))   # tyre climber
     for k in range(4):
         cylv(mb, ty, 0, 0, 0.1 + k * 0.38, 0.38 + k * 0.38, 0.45, 14, MAT['rubber'])
     for a in range(4):
         ang = a * math.pi / 2
         cylv(mb, ty, 0.5 * math.cos(ang), 0.5 * math.sin(ang), 0, 1.75, 0.03, 6, MAT['pblue'])
     for (xa, za, xb, zb) in ((-5.9, 22.2, -0.5, 23.2), (0.6, 30.1, 3.6, 32.9)):   # arched monkey bars
-        a3, b3 = (LX + xa, LZ + za), (LX + xb, LZ + zb)
+        a3, b3 = (LX + xa, pz + za), (LX + xb, pz + zb)
         L = math.hypot(b3[0] - a3[0], b3[1] - a3[1])
         mfr = Fr((a3[0], 0, a3[1]), ((b3[0] - a3[0]) / L, 0, (b3[1] - a3[1]) / L), (-(b3[1] - a3[1]) / L, 0, (b3[0] - a3[0]) / L))
         pts = [(L * t, 0.4 + 1.7 * math.sin(math.pi * t)) for t in [i / 10 for i in range(11)]]
@@ -1833,11 +1862,21 @@ _irng_main = irng
 for row in ROWS:
     mb = slope if row['id'].startswith('slope') else ROW_MB[row['id']]
     irng = random.Random(2011) if mb is slope else _irng_main   # hillside edits leave the estate's draws alone
+    if 'draws' in row:   # keep the shared streams where the first layout left them (its air-conditioner marks dropped)
+        n_ac, first = len(AC_MARKS), dict(row, items=row['draws'], gap=0)
+        for it in first['items']:
+            (build_block if it['t'] == 'b' else build_joint)(SCRATCH, first, it)
+        del AC_MARKS[n_ac:]
+        streams = rnd, irng, REC_RNG, LEDGE_RNG
+        rnd, irng, REC_RNG, LEDGE_RNG = (random.Random(2023 + k) for k in range(4))
     for it in row['items']:
         if it['t'] == 'b':
             build_block(mb, row, it)
-        else:
+        elif it['t'] == 'j':
             build_joint(mb, row, it)
+    if 'draws' in row:
+        nw_streams = rnd, irng
+        rnd, irng, REC_RNG, LEDGE_RNG = streams
 hrow = ROWS[4]
 fr = hrow['fr']
 for xl, sgn in ((0.0, -1), (hrow['L'], 1)):   # white end walls with small windows (MH001), floor bands
@@ -1890,13 +1929,37 @@ for rid in ('front', 'back'):   # the end rows' outer ends face the side streets
             box(mb_, ef, ga - 0.2, HZ + 0.02, GF - 1.15, GF - 0.25, -0.05, 0.35, MAT['post'])
             mb_.poly([ef.p(ga, GF - 1.12, 0.36), ef.p(HZ - 0.2, GF - 1.12, 0.36), ef.p(HZ - 0.2, GF - 0.28, 0.36), ef.p(ga, GF - 0.28, 0.36)],
                      MAT['postsign'], uvs=[(0.01, 0.02), (0.99, 0.02), (0.99, 0.98), (0.01, 0.98)])
+row = ROWS[2]   # the NW block beside the passage: a white end wall with small windows and floor bands (MH001)
+it = next(i for i in row['items'] if i['t'] == 'b')
+fr = row['fr']
+ez = -fr.ex
+ef = Fr(fr.p(it['x0'], 0, 0), tuple(Vector((0, 1, 0)).cross(ez)), tuple(ez))
+_irng_keep, irng = irng, nw_streams[1]
+for f in range(NF):
+    y = GF + FH * f
+    for zl in [-(HZ - 1.6) + k * (2 * HZ - 4.2) / 4 for k in range(5)]:
+        window(ROW_MB['nw'], ef, zl - 0.6, zl + 0.6, y + 0.95, y + 2.25, 0.0, bars=irng.random() < 0.3)
+    box(ROW_MB['nw'], ef, -HZ, HZ, y - 0.1, y + 0.08, 0.0, 0.05, MAT['white'])
+bf = Fr((EX0 + HZ, 0, CZ1), (-1, 0, 0), (0, 0, -1))   # the back row's corner block across the passage: likewise
+box(ROW_MB['back'], bf, -HZ, HZ, GF - 0.3, ROOF, -0.2, 0.0, MAT['white'])
+for f in range(NF):
+    y = GF + FH * f
+    for zl in [-(HZ - 1.6) + k * (2 * HZ - 3.2) / 4 for k in range(5)]:
+        window(ROW_MB['back'], bf, zl - 0.6, zl + 0.6, y + 0.95, y + 2.25, 0.0, bars=irng.random() < 0.3)
+    box(ROW_MB['back'], bf, -HZ, HZ, y - 0.1, y + 0.08, 0.0, 0.05, MAT['white'])
+irng = _irng_keep
 gal = MB('SM_Galleries_Bridges', C_EST)
 build_galleries(gal)
+zp0 = CZ1 - row['gap'] * row['bw']   # the gallery crosses the passage: parapet on its open side, two posts under it
+zrun(gal, CX0 + 0.11, zp0, CZ1, GF)
+for zq in (zp0 + 0.5, CZ1 - 0.5):
+    cylv(gal, Fr(), CX0 + 0.4, zq, 0, GF - 0.3, 0.3, 16, MAT['mred'], caps=False)
 APO = 9.35 * math.cos(OCT) * LIB_S
 build_bridge(gal, NWG, LIB_X - APO, BRIDGE_Z)
 build_bridge(gal, LIB_X + APO, SEG, BRIDGE_Z)
-for z in STAIRS:
+for z in STAIRS_SIDE['nw']:
     build_stair_u(gal, NWG, z, 1)
+for z in STAIRS_SIDE['se']:
     build_stair_u(gal, SEG, z, -1)
 lib = MB('SM_Library', C_LIB)
 _n_shrubs = len(SHRUBS)
@@ -1924,8 +1987,8 @@ print('FACES', json.dumps(stats))
 
 # ------------------------------------------------------------------ markers for Unreal (trees, cameras, sun) in site metres
 # courtyard: young trees in the planters (1990s photo); the big canopy of the 2000s is left out on purpose
-trees = list(YOUNG_TREES)
-SPECIES = [('feathery', 'broad', 'bauhinia')[i % 3] for i in range(len(trees))]
+trees = [t for t in YOUNG_TREES if t]
+SPECIES = [('feathery', 'broad', 'bauhinia')[i % 3] for i, t in enumerate(YOUNG_TREES) if t]
 trees += [(x, -1.2, 2.2) for x in (-30, -18, 12, 26, 40, 150, 176) if not EX0 - 2 < x < EX1 + 2]
 trees += [(2.4, z, 2.0) for z in range(50, int(EZ1) + 8, 9)]
 for _ in range(78):   # 26 garden trees used to stand where the full-length hall now is; keep the shared stream in step
