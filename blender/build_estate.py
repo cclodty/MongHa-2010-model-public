@@ -108,9 +108,8 @@ def Bi(n, color, passages=(), serr=False):
     return {'t': 'b', 'n': n, 'color': cols[0], 'cols': cols, 'pass': list(passages), 'serr': serr}
 
 
-def Ji(through=False):
-    """Stair tower; through: its ground floor is an open passage from the street into the courtyard."""
-    return {'t': 'j', 'through': through}
+def Ji():
+    return {'t': 'j'}
 
 
 def Gi(n):
@@ -130,14 +129,15 @@ ROWS = [
     # photo 21; red-brown over the post office corner, MH022); the other rows follow the same grammar (MH002, MH005, MH080),
     # keeping each block's main colour, but their exact sequences are inferred.
     # end rows (user, 2026-10-23, with MH001): a small block at either end and two big ones between, three stair towers
-    # (the corner ones under a barrel vault, the middle one with a flat stair room), alike front and back. The ground-floor
-    # passage at the middle now runs under the middle tower. MH022: the post office has two red-brown bays over it, then
-    # the white tower. Colours: each new bay takes the colour of the bay of the first layout ('draws') that stood there.
+    # (the corner ones under a barrel vault, the middle one with a flat stair room), alike front and back. No passage into
+    # the courtyard under the middle tower: its ground floor has the residents' doors like the others (user). MH022: the
+    # post office has two red-brown bays over it, then the white tower. Colours: each new bay takes the colour of the bay of
+    # the first layout ('draws') that stood there.
     dict(id='front', o=(EX0, EZ0 + HZ), d=(1, 0), L=EX1 - EX0, outer='street', gallery=True,
-         items=[Bi(2, [K, Y]), Ji(), Bi(4, [Y, Y, Y, K]), Ji(through=True), Bi(4, [G, G, Y, Y]), Ji(), Bi(2, [K, K])],
+         items=[Bi(2, [K, Y]), Ji(), Bi(4, [Y, Y, Y, K]), Ji(), Bi(4, [G, G, Y, Y]), Ji(), Bi(2, [K, K])],
          draws=[Bi(4, [K, Y, Y, Y]), Ji(), Bi(5, [Y, K, K, G, G], [2]), Ji(), Bi(4, [Y, Y, K, K])]),
     dict(id='back', o=(EX1, EZ1 - HZ), d=(-1, 0), L=EX1 - EX0, outer='street', gallery=True,
-         items=[Bi(2, [K, K]), Ji(), Bi(4, [Y, Y, Y, R]), Ji(through=True), Bi(4, [G, G, Y, Y]), Ji(), Bi(2, [K, K])],
+         items=[Bi(2, [K, K]), Ji(), Bi(4, [Y, Y, Y, R]), Ji(), Bi(4, [G, G, Y, Y]), Ji(), Bi(2, [K, K])],
          draws=[Bi(4, [K, K, Y, Y]), Ji(), Bi(5, [Y, R, R, G, G], [2]), Ji(), Bi(4, [Y, Y, K, K])]),
     # side rows (user, 2026-10-23, photo 1 and MH001): no block in the two bays at either end but a passage from the street
     # into the estate, alike at all four corners, and the towers nearest the ends two bays nearer them than first laid out
@@ -172,7 +172,7 @@ for row in ROWS:
     dx, dz = row['d']
     row['fr'] = Fr((row['o'][0], row.get('y0', 0.0), row['o'][1]), (dx, 0, dz), (-dz, 0, dx))
 
-PASS_X = EX0 + (ROWS[0]['items'][3]['x0'] + ROWS[0]['items'][3]['x1']) / 2   # under the avenue row's middle tower
+PASS_X = EX0 + (ROWS[0]['items'][3]['x0'] + ROWS[0]['items'][3]['x1']) / 2   # the avenue row's middle tower (zebra crossing)
 # (site x, z) near which the two trading shops stood (user, 2026-10-22): 鞋宜樂 in the north-west bay of the avenue
 # block beside the stair tower, bus stop in front of the next bay (photo 21); 利誠美食 at the back end of the south-east side
 # street (top-left seen from the avenue), up the steps from there is the 望廈飲食 spot; sign atlas cells 11 and 10
@@ -979,48 +979,70 @@ def joint_kind(row, it):
 
 
 TOWER_OUT = 1.15   # how far the street stair towers' side walls stand out past HZ (photo 21 sees them deep, with windows)
-# The stair core fills only the street side of a galleried tower: in front of it, between the two blocks, an open slot with
-# a platform at gallery level, floored in cream and green bands, small windows in its side walls (user, 2026-10-23; MH010,
-# MH018). The barrel vaults' fan windows face the courtyard in the side rows and the street in the end rows (MH001).
-PLAT = 6.5
+# A galleried tower's stair core stands in the middle of the block's depth, with an open slot between the two blocks on
+# either side of it, alike in size: a platform at gallery level in each, open to the sky (user, 2026-10-23). The courtyard
+# platform, floored in cream and green bands, runs on into the gallery (MH010); the street one ends in a black railing
+# above the residents' gated door under its half-round hood (MH005, MH007, photo 21, user photo). Small windows in the
+# slot walls (MH018). Core ~8.5 m deep, like the stair rooms on the roofs in MH001. The barrel vaults' fan windows face the
+# courtyard in the side rows and the street in the end rows (MH001).
+PLAT = 4.25
 SLOT_RNG = random.Random(2061)   # the slot walls' windows draw from their own stream
 
 
-def build_joint(mb, row, it):
+def platform(mb, sf, ia, ib, za, zb):
+    """Gallery-level platform from za to zb (side frame), floored in cream and green cross bands (MH010)."""
+    box(mb, sf, ia, ib, GF - 0.3, GF - 0.02, za, zb, {'ny': MAT['soffit'], '*': MAT['white']}, skip=('py',))
+    z, k = za, 0
+    while z < zb - 0.01:
+        dz = min(1.1 if k % 2 == 0 else 0.55, zb - z)
+        box(mb, sf, ia, ib, GF - 0.02, GF, z, z + dz, {'py': MAT['tilecream'] if k % 2 == 0 else MAT['tilegreen']}, skip=('ny',))
+        z, k = z + dz, k + 1
+
+
+def slot_windows(mb, sf, ia, ib, zs):
+    """Small windows in both walls of a slot, at the depths zs (side frame), drawn from SLOT_RNG."""
     global irng
+    keep, irng = irng, SLOT_RNG
+    for f in range(NF):
+        y = GF + FH * f
+        for xw, rot in ((ia, math.pi / 2), (ib, -math.pi / 2)):
+            for zw in zs:
+                if SLOT_RNG.random() < 0.6:
+                    window(mb, sf.sub(xw, 0, zw, rot=rot), -0.3, 0.3, y + 1.15, y + 2.15, 0.0, mull=False, cells=4)
+    irng = keep
+
+
+def build_joint(mb, row, it):
     fr = row['fr']
     x0, x1 = it['x0'], it['x1']
     w, xc, zr = x1 - x0, (it['x0'] + it['x1']) / 2, HZ - 0.6
     gal = bool(row.get('gallery'))
-    zk = HZ - PLAT if gal else zr + 0.06   # courtyard face of the stair core
-    if it.get('through'):   # ground-floor passage under the tower from the street into the courtyard, floored like the others
-        z, k = -HZ, 0
-        while z < HZ - 0.01:
-            dz = min(1.1 if k % 2 == 0 else 0.55, HZ - z)
-            box(mb, fr, x0 + 0.4, x1 - 0.4, 0.04, 0.06, z, z + dz,
-                {'py': MAT['tilecream'] if k % 2 == 0 else MAT['tilegreen']}, skip=('ny',))
-            z, k = z + dz, k + 1
-        box(mb, fr, x0 + 0.4, x1 - 0.4, GF - 0.33, GF - 0.3, -HZ, HZ, MAT['soffit'])
-    else:
-        box(mb, fr, x0, x1, 0, GF - 0.3, -zr, zr, MAT['white'], skip=('py',))
-        for s in (-1, 1):   # lobby entrance with metal gate
-            sf = side_frame(fr, s)
-            xl = X(xc, s)
-            box(mb, sf, xl - 1.1, xl + 1.1, 0, 2.6, zr, zr + 0.02, MAT['void'])
-            for k in range(12):
-                xx = xl - 1.05 + k * 0.19
-                box(mb, sf, xx - 0.015, xx + 0.015, 0, 2.6, zr + 0.05, zr + 0.08, MAT['gate'])
-            box(mb, sf, xl - 1.1, xl + 1.1, 1.5, 1.56, zr + 0.04, zr + 0.09, MAT['gate'])
+    zk = HZ - PLAT if gal else zr + 0.06   # either face of the stair core (side frames)
+    jsides = {-1: row['outer'], 1: 'court' if gal else 'street'}
+    box(mb, fr, x0, x1, 0, GF - 0.3, -zr, zr, MAT['white'], skip=('py',))
+    for s in (-1, 1):   # lobby entrance with metal gate, the residents' door (user photo)
+        sf = side_frame(fr, s)
+        xl = X(xc, s)
+        low = gal and jsides[s] == 'street'   # under the street platform: its hood just below it, the number beside it
+        gh = 2.0 if low else 2.6
+        box(mb, sf, xl - 1.1, xl + 1.1, 0, gh, zr, zr + 0.02, MAT['void'])
+        for k in range(12):
+            xx = xl - 1.05 + k * 0.19
+            box(mb, sf, xx - 0.015, xx + 0.015, 0, gh, zr + 0.05, zr + 0.08, MAT['gate'])
+        box(mb, sf, xl - 1.1, xl + 1.1, gh - 1.1, gh - 1.04, zr + 0.04, zr + 0.09, MAT['gate'])
+        if low:
+            box(mb, sf, xl + 1.15, xl + 1.55, 1.7, 2.1, zr, zr + 0.05, MAT['signs'][4])
+        else:
             box(mb, sf, xl - 0.5, xl + 0.5, 2.85, 3.25, zr, zr + 0.05, MAT['signs'][4])
     zwell = zk - 1.6   # back of the open courtyard stair well
-    box(mb, fr, x0 + 0.4, x1 - 0.4, GF - 0.3, TOP - 0.3, -(zr - 0.4), zwell if gal else zr - 0.4, MAT['void'], skip=('ny', 'py'))
-    box(mb, fr, x0, x1, TOP - 0.3, TOP, -(zr + 0.06), zk if gal else zr + 0.06, {'py': MAT['screed'], '*': MAT['white']})
-    jsides = {-1: row['outer'], 1: 'court' if gal else 'street'}
+    box(mb, fr, x0 + 0.4, x1 - 0.4, GF - 0.3, TOP - 0.3, -(zk - 1.88) if gal else -(zr - 0.4), zwell if gal else zr - 0.4,
+        MAT['void'], skip=('ny', 'py'))
+    box(mb, fr, x0, x1, TOP - 0.3, TOP, -(zk if gal else zr + 0.06), zk, {'py': MAT['screed'], '*': MAT['white']})
     for s in (-1, 1):
         sf = side_frame(fr, s)
         xa, xb = sorted((X(x0, s), X(x1, s)))
         if jsides[s] == 'street':
-            prism_z(mb, sf, arc(X(xc, s), 2.75, 1.45, 0, math.pi, 16), HZ - 0.4,
+            prism_z(mb, sf, arc(X(xc, s), GF - 1.75 if gal else 2.75, 1.45, 0, math.pi, 16), HZ - 0.4,
                     HZ + (0.95 if row['id'] == 'slope1' else TOWER_OUT + 0.25), MAT['white'])          # lobby hood
             if row['id'] == 'slope1':   # hillside tower: plain white wall standing proud of the facade (MH068)
                 box(mb, sf, xa - 0.05, xb + 0.05, GF - 0.3, TOP + 0.6, zr - 0.4, HZ + 0.75, MAT['whitetile'])
@@ -1028,25 +1050,28 @@ def build_joint(mb, row, it):
                     y = GF + FH * f
                     window(mb, sf, X(xc, s) - 0.3, X(xc, s) + 0.3, y + 1.2, y + 2.0, HZ + 0.75, mull=False)
                 continue
-            ia, ib = xa + 0.55, xb - 0.55   # white side walls well proud of the facade, open stairs between them
+            ia, ib = xa + 0.55, xb - 0.55   # white side walls well proud of the facade, the slot between them
             zt = HZ + TOWER_OUT
             for wa, wb in ((xa - 0.05, ia), (ib, xb + 0.05)):
-                box(mb, sf, wa, wb, GF - 0.3, TOP + 0.6, zr - 0.4, zt, MAT['whitetile'])
+                box(mb, sf, wa, wb, GF - 0.3, TOP + 0.6, zk, zt, MAT['whitetile'])
             for f in range(NF):   # small windows in the side walls where they stand out of the facade (photo 21, MH018)
                 y = GF + FH * f
                 for xw, rot in ((xa - 0.05, -math.pi / 2), (xb + 0.05, math.pi / 2)):
                     window(mb, sf.sub(xw, 0, zt - 0.55, rot=rot), -0.22, 0.22, y + 1.5, y + 2.1, 0.0, mull=False, cells=4)
-            box(mb, sf, ia, ib, ROOF - 0.1, TOP + 0.6, zr - 0.4, zt, MAT['whitetile'])             # solid head
-            box(mb, sf, ia, ib, GF - 0.3, ROOF - 0.1, zr - 0.42, zr - 0.38, MAT['soffit'])         # back of the stair well
-            for f in range(NF):
+            box(mb, sf, ia, ib, GF - 0.3, ROOF - 0.1, zk - 1.9, zk - 1.86, MAT['soffit'])         # back of the stair well
+            for f in range(NF):   # the core's street face: half landings behind breeze-block screens (MH005, MH007)
                 yl = GF + FH * f + FH / 2   # half landing
-                box(mb, sf, ia, ib, yl - 0.15, yl, zr - 0.38, zt - 0.25, MAT['white'])             # landing slab edge
-                box(mb, sf, ia, ib, yl, min(yl + 1.35, ROOF - 0.1), zt - 0.35, zt - 0.27, MAT['breeze'])   # breeze screen
+                box(mb, sf, ia, ib, yl - 0.15, yl, zk - 1.86, zk, MAT['white'])                    # landing slab edge
+                box(mb, sf, ia, ib, yl, min(yl + 1.35, ROOF - 0.1), zk - 0.1, zk - 0.02, MAT['breeze'])   # breeze screen
                 prism_z(mb, sf, [(ia + 0.05, yl - FH / 2 - 0.3), (ib - 0.05, yl - 0.2), (ib - 0.05, yl - 0.02), (ia + 0.05, yl - FH / 2 - 0.12)],
-                        zr - 0.38, zt - 0.45, MAT['soffit'])                                        # flight up to it
+                        zk - 1.86, zk - 0.2, MAT['soffit'])                                         # flight up to it
+            box(mb, sf, ia, ib, ROOF - 0.1, TOP, zk - 0.4, zk, MAT['white'])
+            platform(mb, sf, ia, ib, zk, zt)
+            railing_run(mb, sf, ia, ib, GF, zt - 0.1, MAT['bars'])
+            slot_windows(mb, sf, ia, ib, (zk + 1.2, HZ - 0.6))
             continue
         ia, ib = xa + 0.4, xb - 0.4
-        for f in range(NF):   # the core's open landings, facing the platform
+        for f in range(NF):   # the core's courtyard face: open landings onto the platform
             y = GF + FH * f
             box(mb, sf, ia, ib, y - 0.3, y + 0.02, zwell, zk + 0.06, {'py': MAT['deck'], '*': MAT['white']})   # landing
             if f > 0:   # the first-floor landing runs on into the platform
@@ -1061,59 +1086,48 @@ def build_joint(mb, row, it):
         for xp in (ia + 0.15, ib - 0.15):   # downpipes on the walls beside the landings
             cylv(mb, sf, xp, zk + 0.3, GF, ROOF, 0.05, 8, MAT['white'])
         box(mb, sf, ia, ib, ROOF - 0.1, TOP, zk - 0.4, zk + 0.06, MAT['white'])
-        box(mb, sf, ia, ib, GF - 0.3, GF - 0.02, zk + 0.06, HZ, {'ny': MAT['soffit'], '*': MAT['white']}, skip=('py',))   # platform
-        z, k = zk + 0.06, 0
-        while z < HZ - 0.01:
-            dz = min(1.1 if k % 2 == 0 else 0.55, HZ - z)
-            box(mb, sf, ia, ib, GF - 0.02, GF, z, z + dz, {'py': MAT['tilecream'] if k % 2 == 0 else MAT['tilegreen']}, skip=('ny',))
-            z, k = z + dz, k + 1
-        if not in_court(row, xc):   # end rows' corner towers: the platform looks onto a passage, a parapet across it
-            parapet_run(mb, sf, ia, ib, HZ - 0.11, GF)
-        keep, irng = irng, SLOT_RNG
-        for f in range(NF):   # small windows in the slot walls (MH018; MH010 has two on one side)
-            y = GF + FH * f
-            for xw, rot in ((ia, math.pi / 2), (ib, -math.pi / 2)):
-                for zw in (zk + 1.6, HZ - 1.6):
-                    if SLOT_RNG.random() < 0.6:
-                        window(mb, sf.sub(xw, 0, zw, rot=rot), -0.3, 0.3, y + 1.15, y + 2.15, 0.0, mull=False, cells=4)
-        irng = keep
+        platform(mb, sf, ia, ib, zk + 0.06, HZ)
+        slot_windows(mb, sf, ia, ib, (zk + 1.2, HZ - 1.2))
     for xe in (x0, x1 - 0.4):
         box(mb, fr, xe, xe + 0.4, 0, TOP, -(HZ + 0.15), HZ + 0.15, MAT['whitetile'])
     zg = zr - 1.15                   # inner face of the gables
-    zh = zk - 0.35 if gal else zg    # courtyard end of the stair room (behind the gable)
+    zh = zk - 0.35 if gal else zg    # ends of the stair room (behind the gables)
     kind = joint_kind(row, it)
     vface = -1 if row['id'] in ('front', 'back') else 1   # side of a barrel vault's fan window
     if kind == 'V':
-        za_, zb_ = (-zg - 0.6, zh) if vface > 0 else (-zg, zk if gal else zg + 0.6)
+        if gal:
+            za_, zb_ = (-zk, zh) if vface > 0 else (-zh, zk)
+        else:
+            za_, zb_ = (-zg - 0.6, zg) if vface > 0 else (-zg, zg + 0.6)
         box(mb, fr, xc - 1.5, xc + 1.5, TOP, TOP + 1.0, za_, zb_, MAT['white'], skip=('py',))
-        prism_z(mb, fr, arc(xc, TOP + 1.0, 1.5, 0, math.pi, 16), za_, zb_, MAT['white'])   # barrel vault across the block
+        prism_z(mb, fr, arc(xc, TOP + 1.0, 1.5, 0, math.pi, 16), za_, zb_, MAT['white'])   # barrel vault across the core
         zm = (za_ + zb_) / 2
         for sx in (-1, 1):
             wf = fr.sub(xc + sx * 1.5, 0, 0, rot=sx * math.pi / 2)
             box(mb, wf, -sx * zm - 0.4, -sx * zm + 0.4, TOP, TOP + 1.9, 0.0, 0.03, MAT['void'])   # doorway onto the roof
-        if vface < 0 and gal:   # low wall across the tower top at the slot
-            box(mb, fr, x0 + 0.1, x1 - 0.1, TOP, TOP + 0.8, zk - 0.2, zk, MAT['white'])
+        if gal:   # low wall across the tower top at the vault's plain end
+            za_w, zb_w = (zk - 0.2, zk) if vface < 0 else (-zk, -zk + 0.2)
+            box(mb, fr, x0 + 0.1, x1 - 0.1, TOP, TOP + 0.8, za_w, zb_w, MAT['white'])
     else:
-        box(mb, fr, xc - 1.6, xc + 1.6, TOP, TOP + 2.3, -zg, zh, {'py': MAT['screed'], '*': MAT['white']})   # flat stair room
-        box(mb, fr, xc - 1.7, xc + 1.7, TOP + 2.3, TOP + 2.42, -zg - 0.05, zh + 0.05, MAT['white'], skip=('ny',))
-        zm = (zh - zg) / 2
+        box(mb, fr, xc - 1.6, xc + 1.6, TOP, TOP + 2.3, -zh, zh, {'py': MAT['screed'], '*': MAT['white']})   # flat stair room
+        box(mb, fr, xc - 1.7, xc + 1.7, TOP + 2.3, TOP + 2.42, -zh - 0.05, zh + 0.05, MAT['white'], skip=('ny',))
         for sx in (-1, 1):
             wf = fr.sub(xc + sx * 1.6, 0, 0, rot=sx * math.pi / 2)                            # faces +-x
-            for zw in (-zg + 0.7, zh - 0.7):
+            for zw in (-zh + 0.7, zh - 0.7):
                 box(mb, wf, -sx * zw - 0.25, -sx * zw + 0.25, TOP + 1.25, TOP + 1.85, 0.0, 0.03, MAT['void'])   # small windows
-            box(mb, wf, -sx * zm - 0.4, -sx * zm + 0.4, TOP, TOP + 1.95, 0.0, 0.03, MAT['void'])   # doorway
+            box(mb, wf, -0.4, 0.4, TOP, TOP + 1.95, 0.0, 0.03, MAT['void'])                     # doorway
     zte = zk if gal else zg          # low white walls along the tower top, posts standing above them
     for xw in (x0 + 0.1, x1 - 0.3):
-        box(mb, fr, xw, xw + 0.2, TOP, TOP + 0.8, -zg, zte, MAT['white'])
-        zp = -zg + 0.15
+        box(mb, fr, xw, xw + 0.2, TOP, TOP + 0.8, -zte, zte, MAT['white'])
+        zp = -zte + 0.15
         while zp < zte:
             box(mb, fr, xw - 0.08, xw + 0.28, TOP, TOP + 1.3, zp - 0.18, zp + 0.18, MAT['white'])
             zp += 1.55
     for s in (-1, 1):
-        if kind == 'V' and s != vface:   # the vault meets the tower's plain head on its other side
+        if kind == 'V' and s != vface:   # the vault ends plain on its other side
             continue
         sf = side_frame(fr, s)
-        gable(mb, sf.sub(X(xc, s), 0, (zk if gal else zr - 0.8) if s > 0 else zr - 0.8), w, TOP)
+        gable(mb, sf.sub(X(xc, s), 0, zk if gal else zr - 0.8), w, TOP)
 
 
 def build_corner(mb, cx, cz, gable_side):
@@ -2068,12 +2082,22 @@ irng = _irng_keep
 gal = MB('SM_Galleries_Bridges', C_EST)
 build_galleries(gal)
 for row, xg in ((ROWS[2], CX0), (ROWS[3], CX1)):   # the gallery crosses each passage (user): parapet on its open side, posts
-    for it in row['items']:                        # under it
-        if it['t'] == 'g':
+    sx, xs = (1, EX0) if xg == CX0 else (-1, EX1)  # under it; and the end gallery runs on over the passage along the end row's
+    for it in row['items']:                        # face out to the street, past the corner tower's platform (user, 2026-10-23,
+        if it['t'] == 'g':                         # at all four corners)
             za, zb = sorted((row['fr'].p(it['x0'], 0, 0)[2], row['fr'].p(it['x1'], 0, 0)[2]))
-            zrun(gal, xg + (0.11 if xg == CX0 else -0.11), za, zb, GF)
+            back = zb > LZ
+            wa, wb = (GZ1, CZ1) if back else (CZ0, GZ0)   # the walkway's z range
+            zrun(gal, xg + sx * 0.11, za if back else wb, wa if back else zb, GF)
             for zq in (za + 0.5, zb - 0.5):
-                cylv(gal, Fr(), xg + (0.4 if xg == CX0 else -0.4), zq, 0, GF - 0.3, 0.3, 16, MAT['mred'], caps=False)
+                cylv(gal, Fr(), xg + sx * 0.4, zq, 0, GF - 0.3, 0.3, 16, MAT['mred'], caps=False)
+            xa_, xb_ = sorted((xs, xg))
+            box(gal, Fr(), xa_, xb_, GF - 0.3, GF, wa, wb, {'py': MAT['deck'], 'ny': MAT['soffit'], '*': MAT['white']})
+            ze = wa + 0.11 if back else wb - 0.11
+            parapet_run(gal, Fr(), xa_, xb_, ze, GF)                       # its open side
+            zrun(gal, xs + sx * 0.11, wa, wb, GF)                          # and across its street end
+            for k in range(5):
+                cylv(gal, Fr(), xs + sx * (0.5 + 4.0 * k), ze + (0.3 if back else -0.3), 0, GF - 0.3, 0.3, 16, MAT['mred'], caps=False)
 APO = 9.35 * math.cos(OCT) * LIB_S
 build_bridge(gal, NWG, LIB_X - APO, BRIDGE_Z)
 build_bridge(gal, LIB_X + APO, SEG, BRIDGE_Z)

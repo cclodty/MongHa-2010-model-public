@@ -16,7 +16,7 @@ Bairro Social de Mong-Há, Macau — a code-built reconstruction of the social h
 
 | 路徑 | 內容 |
 |---|---|
-| `blender/build_estate.py` | 建模主程式：十六座住宅、梯塔（前面有一樓平台）、天井、一樓走廊及天橋、圖書館、中庭、鐵籠球場、街道、望廈體育館、山坡兩座、馬交石石刻 |
+| `blender/build_estate.py` | 建模主程式：十六座住宅、梯塔（前後各有一樓平台）、天井、一樓走廊及天橋、圖書館、中庭、鐵籠球場、街道、望廈體育館、山坡兩座、馬交石石刻 |
 | `blender/mh_geom.py` | 幾何工具（`test_geom.py` 是它的測試） |
 | `blender/make_*.py` | 生成貼圖：紙皮石、通花磚、窗內、衣物、招牌、天空等 |
 | `blender/web_bake.py`、`web_trees.py` | 網頁版的光照烘焙（Cycles）、樹木，輸出到 `web/assets` |
