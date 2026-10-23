@@ -181,18 +181,18 @@ def back_h(x):
     """Ground level of the back street at site x."""
     t = (x - BACK['x_lo']) / (BACK['x_hi'] - BACK['x_lo'])
     return BACK['H'] * min(1.0, max(0.0, t))
-# library (MH001 solved against the courtyard width, 2026-10-23): its centre stands 0.58 of the courtyard length from the
-# avenue side, ~8 m behind the middle, and its column ring is ~6.7 m in radius; heights match. Photo 14's solve also put
-# it well behind the middle. The courtyard furniture stays where MH001 and photo 14 show it (relative to LZ).
-LIB_X, LIB_Z = LX - 1.0, LZ + 8.2   # centre of the red column ring (tools/libfit_mh001.py: 82.0, 74.2)
-LIB_S = 0.705                       # plan scale: column ring radius 9.3 * 0.705 = 6.56 m (fit 6.55)
-# three storeys (user, 2026-10-23, with MH034 = photo 24 and MH001): the ground and top floors share one octagon inside the
-# red column ring, and the columns run from the ground to the roof. The first floor, level with the galleries, is a walkway
-# behind a planter ring round the court side, reached by the two bridges; its reading room fills the back half and juts
-# out on the side away from the ball court, one face wide and ~3.5 m deep, over open ground on two more red columns; the
-# top of the jut is a balcony off the top floor. The entrance is under the north-west bridge (MH034).
-# Radii are of octagon corners, before the plan scale.
-LIB = dict(col=9.3, slab=9.35, wall=8.9, inner=5.3, jut=5.0, band=8.8, fascia=(12.0, 12.9), eave=10.3, apex=14.4)
+# library: three storeys (user, 2026-10-23, with MH034 = photo 24 and MH001): the ground and top floors share one octagon
+# inside the red column ring, and the columns run from the ground to the roof. The first floor, level with the galleries,
+# is a walkway behind a planter ring round the court side, reached by the two bridges; its reading room fills the back
+# half, and its three back faces jut out ~4.6 m towards the back street over open ground, on four more red columns; the
+# top of the jut is a balcony round the top floor, its middle part tiled in a different tone. Entrance under the
+# north-west bridge (MH034). Radii are of octagon corners, before the plan scale.
+# Position, jut and roof refitted to MH001 with this shape (2026-10-23): the four columns standing on the paving are the
+# jut's, so the octagon sits ~4 m nearer the ball court than the earlier fit, which took them for the column ring
+# (centre z 76.9, ring radius 6.54 m, jut 4.57 m, rms 4.3 px; eave ~11.2 m high, 7.1 m in radius).
+LIB_X, LIB_Z = LX - 1.0, LZ + 4.0   # centre of the red column ring
+LIB_S = 0.705                       # plan scale: column ring radius 9.3 * 0.705 = 6.56 m
+LIB = dict(col=9.3, slab=9.35, wall=8.9, inner=5.3, jut=6.5, band=8.6, fascia=(10.7, 11.2), eave=10.1, apex=12.7)
 BRIDGE_Z = LIB_Z
 NWG, SEG = CX0 + GW, CX1 - GW          # inner edges of the side galleries
 GZ0, GZ1 = CZ0 + GW, CZ1 - GW          # inner edges of the end galleries
@@ -1181,9 +1181,11 @@ def build_library(mb):
     L = LIB
     f0_, f1_ = L['fascia']
     l2, l3 = GF, 7.95                     # first floor level with the galleries and bridges; top floor
-    jx, jz = oct_corner(L['col'], 0)[0], oct_corner(L['col'], 0)[1] + L['jut']   # the jut's outer columns
-    sx = oct_corner(L['slab'], 0)[0]
-    outline = [(-sx, jz + 0.06), (sx, jz + 0.06)] + [oct_corner(L['slab'], k) for k in range(8)]   # slab: octagon + jut
+
+    def jut(p):   # the three back faces are moved this far towards the back street
+        return p[0], p[1] + L['jut']
+    slab = [oct_corner(L['slab'], k) for k in range(8)]
+    outline = [jut(slab[6]), jut(slab[7]), jut(slab[0]), jut(slab[1])] + slab[1:7]   # octagon with the jut, from its NW end
     # ground floor: yellow tile on the octagon, a dark green plinth
     cylv(mb, lf, 0, 0, 0, 0.45, L['wall'] + 0.3, 8, MAT['lgreend'], phase=OCT)
     cylv(mb, lf, 0, 0, 0.45, l2 - 0.4, L['wall'], 8, MAT['lyellow'], phase=OCT, caps=False)
@@ -1201,25 +1203,32 @@ def build_library(mb):
             window(mb, ff, xa + 0.05, xa + hw / 2 - 0.05, 1.7, 3.1, 0.0, mull=False, gm=MAT['lglass'], cells=4)
     # first floor: the slab with the jut, a walkway round the court side, the reading room on the back half and the jut
     lib_slab(mb, lf, outline, l2 - 0.4, l2, MAT['deck'], MAT['soffit'], MAT['lcream'])
-    room = [(-sx + 0.17, jz - 0.25), (sx - 0.17, jz - 0.25), oct_corner(L['wall'], 0), oct_corner(L['wall'], 1)]
-    room += [oct_corner(L['inner'], k) for k in range(1, 7)] + [oct_corner(L['wall'], 6), oct_corner(L['wall'], 7)]
+    wall = [oct_corner(L['wall'], k) for k in range(8)]
+    room = [jut(wall[6]), jut(wall[7]), jut(wall[0]), jut(wall[1]), wall[1]]
+    room += [oct_corner(L['inner'], k) for k in range(1, 7)] + [wall[6]]
     for i, (a, b) in enumerate(zip(room, room[1:] + room[:1])):
         fr, ln = lib_seg(lf, a, b)
-        if i in (3, 9):   # where the room steps in from the octagon to the walkway: solid
+        if i in (4, 10):   # where the room steps in from the octagon to the walkway: solid
             box(mb, fr, -ln / 2, ln / 2, l2, l3 - 0.35, -0.2, 0.0, MAT['lcream'])
         else:
             lib_glass(mb, fr, ln, l2, l3 - 0.35, l2 + 0.35, l3 - 0.65)
-    # top floor: slab with the balcony, a cream band round the slab edge (the balcony parapet over the jut), glass above
+    # top floor: slab with the balcony, a cream band round the slab edge (the balcony parapet round the jut), glass above
     lib_slab(mb, lf, outline, l3 - 0.35, l3, MAT['deck'], MAT['soffit'], MAT['lcream'])
     for i, (a, b) in enumerate(zip(outline, outline[1:] + outline[:1])):
         fr, ln = lib_seg(lf, a, b)
         box(mb, fr, -ln / 2, ln / 2, l3 - 0.35, L['band'], -0.25, 0.0, MAT['lcream'])
-        if i in (0, 1, 9):   # balcony railing on the jut's three sides (MH034)
+        if i in (0, 1, 2, 3, 9):   # balcony railing round the jut (MH034)
             for y_ in (L['band'] + 0.32, L['band'] + 0.05):
                 box(mb, fr, -ln / 2, ln / 2, y_, y_ + 0.05, -0.15, -0.1, MAT['creampipe'])
             for j in range(int(ln / 1.6) + 1):
                 xp = -ln / 2 + 0.05 + j * (ln - 0.1) / int(ln / 1.6)
                 box(mb, fr, xp - 0.04, xp + 0.04, L['band'], L['band'] + 0.37, -0.15, -0.1, MAT['creampipe'])
+    xs0, xs1 = wall[7][0] + 0.1, wall[0][0] - 0.1   # the balcony's middle part: bands of paler and darker tile (MH001)
+    zs0, zs1 = wall[0][1] + 0.02, jut(slab[0])[1] - 0.27
+    for j in range(15):
+        xa, xb = xs0 + j * (xs1 - xs0) / 15, xs0 + (j + 1) * (xs1 - xs0) / 15
+        mb.poly([lf.p(xa, l3 + 0.01, zs1), lf.p(xb, l3 + 0.01, zs1), lf.p(xb, l3 + 0.01, zs0), lf.p(xa, l3 + 0.01, zs0)],
+                MAT['tilecream'] if j % 2 == 0 else MAT['dado'])
     for k in range(8):
         ff = face_frame(lf, k, L['wall'] * math.cos(OCT))
         hw = L['wall'] * math.sin(OCT)
@@ -1257,12 +1266,11 @@ def build_library(mb):
             t = (j / 9 - 0.5) * (e - 0.6)
             c = fp.p(t, l2 + 0.85, 0.05)
             SHRUBS.append(dict(p=[c[0], c[1], c[2]], s=0.45 + 0.2 * rnd.random(), bouga=rnd.random() < 0.45))
-    # red mosaic columns: the ring from the ground to the fascia, and two under the jut's outer corners to the parapet
+    # red mosaic columns: the ring from the ground to the fascia, and four under the jut's outer corners to its parapet
     for k in range(8):
-        cx_, cz_ = oct_corner(L['col'], k)
-        cylv(mb, lf, cx_, cz_, 0, f0_, 0.36, 16, MAT['mred'])
-    for s_ in (-1, 1):
-        cylv(mb, lf, s_ * jx, jz, 0, L['band'], 0.36, 16, MAT['mred'])
+        cylv(mb, lf, *oct_corner(L['col'], k), 0, f0_, 0.36, 16, MAT['mred'])
+    for k in (6, 7, 0, 1):
+        cylv(mb, lf, *jut(oct_corner(L['col'], k)), 0, L['band'], 0.36, 16, MAT['mred'])
 
 
 # ------------------------------------------------------------------ courtyard furniture
@@ -1349,12 +1357,16 @@ def build_courtyard(mb):
         sphere(mb, lp.p(0, 3.45, 0), 0.26, MAT['lamp'])
 
 
-# planter seats: (x, z rel. library, kind, length, width, rotation deg about y, tree?) — 'L' = chevron of two arms
-_BACK = [(-5.8, 15.6, 'L', 4.4, 1.6, 0, True), (5.9, 15.4, 'L', 4.4, 1.6, 0, True),
+# planter seats: (x, z from the courtyard centre LX, LZ, kind, length, width, rotation deg about y, tree?) — 'L' = chevron of
+# two arms from its corner, along local x and z
+_BACK = [(-5.8, 15.6, 'L', 4.4, 1.6, 135, True), (5.9, 15.4, 'L', 4.4, 1.6, 135, True),
          (-12.6, 20.2, 'R', 4.6, 2.6, 45, True), (12.8, 19.3, 'R', 4.6, 2.6, -45, True),
          (0.6, 19.4, 'R', 7.6, 2.2, 34, True), (-2.6, 37.0, 'R', 6.8, 2.6, 45, True),
          (-12.4, 35.2, 'R', 4.2, 2.4, -45, True), (12.5, 35.0, 'R', 4.2, 2.4, 45, True)]
-PLANTERS = _BACK + [(x, -z, k, ln, w, -r, t) for (x, z, k, ln, w, r, t) in _BACK if abs(x) > 5 or z < 15]
+PLANTERS = _BACK + [(x, -z, k, ln, w, 90 - r if k == 'L' else -r, t) for (x, z, k, ln, w, r, t) in _BACK if abs(x) > 5 or z < 15]
+# the two chevron seats behind the library turned round, opening away from it, and ~2 m further back (user, 2026-10-23;
+# MH001). Same entries in the same order, so the shared random stream is drawn as before.
+PLANTERS[:2] = [(-5.8, 13.4, 'L', 4.4, 1.6, 315, True), (5.9, 12.7, 'L', 4.4, 1.6, 315, True)]
 DISCS = [(-5.9, 20.5), (5.9, 20.5), (-11.7, 9.3), (12.0, 8.4), (-11.7, -9.3), (12.0, -8.4)]
 LAMPS = [(9.0, 13.0), (-1.5, 36.4), (-6.4, -9.4), (-10.6, -25.0), (10.6, -25.0)]
 
@@ -1363,8 +1375,6 @@ def planter_seat(mb, x, z, kind, ln, w, rot, tree):
     """Raised planter (brown-red tile walls, soil, shrubs, a young tree) with a stone seat ledge along one side."""
     fr = Fr((LX + x, 0, LZ + z)).sub(rot=math.radians(rot))
     arms = [(-ln / 2, ln / 2, -w / 2, w / 2)] if kind == 'R' else [(0.0, ln, 0.0, w), (0.0, w, 0.0, ln)]
-    if kind == 'L':   # chevron: corner towards the library, arms spreading diagonally away from it
-        fr = Fr((LX + x, 0, LZ + z)).sub(rot=math.radians(135 if z > 0 else -45))
     for (a, b, c, d) in arms:
         box(mb, fr, a, b, 0, 0.62, c, d, {'py': MAT['soil'], '*': MAT['ptile']})
         box(mb, fr, a - 0.04, b + 0.04, 0.62, 0.68, c - 0.04, d + 0.04, MAT['bench'], skip=('ny',))
