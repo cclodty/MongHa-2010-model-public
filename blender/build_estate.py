@@ -186,10 +186,13 @@ def back_h(x):
 # it well behind the middle. The courtyard furniture stays where MH001 and photo 14 show it (relative to LZ).
 LIB_X, LIB_Z = LX - 1.0, LZ + 8.2   # centre of the red column ring (tools/libfit_mh001.py: 82.0, 74.2)
 LIB_S = 0.705                       # plan scale: column ring radius 9.3 * 0.705 = 6.56 m (fit 6.55)
-# the top floor and its roof sit off-centre, ~2 m towards the avenue: on that side the roof reaches the red columns, which
-# run full height (MH034 = photo 24, MH035); on the back the top floor leaves an open terrace ~3.5 m deep and the columns
-# stop at its parapet (MH001). Offsets and radii below are before the plan scale.
-LIB_UP = dict(dx=-2.0, dz=-3.0, r=7.0, eave=9.2, fascia=(12.0, 12.9), apex=14.4)
+# three storeys (user, 2026-10-23, with MH034 = photo 24 and MH001): the ground and top floors share one octagon inside the
+# red column ring, and the columns run from the ground to the roof. The first floor, level with the galleries, is a walkway
+# behind a planter ring round the court side, reached by the two bridges; its reading room fills the back half and juts
+# out on the side away from the ball court, one face wide and ~3.5 m deep, over open ground on two more red columns; the
+# top of the jut is a balcony off the top floor. The entrance is under the north-west bridge (MH034).
+# Radii are of octagon corners, before the plan scale.
+LIB = dict(col=9.3, slab=9.35, wall=8.9, inner=5.3, jut=5.0, band=8.8, fascia=(12.0, 12.9), eave=10.3, apex=14.4)
 BRIDGE_Z = LIB_Z
 NWG, SEG = CX0 + GW, CX1 - GW          # inner edges of the side galleries
 GZ0, GZ1 = CZ0 + GW, CZ1 - GW          # inner edges of the end galleries
@@ -1142,41 +1145,94 @@ def face_frame(fr, k, apo, y=0.0):
     return fr.sub(math.sin(a) * apo, y, math.cos(a) * apo, rot=a)
 
 
+def oct_corner(r, k):
+    """Plan corner k (local x, z) of an octagon with corner radius r; corner k sits between faces k and k + 1."""
+    return math.sin(OCT + k * math.pi / 4) * r, math.cos(OCT + k * math.pi / 4) * r
+
+
+def lib_seg(lf, a, b):
+    """Frame on the library plan segment a -> b (local x, z): x along it from its middle, z outward when the plan runs
+    clockwise seen from above (as face_frame does); returns the frame and the segment length."""
+    pa, pb = lf.p(a[0], 0, a[1]), lf.p(b[0], 0, b[1])
+    ex = (pb - pa).normalized()
+    return Fr((pa + pb) / 2, tuple(ex), (-ex.z, 0, ex.x)), (pb - pa).length
+
+
+def lib_slab(mb, lf, pts, y0, y1, top, bottom, side):
+    """Flat slab on a convex plan outline (local x, z, clockwise seen from above)."""
+    mb.poly([lf.p(x, y1, z) for x, z in pts], top)
+    mb.poly([lf.p(x, y0, z) for x, z in reversed(pts)], bottom)
+    for a, b in zip(pts, pts[1:] + pts[:1]):
+        mb.poly([lf.p(a[0], y0, a[1]), lf.p(b[0], y0, b[1]), lf.p(b[0], y1, b[1]), lf.p(a[0], y1, a[1])], side)
+
+
+def lib_glass(mb, fr, ln, y0, y1, ya, yb, panel=2.2):
+    """Glazed wall between y0 and y1: cream sill and head strips, framed panes from ya to yb."""
+    box(mb, fr, -ln / 2, ln / 2, y0, ya, -0.15, 0.0, MAT['lcream'])
+    box(mb, fr, -ln / 2, ln / 2, yb, y1, -0.15, 0.0, MAT['lcream'])
+    n = max(1, round(ln / panel))
+    for j in range(n):
+        xa = -ln / 2 + j * ln / n
+        window(mb, fr, xa + 0.07, xa + ln / n - 0.07, ya, yb, 0.0, mull=True, gm=MAT['lglass'], cells=4)
+
+
 def build_library(mb):
     lf = Fr((LIB_X, 0, LIB_Z))
-    U = LIB_UP
-    uf = lf.sub(U['dx'], 0, U['dz'])        # top floor and roof
-    cylv(mb, lf, 0, 0, 0, 0.45, 7.9, 8, MAT['lgreend'], phase=OCT)
-    cylv(mb, lf, 0, 0, 0.45, 3.9, 7.45, 8, MAT['lyellow'], phase=OCT, caps=False)   # ground floor set back under the first (MH001)
-    cylv(mb, lf, 0, 0, 3.9, 4.3, 9.35, 8, MAT['lcream'], phase=OCT, cap_m=MAT['soffit'])   # first-floor slab, overhanging
-    cylv(mb, lf, 0, 0, 4.3, 7.6, 8.6, 8, MAT['lcream'], phase=OCT, caps=False)   # first floor, just behind the planters
-    cylv(mb, lf, 0, 0, 7.6, 7.95, 9.35, 8, MAT['lcream'], phase=OCT, cap_m=MAT['screed'])   # terrace floor
-    f0_, f1_ = U['fascia']
-    cylv(mb, uf, 0, 0, 7.6, 7.95, U['r'] + 0.45, 8, MAT['lcream'], phase=OCT, cap_m=MAT['screed'])   # top floor's own slab
-    cylv(mb, uf, 0, 0, 7.95, f0_, U['r'], 8, MAT['lcream'], phase=OCT, caps=False)   # top floor, off-centre (MH001)
-    cylv(mb, uf, 0, 0, f0_, f1_, U['r'] + 0.75, 8, MAT['lgreen'], phase=OCT)       # deep dark fascia (MH034)
-    ua = U['r'] * math.cos(OCT)
-    for k in range(8):   # parapet round the terrace at the top-floor level, left out where the top floor stands at the edge
-        fp = face_frame(lf, k, 9.3 * math.cos(OCT))
-        n_ = (math.sin(k * math.pi / 4), math.cos(k * math.pi / 4))
-        gap = 9.3 * math.cos(OCT) - (U['dx'] * n_[0] + U['dz'] * n_[1] + ua)   # terrace depth on this face
-        if gap < 0.9:
+    L = LIB
+    f0_, f1_ = L['fascia']
+    l2, l3 = GF, 7.95                     # first floor level with the galleries and bridges; top floor
+    jx, jz = oct_corner(L['col'], 0)[0], oct_corner(L['col'], 0)[1] + L['jut']   # the jut's outer columns
+    sx = oct_corner(L['slab'], 0)[0]
+    outline = [(-sx, jz + 0.06), (sx, jz + 0.06)] + [oct_corner(L['slab'], k) for k in range(8)]   # slab: octagon + jut
+    # ground floor: yellow tile on the octagon, a dark green plinth
+    cylv(mb, lf, 0, 0, 0, 0.45, L['wall'] + 0.3, 8, MAT['lgreend'], phase=OCT)
+    cylv(mb, lf, 0, 0, 0.45, l2 - 0.4, L['wall'], 8, MAT['lyellow'], phase=OCT, caps=False)
+    for k in range(8):
+        ff = face_frame(lf, k, L['wall'] * math.cos(OCT))
+        hw = L['wall'] * math.sin(OCT) - 0.35
+        if k == 6:   # entrance under the north-west bridge (MH034): glazed doors and side lights, the name board above
+            window(mb, ff, -1.5, 1.5, 0.45, 2.75, 0.0, mull=True, gm=MAT['lglass'], cells=4)
+            for xm in (-2.75, 2.75):
+                window(mb, ff, xm - 0.45, xm + 0.45, 0.45, 2.75, 0.0, mull=False, gm=MAT['lglass'], cells=4)
+            box(mb, ff, -1.9, 1.9, 2.9, 3.3, 0.0, 0.08, MAT['lsign'])
             continue
-        e = 2 * 9.3 * math.sin(OCT)
-        box(mb, fp, -e / 2, e / 2, 7.95, 9.0, -0.28, 0.0, MAT['lcream'])
-        box(mb, fp, -e / 2, e / 2, 9.0, 9.07, -0.32, 0.04, MAT['lcream'])
-    sk = face_frame(lf, 0, 0.0)   # ribbed lean-to on the deep back terrace (MH001), rising towards the top floor
-    ao, ai, yo, yi, hx = 8.2, 5.0, 8.3, 9.6, 2.6
-    mb.poly([sk.p(-hx, yo, ao), sk.p(hx, yo, ao), sk.p(hx, yi, ai), sk.p(-hx, yi, ai)], MAT['lglass'])
-    for t in (0.0, 0.25, 0.5, 0.75, 1.0):
-        beam(mb, sk.p(-hx, yo + (yi - yo) * t + 0.03, ao + (ai - ao) * t), sk.p(hx, yo + (yi - yo) * t + 0.03, ao + (ai - ao) * t), 0.05, MAT['white'])
-    for xr_ in (-hx, -hx / 2, 0.0, hx / 2, hx):
-        beam(mb, sk.p(xr_, yo + 0.03, ao), sk.p(xr_, yi + 0.03, ai), 0.05, MAT['white'])
-    # roof: low octagonal pyramid with standing seams and ridge caps (MH001: eave ~12.9 m, apex ~14.4 m)
-    eave_r, apex = U['eave'], U['apex']
+        for j in range(4):   # a band of windows under the first-floor slab
+            xa = -hw + j * hw / 2
+            window(mb, ff, xa + 0.05, xa + hw / 2 - 0.05, 1.7, 3.1, 0.0, mull=False, gm=MAT['lglass'], cells=4)
+    # first floor: the slab with the jut, a walkway round the court side, the reading room on the back half and the jut
+    lib_slab(mb, lf, outline, l2 - 0.4, l2, MAT['deck'], MAT['soffit'], MAT['lcream'])
+    room = [(-sx + 0.17, jz - 0.25), (sx - 0.17, jz - 0.25), oct_corner(L['wall'], 0), oct_corner(L['wall'], 1)]
+    room += [oct_corner(L['inner'], k) for k in range(1, 7)] + [oct_corner(L['wall'], 6), oct_corner(L['wall'], 7)]
+    for i, (a, b) in enumerate(zip(room, room[1:] + room[:1])):
+        fr, ln = lib_seg(lf, a, b)
+        if i in (3, 9):   # where the room steps in from the octagon to the walkway: solid
+            box(mb, fr, -ln / 2, ln / 2, l2, l3 - 0.35, -0.2, 0.0, MAT['lcream'])
+        else:
+            lib_glass(mb, fr, ln, l2, l3 - 0.35, l2 + 0.35, l3 - 0.65)
+    # top floor: slab with the balcony, a cream band round the slab edge (the balcony parapet over the jut), glass above
+    lib_slab(mb, lf, outline, l3 - 0.35, l3, MAT['deck'], MAT['soffit'], MAT['lcream'])
+    for i, (a, b) in enumerate(zip(outline, outline[1:] + outline[:1])):
+        fr, ln = lib_seg(lf, a, b)
+        box(mb, fr, -ln / 2, ln / 2, l3 - 0.35, L['band'], -0.25, 0.0, MAT['lcream'])
+        if i in (0, 1, 9):   # balcony railing on the jut's three sides (MH034)
+            for y_ in (L['band'] + 0.32, L['band'] + 0.05):
+                box(mb, fr, -ln / 2, ln / 2, y_, y_ + 0.05, -0.15, -0.1, MAT['creampipe'])
+            for j in range(int(ln / 1.6) + 1):
+                xp = -ln / 2 + 0.05 + j * (ln - 0.1) / int(ln / 1.6)
+                box(mb, fr, xp - 0.04, xp + 0.04, L['band'], L['band'] + 0.37, -0.15, -0.1, MAT['creampipe'])
+    for k in range(8):
+        ff = face_frame(lf, k, L['wall'] * math.cos(OCT))
+        hw = L['wall'] * math.sin(OCT)
+        if k == 0:   # glazed full height onto the balcony
+            lib_glass(mb, ff, 2 * hw, l3, f0_, l3 + 0.05, f0_ - 0.35, panel=1.8)
+        else:
+            lib_glass(mb, ff, 2 * hw, l3, f0_, L['band'] + 0.05, f0_ - 0.35)
+    # roof: low octagonal pyramid with standing seams and ridge caps over the top floor and the column ring
+    cylv(mb, lf, 0, 0, f0_, f1_, L['col'] + 0.5, 8, MAT['lgreen'], phase=OCT)       # deep dark fascia (MH034)
+    eave_r, apex = L['eave'], L['apex']
     ang = [OCT + 2 * math.pi * i / 8 for i in range(8)]
-    base = [uf.p(eave_r * math.sin(a), f1_, eave_r * math.cos(a)) for a in ang]
-    top = uf.p(0, apex, 0)
+    base = [lf.p(eave_r * math.sin(a), f1_, eave_r * math.cos(a)) for a in ang]
+    top = lf.p(0, apex, 0)
     for i in range(8):
         mb.poly([base[i], base[(i + 1) % 8], top], MAT['lgreen'])
         beam(mb, base[i], top, 0.2, MAT['lgreen'])
@@ -1184,51 +1240,29 @@ def build_library(mb):
             pa = base[i].lerp(base[(i + 1) % 8], t)
             beam(mb, pa, pa.lerp(top, 0.92), 0.05, MAT['lgreen'])
     mb.poly(list(reversed(base)), MAT['soffit'])
-    # glazing per face
+    # first-floor planter ring along the walkway; the shared random stream is drawn as before (two planters fewer than
+    # the old ring, whose back faces are now the reading room)
     for k in range(8):
-        a0 = 7.45 * math.cos(OCT)
-        ff = face_frame(lf, k, a0)
-        hw = 7.45 * math.sin(OCT) - 0.35
-        if k == 4:   # entrance faces the avenue passage
-            window(mb, ff, -1.4, 1.4, 0.5, 2.9, 0.0, mull=True, gm=MAT['lglass'], cells=4)
-            box(mb, ff, -2.3, 2.3, 3.0, 3.25, 0, 2.2, MAT['lcream'])
-            box(mb, ff, -1.8, 1.8, 3.25, 3.95, 2.12, 2.2, MAT['lsign'])
-            box(mb, ff, -2.6, 2.6, 0, 0.15, 0.0, 1.6, MAT['bench'])
-            for xm in (-2.7, 2.7):
-                window(mb, ff, xm - 0.25, xm + 0.25, 1.0, 3.4, 0.0, mull=False, gm=MAT['lglass'], cells=4)
-        else:
-            for j in range(4):
-                xa = -hw + j * hw / 2
-                window(mb, ff, xa + 0.05, xa + hw / 2 - 0.05, 1.7, 3.45, 0.0, mull=False, gm=MAT['lglass'], cells=4)
-        a1 = 8.6 * math.cos(OCT)
-        ff1 = face_frame(lf, k, a1)
-        hw1 = 8.6 * math.sin(OCT) - 0.3
-        for j in range(3):
-            xa = -hw1 + j * 2 * hw1 / 3
-            window(mb, ff1, xa + 0.05, xa + 2 * hw1 / 3 - 0.05, 4.7, 7.3, 0.0, mull=False, gm=MAT['lglass'], cells=4)
-        ff2 = face_frame(uf, k, ua)
-        hw2 = U['r'] * math.sin(OCT) - 0.35
-        for j in range(3):   # the top floor is glazed almost full height (MH034)
-            xa = -hw2 + j * 2 * hw2 / 3
-            window(mb, ff2, xa + 0.05, xa + 2 * hw2 / 3 - 0.05, 8.45, f0_ - 0.4, 0.0, mull=True, gm=MAT['lglass'], cells=4)
-        # first-floor planter ring (open where the bridges arrive)
-        if k not in (2, 6):
-            fp = face_frame(lf, k, 8.3)
-            e = 2 * 8.3 * math.tan(OCT) - 0.75
-            box(mb, fp, -e / 2, e / 2, 4.3, 5.25, -0.25, 0.25, MAT['lcream'])
-            box(mb, fp, -e / 2 + 0.1, e / 2 - 0.1, 5.05, 5.15, -0.15, 0.15, MAT['soil'])
-            for j in range(10):
-                t = (j / 9 - 0.5) * (e - 0.6)
-                c = fp.p(t, 5.15, 0.05)
-                SHRUBS.append(dict(p=[c[0], c[1], c[2]], s=0.45 + 0.2 * rnd.random(), bouga=rnd.random() < 0.45))
-    ea = eave_r * math.cos(OCT)
-    for k in range(8):   # red mosaic columns round the outside: up to the fascia where the roof covers them, else to the
-        a = OCT + k * math.pi / 4   # terrace parapet; the top floor has its own red columns at its corners (MH001, MH034)
-        cx_, cz_ = math.sin(a) * 9.3, math.cos(a) * 9.3
-        reach = max((cx_ - U['dx']) * math.sin(j * math.pi / 4) + (cz_ - U['dz']) * math.cos(j * math.pi / 4) for j in range(8))
-        top = 7.6 if reach < ua + 0.2 else f0_ if reach < ea - 0.3 else 9.25   # inside the top floor / under the roof / open
-        cylv(mb, lf, cx_, cz_, 0, top, 0.36, 16, MAT['mred'])
-        cylv(mb, uf, math.sin(a) * (U['r'] + 0.15), math.cos(a) * (U['r'] + 0.15), 7.95, f0_, 0.26, 16, MAT['mred'])
+        if k in (2, 6):   # the bridges arrive here
+            continue
+        if k not in (3, 4, 5):
+            for _ in range(20):
+                rnd.random()
+            continue
+        fp = face_frame(lf, k, L['slab'] * math.cos(OCT) - 0.3)
+        e = 2 * (L['slab'] * math.cos(OCT) - 0.3) * math.tan(OCT) - 0.75
+        box(mb, fp, -e / 2, e / 2, l2, l2 + 0.95, -0.25, 0.25, MAT['lcream'])
+        box(mb, fp, -e / 2 + 0.1, e / 2 - 0.1, l2 + 0.75, l2 + 0.85, -0.15, 0.15, MAT['soil'])
+        for j in range(10):
+            t = (j / 9 - 0.5) * (e - 0.6)
+            c = fp.p(t, l2 + 0.85, 0.05)
+            SHRUBS.append(dict(p=[c[0], c[1], c[2]], s=0.45 + 0.2 * rnd.random(), bouga=rnd.random() < 0.45))
+    # red mosaic columns: the ring from the ground to the fascia, and two under the jut's outer corners to the parapet
+    for k in range(8):
+        cx_, cz_ = oct_corner(L['col'], k)
+        cylv(mb, lf, cx_, cz_, 0, f0_, 0.36, 16, MAT['mred'])
+    for s_ in (-1, 1):
+        cylv(mb, lf, s_ * jx, jz, 0, L['band'], 0.36, 16, MAT['mred'])
 
 
 # ------------------------------------------------------------------ courtyard furniture
@@ -1851,7 +1885,7 @@ views = {
     'courtyard_aerial': dict(p=(LX - 8, 125, CZ1 + 48), t=(LX, 0, CZ0 + 42), fov=46),
     'court_1990': dict(p=(LX + 1.4, 26.2, LZ + 53.1), t=(LX + 0.7, 11.1, LZ + 27.2), fov=56.7),   # solved camera of photo 14
     'avenue_2008': dict(p=(PASS_X - 8, 1.7, -24), t=(PASS_X - 8, 10, 8), fov=66),
-    'library': dict(p=(LX - 14, 1.7, LIB_Z - 11), t=(LX, 6.0, LIB_Z), fov=60),
+    'library': dict(p=(LIB_X - 15, 1.7, LIB_Z - 10.2), t=(LIB_X, 5.5, LIB_Z), fov=62),   # MH034: the entrance under the NW bridge
     'gallery_deck': dict(p=(CX1 - 1.5, GF + 1.6, LZ + 40), t=(LX, GF + 2, LZ + 5), fov=62),
     'hall_corner': dict(p=(-14, 1.7, -16), t=(22, 7, 14), fov=62),
     'hill_food': dict(p=(HILL['x0'] - 1.5, 4.7, HILL['zf'] + 7.8), t=(HILL['x0'] + 10.5, 8.5, HILL['zf'] - 3.0), fov=64),   # MH006
