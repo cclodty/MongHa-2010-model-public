@@ -2,8 +2,9 @@
 
 Kept: scripts (tools, blender), generated textures, the web viewer, Blender/FBX/GLB exports, markers, stills and MP4s,
 the Unreal project's Config, .uproject and its own Content (MongHa, Maps, Python), notes (*.md).
-Skipped: flythrough PNG frame folders (re-render with tools/ue_12_fly.py), the exported site (tools/export_site.py),
-older backups, Unreal's Saved/Intermediate/DerivedDataCache and Fab / Megaplant / Dekogon content (re-addable from Fab).
+Skipped: flythrough PNG frame folders (re-render with tools/ue_12_fly.py), the exported site (tools/export_site.py), the
+unbaked preview (tools/preview.py), older backups, Unreal's Saved/Intermediate/DerivedDataCache and Fab / Megaplant /
+Dekogon content (re-addable from Fab).
 usage: py -3 tools/backup.py
 """
 import datetime
@@ -13,7 +14,7 @@ import zipfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INCLUDE = ['tools', 'blender', 'textures', 'web', 'export', 'refs', 'MongHa2010/Config', 'MongHa2010/Content/MongHa',
            'MongHa2010/Content/Maps', 'MongHa2010/Content/Python', 'MongHa2010/MongHa2010.uproject']
-SKIP_DIRS = {'mongha_site', '__pycache__'}
+SKIP_DIRS = {'mongha_site', 'web_preview', '__pycache__'}
 SKIP_PREFIX = ('fly_',)          # export/renders/fly_* PNG sequences
 SKIP_FILES = {'mongha_2010_site.zip'}
 

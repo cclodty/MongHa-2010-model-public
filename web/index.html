@@ -98,6 +98,7 @@ button:focus-visible { outline: 2px solid var(--tile); outline-offset: 2px; }
   <h1>望廈平民新邨<span class="yr">2010</span></h1>
   <p class="pt">Bairro Social de Mong-Há · 澳門慕拉士大馬路</p>
   <p class="coord">22.2066°N 113.5519°E · 1988 落成 · 2011 拆卸</p>
+  <p class="coord" id="build" hidden></p>
   <details>
     <summary>這個模型是怎樣做的</summary>
     <p>按居民提供的舊相、2008 年街景和設計師的資料，重建拆卸前的屋邨：十四座住宅圍着約 42 × 106 米的中庭，八角形圖書館、一樓走廊和天橋、四道折返樓梯、鐵籠球場。中庭比例是用 1990 年代那張高處舊相反推相機位置量出來的，佈置以那張相為準。</p>
@@ -163,6 +164,7 @@ const EXTRA_VIEWS = {
   hill_food: { p: [120, 4.7, 134.8], t: [132, 8.5, 124], fov: 64 },   // fallback for bakes made before it moved into markers.json
 };
 const START_VIEW = 'gallery_deck';   // the page opens on the first-floor gallery (user)
+const NO_BAKE = new Set(['M_Glass_Residential', 'M_Shop_Glass', 'M_Glass_Library', 'M_Context_Glass', 'M_Lamp_Globe', 'M_TrafficLight_Green']);   // as web_bake.py
 
 // ---------------------------------------------------------------- renderer, sky, environment
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -192,6 +194,31 @@ scene.fog = new THREE.Fog(new THREE.Color().setRGB(hz[0] * SKY_K, hz[1] * SKY_K,
 const sunLight = new THREE.DirectionalLight(new THREE.Color().setRGB(...manifest.sun_color), manifest.sun_strength);
 sunLight.position.copy(sunDir).multiplyScalar(100);
 scene.add(sunLight);
+// unbaked preview (blender/web_preview.py): no lightmaps, so the sun casts live shadows and the HDRI gives the sky light.
+// The shadow map covers only the area in view (sharp close up), snapped to whole texels so the edges do not crawl.
+const BAKED = manifest.baked !== false;
+const lightRot = new THREE.Matrix4().lookAt(sunDir, new THREE.Vector3(), new THREE.Vector3(0, 1, 0));
+const lightInv = lightRot.clone().invert();
+function fitShadow(focus, radius) {
+  const r = THREE.MathUtils.clamp(radius, 20, 220), texel = (2 * r) / sunLight.shadow.mapSize.x;
+  const f = focus.clone().applyMatrix4(lightInv);
+  f.x = Math.round(f.x / texel) * texel; f.y = Math.round(f.y / texel) * texel;
+  f.applyMatrix4(lightRot);
+  sunLight.target.position.copy(f);
+  sunLight.position.copy(f).addScaledVector(sunDir, 300);
+  const c = sunLight.shadow.camera;
+  c.left = c.bottom = -r; c.right = c.top = r; c.near = 1; c.far = 600;
+  c.updateProjectionMatrix();
+}
+if (!BAKED) {
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  sunLight.castShadow = true;
+  sunLight.shadow.mapSize.set(4096, 4096);
+  sunLight.shadow.bias = -0.0003;
+  sunLight.shadow.normalBias = 0.04;
+  scene.add(sunLight.target);
+}
 
 // ---------------------------------------------------------------- textures and material table
 let needs = true;
@@ -278,6 +305,18 @@ irradiance += bakeL;
   radiance += getIBLRadiance( geometryViewDir, geometryNormal, material.roughness ) * clamp( bakeLum / 1.2 + bakeSun * 0.5, 0.08, 1.0 );
 #endif
 `;
+function addDetail(sh, detail) {
+  sh.uniforms.detailMap = { value: detail.tex };
+  sh.uniforms.detailScale = { value: detail.scale };
+  sh.fragmentShader = sh.fragmentShader
+    .replace('#include <common>', '#include <common>\nuniform sampler2D detailMap;\nuniform float detailScale;')
+    .replace('#include <map_fragment>', '#include <map_fragment>\n#ifdef USE_MAP\n  diffuseColor.rgb *= texture2D( detailMap, vMapUv * detailScale ).rgb * 2.0;\n#endif');
+}
+function livePatch(m, detail) {   // unbaked preview: three.js's own lighting, plus the stain map
+  if (!detail) return;
+  m.onBeforeCompile = (sh) => addDetail(sh, detail);
+  m.customProgramCacheKey = () => 'live-d';
+}
 function bakePatch(m, kind, boost = 1.0, mask = null, detail = null) {
   m.onBeforeCompile = (sh) => {
     sh.uniforms.bakeScale = { value: Math.PI * LMAX * boost };
@@ -289,13 +328,7 @@ function bakePatch(m, kind, boost = 1.0, mask = null, detail = null) {
         .replace('#include <begin_vertex>', '#include <begin_vertex>\nvBakeVC = color.rgb;\nvBakeMask = color.a;');
       sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vBakeVC;\nvarying float vBakeMask;');
     }
-    if (detail) {
-      sh.uniforms.detailMap = { value: detail.tex };
-      sh.uniforms.detailScale = { value: detail.scale };
-      sh.fragmentShader = sh.fragmentShader
-        .replace('#include <common>', '#include <common>\nuniform sampler2D detailMap;\nuniform float detailScale;')
-        .replace('#include <map_fragment>', '#include <map_fragment>\n#ifdef USE_MAP\n  diffuseColor.rgb *= texture2D( detailMap, vMapUv * detailScale ).rgb * 2.0;\n#endif');
-    }
+    if (detail) addDetail(sh, detail);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\nuniform float bakeScale;\nuniform sampler2D sunMask;')
       .replace('#include <lights_fragment_begin>', SUN_PRE + SUN_GATE)
@@ -317,7 +350,7 @@ function material(name, kind, lm, mask) {
   if (matCache.has(key)) return matCache.get(key);
   const info = manifest.materials[name] || { color: [0.6, 0.6, 0.6], rough: 0.85, metal: 0 };
   let m;
-  if (kind === 'NB') {
+  if (kind === 'NB' || (kind === 'RT' && NO_BAKE.has(name))) {
     if (GLASS[name]) {
       m = new THREE.MeshStandardMaterial({ color: 0x07090a, roughness: 0.05, metalness: 0, envMap, envMapIntensity: SKY_K,
         emissive: 0xffffff, emissiveMap: tex(GLASS[name][0], 1), emissiveIntensity: GLASS[name][1] });
@@ -331,7 +364,7 @@ function material(name, kind, lm, mask) {
     } else {
       m = new THREE.MeshStandardMaterial({ color: 0x14191b, roughness: 0.1, envMap, envMapIntensity: SKY_K });
     }
-    if (m.isMeshStandardMaterial) noSunPatch(m);
+    if (m.isMeshStandardMaterial && kind === 'NB') noSunPatch(m);
   } else {
     const c = config(name);
     const col = c.white ? new THREE.Color(1, 1, 1).multiplyScalar(c.gainC || 1)
@@ -343,7 +376,8 @@ function material(name, kind, lm, mask) {
     if (c.alpha) { m.alphaMap = tex(c.alpha, c.rep, false); m.alphaTest = 0.5; m.side = THREE.DoubleSide; }
     if (kind === 'LM' && lm) { m.lightMap = lm; m.lightMapIntensity = Math.PI * LMAX; }
     const detail = c.detail && c.map ? { tex: tex(c.detail, 1, false), scale: c.detailScale } : null;
-    bakePatch(m, kind, c.leaf ? 1.35 : 1.0, kind === 'LM' ? mask : null, detail);
+    if (kind === 'RT') livePatch(m, detail);
+    else bakePatch(m, kind, c.leaf ? 1.35 : 1.0, kind === 'LM' ? mask : null, detail);
   }
   m.name = name;
   matCache.set(key, m);
@@ -398,6 +432,7 @@ function prepare(root) {
     const out = mats.map((mm) => material(mm.name, kind, lm, mask));
     o.material = Array.isArray(o.material) ? out : out[0];
     o.matrixAutoUpdate = false; o.updateMatrix();
+    if (kind === 'RT') { o.castShadow = !out.some((m) => NO_BAKE.has(m.name)); o.receiveShadow = true; }
     if (kind !== 'NB' && !out.some((m) => m.alphaTest > 0)) walkables.push(o);
   });
 }
@@ -441,6 +476,11 @@ controls.addEventListener('change', () => (needs = true));
 const viewBtns = {};
 let tween = null;
 const ALL_VIEWS = Object.assign({}, EXTRA_VIEWS, manifest.views);   // views baked into the manifest win
+if (manifest.focus) {   // preview: a view of what the latest build changed (tools/preview.py --focus)
+  ALL_VIEWS.focus = manifest.focus;
+  VIEW_NAMES.focus = manifest.focus.label || '本次修改';
+}
+if (!BAKED) { $('build').hidden = false; $('build').textContent = '未烘焙預覽（即時光影）· ' + manifest.built; }
 function goView(key, instant = false) {
   const v = ALL_VIEWS[key];
   const p = new THREE.Vector3(...v.p), t = new THREE.Vector3(...v.t);
@@ -451,7 +491,7 @@ function goView(key, instant = false) {
   }
   tween = { p0: camera.position.clone(), t0: controls.target.clone(), f0: camera.fov, p, t, f: v.fov, s: performance.now() };
 }
-for (const key of Object.keys(VIEW_NAMES).filter((k) => ALL_VIEWS[k])) {
+for (const key of ['focus', ...Object.keys(VIEW_NAMES)].filter((k, i, a) => ALL_VIEWS[k] && VIEW_NAMES[k] && a.indexOf(k) === i)) {
   const b = document.createElement('button');
   b.type = 'button'; b.textContent = VIEW_NAMES[key]; b.setAttribute('aria-pressed', 'false');
   b.addEventListener('click', () => goView(key));
@@ -639,7 +679,20 @@ function resize() {
 }
 addEventListener('resize', resize);
 resize();
-goView(START_VIEW, true);
+// preview: reopen where the viewer left off, unless a new build brings a view of what changed
+const SAVE_KEY = 'mongha-preview-view';
+function savedView() { try { return JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) { return null; } }
+function saveView() {
+  const t = mode === 'orbit' ? controls.target : camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(8).add(camera.position);
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ p: camera.position.toArray(), t: t.toArray(), fov: camera.fov, seen: manifest.built }));
+  } catch (e) { /* storage blocked: the next visit starts from the default view */ }
+}
+const last = BAKED ? null : savedView();
+if (manifest.focus && last?.seen !== manifest.built) goView('focus', true);
+else if (last) { ALL_VIEWS.last = last; goView('last', true); }
+else goView(START_VIEW, true);
+if (!BAKED) setInterval(saveView, 1500);
 renderer.setAnimationLoop(() => {
   const dt = Math.min(clock.getDelta(), 0.1);
   if (tween) {
@@ -650,6 +703,10 @@ renderer.setAnimationLoop(() => {
     needs = true;
   }
   if (mode === 'orbit') controls.update(); else { walkStep(dt); needs = true; }
+  if (!BAKED && needs) {
+    if (mode === 'orbit') fitShadow(controls.target, camera.position.distanceTo(controls.target) * 1.2 + 10);
+    else fitShadow(camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(20).add(camera.position), 45);
+  }
   const now = performance.now();
   if (needs && now - aeLast > 250) { aeLast = now; meter(); }
   if (Math.abs(exposureTarget - exposure) > 0.004) {

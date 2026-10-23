@@ -7,6 +7,7 @@ Run: py -3 tools/camsolve.py
 """
 import json
 import math
+import os
 
 import numpy as np
 
@@ -129,4 +130,4 @@ for k, uv in FEATURES.items():
     g = ground(p, uv)
     out[k] = (round(float(g[0]), 2), round(float(g[2]), 2))
     print(f'{k:22s} X {g[0]:7.2f}  Z {g[2]:7.2f}')
-json.dump(dict(camera=p, features=out), open('G:/Claude/mongha-ue/export/camsolve.json', 'w'), indent=1)
+json.dump(dict(camera=p, features=out), open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'export', 'camsolve.json'), 'w'), indent=1)

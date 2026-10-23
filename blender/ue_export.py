@@ -1,7 +1,7 @@
 """Unreal export of the estate: the web-bake model minus the surroundings, every edge chamfered for Nanite.
 
 Run after build_estate.py --export:
-  G:/Blender/blender.exe -b G:/Claude/mongha-ue/export/MongHa_2010.blend --factory-startup -P ue_export.py
+  blender -b export/MongHa_2010.blend --factory-startup -P blender/ue_export.py
 Writes export/MongHa_2010_UE.fbx (imported by tools/ue_01_import.py).
 """
 import math
@@ -10,7 +10,7 @@ import os
 import bmesh
 import bpy
 
-EXPORT = r'G:\Claude\mongha-ue\export'
+EXPORT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'export')
 GONE = ('SM_Context_Massing', 'SM_SportsHall_Simple', 'SM_Estate_SlopeBlocks')   # user: estate only (round 3)
 WIDTH = {'SM_Ground_Streets': 0.015}   # kerbs and steps; the rest 2 cm
 

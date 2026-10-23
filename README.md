@@ -20,11 +20,13 @@ Bairro Social de Mong-Há, Macau — a code-built reconstruction of the social h
 | `blender/mh_geom.py` | 幾何工具（`test_geom.py` 是它的測試） |
 | `blender/make_*.py` | 生成貼圖：紙皮石、通花磚、窗內、衣物、招牌、天空等 |
 | `blender/web_bake.py`、`web_trees.py` | 網頁版的光照烘焙（Cycles）、樹木，輸出到 `web/assets` |
+| `blender/web_preview.py`、`tools/preview.py` | 不烘焙的網頁預覽：幾秒內重建模型並匯出到 `export/web_preview`，網頁用即時陽光陰影顯示，邊改邊看 |
 | `blender/preview_render.py` | 不烘焙的接近成品預覽（網頁同一套貼圖、天空和太陽） |
 | `blender/compose_overlay.py`、`pair_crop.py`、`mark_points.py` | 把渲染和舊相疊加、並排對比 |
 | `blender/ue_export.py` | 匯出給 Unreal 的 FBX |
 | `tools/camsolve.py`、`camsolve_mh001.py`、`libfit_mh001.py` | 由舊相反推相機位置及尺寸 |
 | `tools/pack_web.py`、`export_site.py` | 打包網頁版；匯出可獨立部署的網站及 ZIP |
+| `tools/get_blender.sh` | 在 Linux／Claude Code 雲端環境下載 Blender 5.2 並放進 PATH |
 | `tools/ue_*.py`、`ue_bridge.py` | Unreal 編輯器自動化（匯入、材質、佈景、燈光、渲染、飛行鏡頭） |
 | `web/` | 網頁版：`index.html`、烘焙好的模型與光照圖（`assets/`）、貼圖（`tex/`）、Draco 解碼器 |
 | `textures/` | 生成的貼圖（含天空 `sky_bake.exr`） |
@@ -58,12 +60,24 @@ python tools/pack_web.py
 python tools/export_site.py
 ```
 
-在 `web/` 開一個靜態伺服器（例如 `python -m http.server`）就可以在本機看網頁版。部分腳本內的路徑按作者電腦設定（`G:\Claude\mongha-ue`、`G:\Blender`、`G:\UE_5.8`），在其他電腦要先修改。
+在 `web/` 開一個靜態伺服器（例如 `python -m http.server`）就可以在本機看網頁版。Unreal 自動化腳本（`tools/ue_*.py`、`shots.sh`、`encode_fly.cmd`）及 `make_signs.py` 的字型路徑按作者電腦設定（`G:\Claude\mongha-ue`、`G:\UE_5.8`、`C:\Windows\Fonts`），在其他電腦要先修改；Blender 建模、預覽及網頁腳本都用倉庫內的相對路徑。
+
+## 邊改邊看：不烘焙預覽
+
+烘焙要 GPU 和約十分鐘；改模型時先用不烘焙的預覽看效果，整個循環約十秒，不需要 GPU：
+
+```bash
+python tools/preview.py                       # 建模 + 匯出 export/web_preview/（網頁、模型、貼圖）
+python tools/preview.py --serve               # 同上，再在 http://localhost:8000/ 開
+python tools/preview.py --focus=後街梯塔:150,30,170:110,8,140:50   # 加一個「本次修改」視點（名稱:相機:目標:視角，單位米）
+```
+
+預覽用同一個 `web/index.html`：manifest 寫明 `"baked": false` 時，網頁不用光照圖，改為即時陽光陰影（陰影範圍跟着鏡頭）加天空光，卡片上會顯示「未烘焙預覽」及建模時間。重新整理後會回到上次的鏡頭位置；有 `--focus` 的新版本則先跳到該視點。`export/web_preview/claude.html` 是同一頁，用來在 claude.ai 發佈成 Artifact，在對話右側邊改邊看。Blender 用 `BLENDER` 環境變數指定，否則用 PATH 上的 `blender`；在 Linux／雲端環境先跑 `bash tools/get_blender.sh`。
 
 ## 目前狀態
 
-- `web/assets` 是 2026-10-22 烘焙的版本（已有山坡兩座）。之後按舊相加入的細節（梯塔、天台、圖書館頂層平台、各種地舖及街道細節等）已寫進 `build_estate.py`，但未重新烘焙。
-- 2026-10-23 按 1988 年俯瞰相（MH001）的相機對位，把各排樓座由 10 米加深到 17 米（中庭大小不變，屋邨向東南及後街方向各擴闊 14 米）；這個改動未烘焙，網頁版仍是舊尺寸。前後兩排的梯塔位置（MH001 似是轉角及中間各一座）仍待核對。
+- `web/assets` 是 2026-10-22 烘焙的版本（已有山坡兩座）。之後按舊相加入的細節（梯塔、天台、圖書館頂層平台、各種地舖及街道細節等）已寫進 `build_estate.py`，但未重新烘焙；用不烘焙預覽（上一節）可以看到現狀。
+- 2026-10-23 按 1988 年俯瞰相（MH001）的相機對位，把各排樓座由 10 米加深到 17 米（中庭大小不變，屋邨向東南及後街方向各擴闊 14 米）；這個改動未烘焙，烘焙版網頁仍是舊尺寸，不烘焙預覽已是新尺寸。前後兩排的梯塔位置（MH001 似是轉角及中間各一座）仍待核對。
 - Unreal 版停在 2026-10-21，未跟上之後的改動。
 
 ## 私人倉庫：參考相片
