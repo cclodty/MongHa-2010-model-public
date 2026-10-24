@@ -10,10 +10,10 @@
    "mask": "SM_Courtyard_LM_SM.jpg",
    "res": 2048,
    "stats": {
-    "mean": 0.12518678605556488,
-    "p99": 0.5121594071388245,
-    "max": 2.7731728553771973,
-    "lit": 0.1715993881225586
+    "mean": 0.12796063721179962,
+    "p99": 0.520379900932312,
+    "max": 1.1478300094604492,
+    "lit": 0.20483899116516113
    }
   },
   "SM_Courtyard_VC": {
@@ -29,12 +29,12 @@
    "kind": "LM",
    "lightmap": "SM_Estate_BACK_LM.jpg",
    "mask": "SM_Estate_BACK_LM_SM.jpg",
-   "res": 2048,
+   "res": 4096,
    "stats": {
-    "mean": 0.07899701595306396,
-    "p99": 0.6710819005966187,
-    "max": 1.0142199993133545,
-    "lit": 0.06315779685974121
+    "mean": 0.06659410148859024,
+    "p99": 0.7056913375854492,
+    "max": 1.2947295904159546,
+    "lit": 0.059579551219940186
    }
   },
   "SM_Estate_BACK_VC": {
@@ -50,12 +50,12 @@
    "kind": "LM",
    "lightmap": "SM_Estate_FRONT_LM.jpg",
    "mask": "SM_Estate_FRONT_LM_SM.jpg",
-   "res": 2048,
+   "res": 4096,
    "stats": {
-    "mean": 0.08342690020799637,
-    "p99": 0.6655226349830627,
-    "max": 1.0461921691894531,
-    "lit": 0.07894372940063477
+    "mean": 0.06501876562833786,
+    "p99": 0.6823023557662964,
+    "max": 1.3795543909072876,
+    "lit": 0.06114429235458374
    }
   },
   "SM_Estate_FRONT_VC": {
@@ -73,10 +73,10 @@
    "mask": "SM_Estate_NW_LM0_SM.jpg",
    "res": 2048,
    "stats": {
-    "mean": 0.08139700442552567,
-    "p99": 0.6691344976425171,
-    "max": 0.9746280908584595,
-    "lit": 0.08112335205078125
+    "mean": 0.07830052077770233,
+    "p99": 0.7461147308349609,
+    "max": 1.4187657833099365,
+    "lit": 0.07924318313598633
    }
   },
   "SM_Estate_NW_LM1": {
@@ -86,10 +86,10 @@
    "mask": "SM_Estate_NW_LM1_SM.jpg",
    "res": 2048,
    "stats": {
-    "mean": 0.08363574743270874,
-    "p99": 0.6788372993469238,
-    "max": 0.9998596906661987,
-    "lit": 0.0812373161315918
+    "mean": 0.07421143352985382,
+    "p99": 0.7341220378875732,
+    "max": 1.3119267225265503,
+    "lit": 0.07739901542663574
    }
   },
   "SM_Estate_NW_VC": {
@@ -107,10 +107,10 @@
    "mask": "SM_Estate_SE_LM0_SM.jpg",
    "res": 2048,
    "stats": {
-    "mean": 0.0908082127571106,
-    "p99": 0.6659248471260071,
-    "max": 1.2549080848693848,
-    "lit": 0.08193206787109375
+    "mean": 0.08265020698308945,
+    "p99": 0.7382465600967407,
+    "max": 1.1081905364990234,
+    "lit": 0.07625865936279297
    }
   },
   "SM_Estate_SE_LM1": {
@@ -120,10 +120,10 @@
    "mask": "SM_Estate_SE_LM1_SM.jpg",
    "res": 2048,
    "stats": {
-    "mean": 0.09447767585515976,
-    "p99": 0.669162392616272,
-    "max": 1.1150836944580078,
-    "lit": 0.08939337730407715
+    "mean": 0.08133337646722794,
+    "p99": 0.7318487167358398,
+    "max": 1.2635204792022705,
+    "lit": 0.08244967460632324
    }
   },
   "SM_Estate_SE_VC": {
@@ -141,10 +141,10 @@
    "mask": "SM_Estate_SlopeBlocks_LM_SM.jpg",
    "res": 2048,
    "stats": {
-    "mean": 0.11270857602357864,
-    "p99": 0.6916247010231018,
-    "max": 0.9761802554130554,
-    "lit": 0.09557557106018066
+    "mean": 0.09876292943954468,
+    "p99": 0.7341175079345703,
+    "max": 1.3348793983459473,
+    "lit": 0.08629417419433594
    }
   },
   "SM_Estate_SlopeBlocks_VC": {
@@ -162,10 +162,10 @@
    "mask": "SM_Galleries_Bridges_LM_SM.jpg",
    "res": 2048,
    "stats": {
-    "mean": 0.07974403351545334,
-    "p99": 0.4787179231643677,
-    "max": 1.0153578519821167,
-    "lit": 0.06266427040100098
+    "mean": 0.07513570040464401,
+    "p99": 0.4693490266799927,
+    "max": 0.9629647731781006,
+    "lit": 0.057282447814941406
    }
   },
   "SM_Galleries_Bridges_VC": {
@@ -179,10 +179,10 @@
    "mask": "SM_Ground_Far_LM_SM.jpg",
    "res": 512,
    "stats": {
-    "mean": 0.4827156066894531,
-    "p99": 0.7942260503768921,
-    "max": 0.8619939088821411,
-    "lit": 0.8324623107910156
+    "mean": 0.47533583641052246,
+    "p99": 0.7697845101356506,
+    "max": 0.8505628705024719,
+    "lit": 0.8224639892578125
    }
   },
   "SM_Ground_Streets_LM": {
@@ -192,10 +192,10 @@
    "mask": "SM_Ground_Streets_LM_SM.jpg",
    "res": 4096,
    "stats": {
-    "mean": 0.07598305493593216,
-    "p99": 0.7606204748153687,
-    "max": 0.958202600479126,
-    "lit": 0.11446201801300049
+    "mean": 0.07079576700925827,
+    "p99": 0.7581092119216919,
+    "max": 1.0956313610076904,
+    "lit": 0.11091315746307373
    }
   },
   "SM_Ground_Streets_VC": {
@@ -213,10 +213,10 @@
    "mask": "SM_Library_LM_SM.jpg",
    "res": 2048,
    "stats": {
-    "mean": 0.08776813000440598,
-    "p99": 0.6122927069664001,
-    "max": 1.2056055068969727,
-    "lit": 0.10971307754516602
+    "mean": 0.08268409222364426,
+    "p99": 0.5883734226226807,
+    "max": 1.0067687034606934,
+    "lit": 0.09995388984680176
    }
   },
   "SM_Library_VC": {
@@ -238,10 +238,10 @@
    "mask": "SM_SportsHall_Simple_LM_SM.jpg",
    "res": 4096,
    "stats": {
-    "mean": 0.10760889202356339,
-    "p99": 0.7747669219970703,
-    "max": 1.5865778923034668,
-    "lit": 0.12424594163894653
+    "mean": 0.07801894098520279,
+    "p99": 0.7548467516899109,
+    "max": 1.3676033020019531,
+    "lit": 0.08235716819763184
    }
   },
   "SM_SportsHall_Simple_VC": {
@@ -257,7 +257,10 @@
    "kind": "VC"
   }
  },
- "samples": 1536,
+ "samples": 96,
+ "sun_samples": 24,
+ "vc_samples": 160,
+ "denoised": true,
  "sun": [
   0.5378,
   0.7415,
@@ -278,38 +281,38 @@
  "views": {
   "courtyard_aerial": {
    "p": [
-    75.0,
+    82.0,
     125,
-    167.0
+    174.0
    ],
    "t": [
-    83.0,
+    90.0,
     0,
-    55.0
+    62.0
    ],
    "fov": 46
   },
   "court_1990": {
    "p": [
-    84.4,
+    91.4,
     26.2,
-    119.1
+    126.1
    ],
    "t": [
-    83.7,
+    90.7,
     11.1,
-    93.2
+    100.2
    ],
    "fov": 56.7
   },
   "avenue_2008": {
    "p": [
-    75.0,
+    82.0,
     1.7,
     -24
    ],
    "t": [
-    75.0,
+    82.0,
     10,
     8
    ],
@@ -317,27 +320,27 @@
   },
   "library": {
    "p": [
-    69.0,
+    75.0,
     1.7,
-    55.0
+    62.8
    ],
    "t": [
-    83.0,
-    6.0,
-    66.0
+    90.0,
+    5.5,
+    73.0
    ],
-   "fov": 60
+   "fov": 62
   },
   "gallery_deck": {
    "p": [
-    102.5,
+    109.5,
     5.4,
-    106.0
+    113.0
    ],
    "t": [
-    83.0,
+    90.0,
     5.8,
-    71.0
+    78.0
    ],
    "fov": 62
   },
@@ -353,6 +356,19 @@
     14
    ],
    "fov": 62
+  },
+  "hill_food": {
+   "p": [
+    134.0,
+    4.7,
+    148.8
+   ],
+   "t": [
+    146.0,
+    8.5,
+    138.0
+   ],
+   "fov": 64
   }
  },
  "materials": {
@@ -410,6 +426,15 @@
    "rough": 0.9,
    "metal": 0.0
   },
+  "M_Billboard": {
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "rough": 0.6,
+   "metal": 0.0
+  },
   "M_BreezeBlock": {
    "color": [
     0.4851,
@@ -417,6 +442,15 @@
     0.3916
    ],
    "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Brick_Coping": {
+   "color": [
+    0.3231,
+    0.0887,
+    0.0545
+   ],
+   "rough": 0.8,
    "metal": 0.0
   },
   "M_BusShelter_Metal": {
@@ -545,6 +579,15 @@
    "rough": 1.0,
    "metal": 0.0
   },
+  "M_Frame_FanRed": {
+   "color": [
+    0.2542,
+    0.0331,
+    0.0176
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
   "M_Frame_Green": {
    "color": [
     0.0284,
@@ -599,6 +642,15 @@
    "rough": 1.0,
    "metal": 0.0
   },
+  "M_Hall_Glass": {
+   "color": [
+    0.2918,
+    0.402,
+    0.4452
+   ],
+   "rough": 0.1,
+   "metal": 0.0
+  },
   "M_Hall_Grey": {
    "color": [
     0.1022,
@@ -619,9 +671,9 @@
   },
   "M_Hall_Stone": {
    "color": [
-    0.3325,
-    0.3372,
-    0.314
+    0.4179,
+    0.4179,
+    0.3864
    ],
    "rough": 0.7,
    "metal": 0.0
@@ -633,6 +685,15 @@
     0.6724
    ],
    "rough": 0.85,
+   "metal": 0.0
+  },
+  "M_Hydrant_Red": {
+   "color": [
+    0.4508,
+    0.0194,
+    0.013
+   ],
+   "rough": 0.5,
    "metal": 0.0
   },
   "M_Lamp_Globe": {
@@ -806,13 +867,13 @@
    "rough": 0.45,
    "metal": 0.0
   },
-  "M_Paint_Green": {
+  "M_Paving_Brick": {
    "color": [
-    0.0782,
-    0.2542,
-    0.1329
+    0.2664,
+    0.1274,
+    0.0953
    ],
-   "rough": 0.8,
+   "rough": 0.85,
    "metal": 0.0
   },
   "M_Paving_Courtyard": {
@@ -941,6 +1002,15 @@
    "rough": 0.8,
    "metal": 0.0
   },
+  "M_Play_Yellow": {
+   "color": [
+    0.7682,
+    0.4678,
+    0.0252
+   ],
+   "rough": 0.45,
+   "metal": 0.2
+  },
   "M_PostOffice_Red": {
    "color": [
     0.4508,
@@ -986,15 +1056,6 @@
    "rough": 0.85,
    "metal": 0.0
   },
-  "M_Roof_Tank": {
-   "color": [
-    0.624,
-    0.6445,
-    0.6308
-   ],
-   "rough": 0.35,
-   "metal": 0.8
-  },
   "M_RoofTile_Terracotta": {
    "color": [
     0.6584,
@@ -1004,13 +1065,13 @@
    "rough": 0.7,
    "metal": 0.0
   },
-  "M_Sand": {
+  "M_Rubber_Tiles": {
    "color": [
-    0.6724,
-    0.5457,
-    0.2831
+    0.0194,
+    0.0212,
+    0.0203
    ],
-   "rough": 1.0,
+   "rough": 0.9,
    "metal": 0.0
   },
   "M_Shop_Glass": {
@@ -1067,15 +1128,6 @@
    "rough": 0.5,
    "metal": 0.0
   },
-  "M_Sign_Black": {
-   "color": [
-    0.0137,
-    0.0137,
-    0.0123
-   ],
-   "rough": 0.5,
-   "metal": 0.0
-  },
   "M_Sign_Blue": {
    "color": [
     0.0123,
@@ -1085,13 +1137,31 @@
    "rough": 0.5,
    "metal": 0.0
   },
-  "M_Sign_Purple": {
+  "M_Sign_Desporto": {
    "color": [
-    0.0437,
-    0.0284,
-    0.1559
+    1.0,
+    1.0,
+    1.0
    ],
    "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_Sign_HallName": {
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "rough": 0.5,
+   "metal": 0.0
+  },
+  "M_Sign_Photos": {
+   "color": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "rough": 0.6,
    "metal": 0.0
   },
   "M_Sign_White": {
@@ -1166,6 +1236,15 @@
    "rough": 0.5,
    "metal": 0.6
   },
+  "M_Tile_Cream": {
+   "color": [
+    0.6724,
+    0.6105,
+    0.4342
+   ],
+   "rough": 0.45,
+   "metal": 0.0
+  },
   "M_Tile_Dado": {
    "color": [
     0.4851,
@@ -1182,6 +1261,15 @@
     0.3813
    ],
    "rough": 0.7,
+   "metal": 0.0
+  },
+  "M_Tile_Green": {
+   "color": [
+    0.0497,
+    0.159,
+    0.0844
+   ],
+   "rough": 0.45,
    "metal": 0.0
   },
   "M_Tile_Maroon": {
@@ -1261,93 +1349,93 @@
   {
    "family": "SM_Courtyard",
    "glb": "SM_Courtyard.glb",
-   "bytes": 305272,
+   "bytes": 332188,
    "packed": "SM_Courtyard.glb.json",
-   "packed_bytes": 407096
+   "packed_bytes": 442984
   },
   {
    "family": "SM_Estate_BACK",
    "glb": "SM_Estate_BACK.glb",
-   "bytes": 1538616,
+   "bytes": 1922072,
    "packed": "SM_Estate_BACK.glb.json",
-   "packed_bytes": 2051554
+   "packed_bytes": 2562830
   },
   {
    "family": "SM_Estate_FRONT",
    "glb": "SM_Estate_FRONT.glb",
-   "bytes": 1571700,
+   "bytes": 2119504,
    "packed": "SM_Estate_FRONT.glb.json",
-   "packed_bytes": 2095667
+   "packed_bytes": 2826075
   },
   {
    "family": "SM_Estate_NW",
    "glb": "SM_Estate_NW.glb",
-   "bytes": 3202292,
+   "bytes": 2098476,
    "packed": "SM_Estate_NW.glb.json",
-   "packed_bytes": 4269788
+   "packed_bytes": 2798032
   },
   {
    "family": "SM_Estate_SE",
    "glb": "SM_Estate_SE.glb",
-   "bytes": 3296344,
+   "bytes": 2098532,
    "packed": "SM_Estate_SE.glb.json",
-   "packed_bytes": 4395192
+   "packed_bytes": 2798108
   },
   {
    "family": "SM_Estate_SlopeBlocks",
    "glb": "SM_Estate_SlopeBlocks.glb",
-   "bytes": 1080268,
+   "bytes": 895988,
    "packed": "SM_Estate_SlopeBlocks.glb.json",
-   "packed_bytes": 1440433
+   "packed_bytes": 1194725
   },
   {
    "family": "SM_Galleries_Bridges",
    "glb": "SM_Galleries_Bridges.glb",
-   "bytes": 503436,
+   "bytes": 1047216,
    "packed": "SM_Galleries_Bridges.glb.json",
-   "packed_bytes": 671320
+   "packed_bytes": 1396360
   },
   {
    "family": "SM_Ground_Far",
    "glb": "SM_Ground_Far.glb",
-   "bytes": 1408,
+   "bytes": 1424,
    "packed": "SM_Ground_Far.glb.json",
-   "packed_bytes": 1945
+   "packed_bytes": 1965
   },
   {
    "family": "SM_Ground_Streets",
    "glb": "SM_Ground_Streets.glb",
-   "bytes": 404132,
+   "bytes": 460900,
    "packed": "SM_Ground_Streets.glb.json",
-   "packed_bytes": 538913
+   "packed_bytes": 614605
   },
   {
    "family": "SM_Library",
    "glb": "SM_Library.glb",
-   "bytes": 320652,
+   "bytes": 534136,
    "packed": "SM_Library.glb.json",
-   "packed_bytes": 427598
+   "packed_bytes": 712246
   },
   {
    "family": "SM_Shrubs",
    "glb": "SM_Shrubs.glb",
-   "bytes": 73964,
+   "bytes": 83644,
    "packed": "SM_Shrubs.glb.json",
-   "packed_bytes": 98681
+   "packed_bytes": 111589
   },
   {
    "family": "SM_SportsHall_Simple",
    "glb": "SM_SportsHall_Simple.glb",
-   "bytes": 877756,
+   "bytes": 1677180,
    "packed": "SM_SportsHall_Simple.glb.json",
-   "packed_bytes": 1170416
+   "packed_bytes": 2236312
   },
   {
    "family": "SM_Trees",
    "glb": "SM_Trees.glb",
-   "bytes": 247416,
+   "bytes": 259904,
    "packed": "SM_Trees.glb.json",
-   "packed_bytes": 329948
+   "packed_bytes": 346600
   }
  ]
 }
