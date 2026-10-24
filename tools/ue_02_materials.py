@@ -441,6 +441,8 @@ SPEC.update({
     'M_Context_Roof': {**PLASTER, **FLOOR, 'Tint': '#8e8b84', 'GrimeAmount': 1.0, 'GrimeScale': 0.1},
     'M_PostOffice_Sign': dict(BaseTex='T_PostSign_BC', UVScale=1.0, Tint='#ffffff', Roughness=0.5),
     'M_Sign_Desporto': dict(BaseTex='T_Desporto_BC', MaskTex='T_Desporto_Mask', UVScale=1.0, Tint='#ffffff', Roughness=0.5, masked=True),
+    'M_Sign_HallName': dict(BaseTex='T_HallName_BC', MaskTex='T_HallName_Mask', UVScale=1.0, Tint='#ffffff', Roughness=0.5, masked=True),
+    'M_Sign_Photos': dict(BaseTex='T_PhotoSigns_BC', UVScale=1.0, Tint='#ffffff', Roughness=0.6),
     'M_Sign_Atlas': dict(BaseTex='T_Signs_BC', UVScale=1.0, Tint='#ffffff', Roughness=0.55),
     'M_Cloth_Atlas': dict(BaseTex='T_ClothAtlas_BC', MaskTex='T_ClothAtlas_Mask', UVScale=1.0, Tint='#ffffff', Roughness=0.95, masked=True),
     'M_Metal_KerbRail': dict(Tint='#c9cbc6', Roughness=0.45, Metallic=0.5, GrimeAmount=0.4),

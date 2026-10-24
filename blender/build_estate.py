@@ -434,7 +434,9 @@ MAT = {
     'timber': M('M_Play_Timber', '#8a6440', 0.8),
     'shelter': M('M_BusShelter_Metal', '#a3a8a6', 0.45, 0.7),
     'postsign': M('M_PostOffice_Sign', '#b3201f', 0.5),
-    'desporto': M('M_Sign_Desporto', '#ffffff', 0.5),   # 體育發展局 logo on the sports hall's gable (tools/make_logo_tex.py)
+    'desporto': M('M_Sign_Desporto', '#ffffff', 0.5),   # 體育發展局 logo on the sports hall's gable (tools/make_sign_tex.py)
+    'hallname': M('M_Sign_HallName', '#ffffff', 0.5),   # the hall's name lettered on its gable (tools/make_sign_tex.py)
+    'photosigns': M('M_Sign_Photos', '#ffffff', 0.6),   # shop boards cut out of the photos (tools/make_sign_tex.py)
     'ctxglass': M('M_Context_Glass', '#55636a', 0.15),
     'hallglass': M('M_Hall_Glass', '#93aab2', 0.1),   # the sports hall's pale window glass (MH017, MH030)
     'signs': [M(f'M_Sign_{n}', c, 0.5) for n, c in (('Red', '#b8282a'), ('Yellow', '#f2d23c'), ('Green', '#1f6f4a'), ('White', '#f5f1e6'), ('Blue', '#1d4e8f'), ('Orange', '#e06a1f'),
@@ -704,8 +706,21 @@ def shutter_bay(mb, sf, fa, fb, r=None):
         box(mb, sf, xc - 0.05, xc + 0.05, 0.1, 0.25, zs + 0.04, zs + 0.09, MAT['steel'])
 
 
+# shop boards cut out of the photos (user, 2026-10-24): cells x0, y0, x1, y1 of tools/make_sign_tex.py's 2048 px atlas
+PHOTO_SIGNS = {'lisheng': (0, 0, 2048, 253), 'shoes': (0, 256, 2048, 647), 'nursery': (0, 650, 2048, 866),
+               'lisheng_blade': (0, 870, 640, 1311)}
+
+
+def photo_uv(name):
+    """(bl, br, tr, tl) UVs of a photographed board."""
+    x0, y0, x1, y1 = PHOTO_SIGNS[name]
+    u0, u1, vb, vt = (x0 + 2) / 2048, (x1 - 2) / 2048, 1 - (y1 - 2) / 2048, 1 - (y0 + 2) / 2048
+    return [(u0, vb), (u1, vb), (u1, vt), (u0, vt)]
+
+
 def open_shop(mb, sf, shop, fa, fb):
-    """Trading shops: glazed front, frames, signboard (from the atlas when the name is known), awning (SHOP_LOOK)."""
+    """Trading shops: glazed front, frames, signboard (the photographed board, else from the atlas when the name is
+    known), awning (SHOP_LOOK)."""
     frame = MAT['shopgreen'] if shop == 'shoes' else MAT['frame']
     box(mb, sf, fa, fb, 0, 0.35, HZ - 0.3, HZ - 0.22, MAT['myellow'] if shop == 'shoes' else MAT['ground'])
     mb.poly([sf.p(fa, 0.35, HZ - 0.25), sf.p(fb, 0.35, HZ - 0.25), sf.p(fb, GF - 1.05, HZ - 0.25), sf.p(fa, GF - 1.05, HZ - 0.25)],
@@ -715,18 +730,21 @@ def open_shop(mb, sf, shop, fa, fb):
     box(mb, sf, fa, fb, 1.9, 1.96, HZ - 0.28, HZ - 0.18, frame)
     zf = HZ + 0.135
     board, awn = SHOP_LOOK[shop]
-    box(mb, sf, fa + 0.05, fb - 0.05, GF - 1.05, GF - 0.3, HZ, HZ + 0.12, MAT['signs'][board])
-    if OPEN_SHOPS[shop][2] is not None:
-        mb.poly([sf.p(fa + 0.05, GF - 1.05, zf), sf.p(fb - 0.05, GF - 1.05, zf), sf.p(fb - 0.05, GF - 0.3, zf), sf.p(fa + 0.05, GF - 0.3, zf)],
-                MAT['signatlas'], uvs=sign_uv(OPEN_SHOPS[shop][2]))
+    yb = GF - 1.15 if shop == 'shoes' else GF - 1.05   # 鞋宜樂's board is deeper (MH032)
+    box(mb, sf, fa + 0.05, fb - 0.05, yb, GF - 0.3, HZ, HZ + 0.12, MAT['signs'][board])
+    quad = [sf.p(fa + 0.05, yb, zf), sf.p(fb - 0.05, yb, zf), sf.p(fb - 0.05, GF - 0.3, zf), sf.p(fa + 0.05, GF - 0.3, zf)]
+    if shop in PHOTO_SIGNS:
+        mb.poly(quad, MAT['photosigns'], uvs=photo_uv(shop))
+    elif OPEN_SHOPS[shop][2] is not None:
+        mb.poly(quad, MAT['signatlas'], uvs=sign_uv(OPEN_SHOPS[shop][2]))
     if awn:   # canvas awning (利誠 grey, its neighbour green, photo 3; hillside: white and striped, MH068)
         prism_x(mb, sf, [(HZ, GF - 1.2), (HZ + 1.4, GF - 1.65), (HZ + 1.4, GF - 1.6), (HZ, GF - 1.15)], fa, fb, MAT[awn])
     if shop == 'lisheng':   # yellow blade sign standing out from the wall on a bracket (photo 3), at the back-street end
-        xs, yl, yh, zi, zo = fa + 0.3, GF + 0.15, GF + 1.25, HZ + 0.45, HZ + 2.6
+        xs, yl, yh, zi, zo = fa + 0.3, GF + 0.15, GF + 1.25, HZ + 0.45, HZ + 2.05   # its proportions as in MH013
         box(mb, sf, xs - 0.04, xs + 0.04, yl, yh, zi, zo, MAT['signs'][1])
-        uv = sign_uv(10)
-        mb.poly([sf.p(xs + 0.055, yl, zo), sf.p(xs + 0.055, yl, zi), sf.p(xs + 0.055, yh, zi), sf.p(xs + 0.055, yh, zo)], MAT['signatlas'], uvs=uv)
-        mb.poly([sf.p(xs - 0.055, yl, zi), sf.p(xs - 0.055, yl, zo), sf.p(xs - 0.055, yh, zo), sf.p(xs - 0.055, yh, zi)], MAT['signatlas'], uvs=uv)
+        uv = photo_uv('lisheng_blade')
+        mb.poly([sf.p(xs + 0.055, yl, zo), sf.p(xs + 0.055, yl, zi), sf.p(xs + 0.055, yh, zi), sf.p(xs + 0.055, yh, zo)], MAT['photosigns'], uvs=uv)
+        mb.poly([sf.p(xs - 0.055, yl, zi), sf.p(xs - 0.055, yl, zo), sf.p(xs - 0.055, yh, zo), sf.p(xs - 0.055, yh, zi)], MAT['photosigns'], uvs=uv)
         box(mb, sf, xs - 0.025, xs + 0.025, yh, yh + 0.05, HZ, zo, MAT['steel'])                # bracket
         beam(mb, sf.p(xs, yh + 0.05, HZ), sf.p(xs, yh + 0.7, HZ), 0.05, MAT['steel'])
         beam(mb, sf.p(xs, yh + 0.7, HZ), sf.p(xs, yh + 0.05, zo - 0.1), 0.03, MAT['steel'])
@@ -755,8 +773,8 @@ def special_front(mb, sf, kind, fa, fb, i, depth=REC, col=Y):
         box(mb, sf, fa + gb, fb - gb, 0, 2.45, zw - 0.05, zw, MAT['void'])
         window(mb, sf, fa + gb + 0.12, fb - gb - 0.12, 0.02, 2.33, zw + 0.02, mull=True, gm=MAT['shopglass'], cells=4)
         box(mb, sf, fa, fb, 2.45, 2.95, zw, zw + 0.14, MAT['signs'][1])
-        mb.poly([sf.p(fa + 0.08, 2.49, zw + 0.145), sf.p(fb - 0.08, 2.49, zw + 0.145), sf.p(fb - 0.08, 2.91, zw + 0.145),
-                 sf.p(fa + 0.08, 2.91, zw + 0.145)], MAT['signatlas'], uvs=sign_uv(8))
+        mb.poly([sf.p(fa, 2.45, zw + 0.145), sf.p(fb, 2.45, zw + 0.145), sf.p(fb, 2.95, zw + 0.145), sf.p(fa, 2.95, zw + 0.145)],
+                MAT['photosigns'], uvs=photo_uv('nursery'))   # the board in photo 2
         box(mb, sf, fa, fb, 2.95, 3.4, zw - 0.05, zw, MAT['void'])
         np_ = 6
         for k in range(np_ + 1):   # clerestory: six panes in white frames
@@ -1710,7 +1728,7 @@ def build_courtyard(mb):
             SHRUBS.append(dict(p=[LX + x + math.cos(a) * 0.4, 0.08, LZ + z + math.sin(a) * 0.4], s=0.28, bouga=False))
     # big four-legged stone benches under the bridges (photo 14)
     for xs in (-1, 1):   # four per side: two rows of two under each bridge (user)
-        for dx, dz in ((11.0, -1.0), (15.0, -1.0), (11.0, 1.0), (15.0, 1.0)):
+        for dx, dz in ((10.2, -1.9), (15.5, -1.9), (10.2, 1.9), (15.5, 1.9)):   # at the bridge's edges (MH024)
             bf = Fr((LX + xs * dx, 0, BRIDGE_Z + dz))
             box(mb, bf, -1.15, 1.15, 0.34, 0.46, -0.35, 0.35, MAT['bench'])
             for ex in (-0.9, 0.9):
@@ -1731,26 +1749,28 @@ def build_courtyard(mb):
 
 
 # planter seats: (x, z from the courtyard centre LX, LZ, kind, length, width, rotation deg about y, tree?) — 'L' = chevron of
-# two arms from its corner, along local x and z
-_BACK = [(-5.8, 15.6, 'L', 4.4, 1.6, 135, True), (5.9, 15.4, 'L', 4.4, 1.6, 135, True),
-         (-12.6, 20.2, 'R', 4.6, 2.6, 45, True), (12.8, 19.3, 'R', 4.6, 2.6, -45, True),
+# two arms from its corner, along local x and z. The half on the playground's side as MH024 has it (tools/camsolve_mh024.py,
+# 2026-10-24; first read off it as photo 14): the two chevron seats behind the library at +-5.8 m, the tree planters
+# either side at +-12.7 m. The ball court's half is the same turned about the library, less what the cage stands on (user,
+# 2026-10-24: the estate is symmetric; the court was laid over that half's middle). Kept from the user's 2010 account
+# (2026-10-23, MH001): all four chevrons turned round about their middle to open away from the library, the long planter
+# where MH001 has it, the planters either side of the playground's far end gone back with it (END_SHIFT) and the one
+# behind its sandpit gone (left out, drawn into the scratch mesh so the random stream stays in step)
+_BACK = [(-5.8, 11.8, 'L', 4.4, 1.6, 315, True), (5.8, 11.8, 'L', 4.4, 1.6, 315, True),   # (MH024's chevrons turned in place)
+         (-12.7, 19.9, 'R', 4.6, 2.6, 45, True), (12.7, 19.9, 'R', 4.6, 2.6, -45, True),
          (-0.9, 24.3, 'R', 7.6, 2.2, -42, True), (-2.6, 37.0, 'R', 6.8, 2.6, 45, True),
-         (-12.4, 35.2, 'R', 4.2, 2.4, -45, True), (12.5, 35.0, 'R', 4.2, 2.4, 45, True)]
-PLANTERS = _BACK + [(x, -z, k, ln, w, 90 - r if k == 'L' else -r, t) for (x, z, k, ln, w, r, t) in _BACK if abs(x) > 5 or z < 15]
-# the two chevron seats behind the library turned round, opening away from it, and ~2 m further back (user, 2026-10-23;
-# MH001). Same entries in the same order, so the shared random stream is drawn as before.
-PLANTERS[:2] = [(-5.8, 13.4, 'L', 4.4, 1.6, 315, True), (2.5, 13.95, 'L', 4.4, 1.6, 315, True)]
-# the front pair turned round too (user, 2026-10-23), in place about the middle of the L: all four now open away from
-# the library
-PLANTERS[8:10] = [(-5.8, -10.92, 'L', 4.4, 1.6, 135, True), (5.9, -10.72, 'L', 4.4, 1.6, 135, True)]
-# the long planter behind them stands where MH001 has it, turned the other way (user, 2026-10-23); it fits now that the
-# playground has moved back. The planter photo 14 shows behind the sandpit would stand inside the moved playground, and
-# was gone by 2010 (user, 2026-10-23): left out, drawn into the scratch mesh so the random stream stays in step
+         (-12.1, 35.4 + END_SHIFT, 'R', 4.2, 2.4, -45, True), (12.1, 35.4 + END_SHIFT, 'R', 4.2, 2.4, 45, True)]
+
+
+def under_cage(x, z):
+    """True if the point (from the courtyard centre) lies inside the ball court's cage."""
+    return CAGE['x0'] < LX + x < CAGE['x1'] and CAGE['z0'] < LZ + z < CAGE['z1']
+
+
+PLANTERS = _BACK + [(x, -z, k, ln, w, 90 - r if k == 'L' else -r, t) for (x, z, k, ln, w, r, t) in _BACK if not under_cage(x, -z)]
 PLANTERS_GONE = {5}
-for i, dz in ((6, END_SHIFT), (7, END_SHIFT), (12, -END_SHIFT), (13, -END_SHIFT)):   # the planters either side of the playground's
-    x, z, k, ln, w, r, t = PLANTERS[i]   # far end go back with it, and their mirror images in the front half forward (the stairs
-    PLANTERS[i] = (x, z + dz, k, ln, w, r, t)   # stand where the left ones were)
-DISCS = [(-5.9, 20.5), (5.9, 20.5), (-11.7, 9.3), (12.0, 8.4), (-11.7, -9.3), (12.0, -8.4)]
+_DISCS = [(-6.0, 20.6), (6.0, 20.6), (-11.95, 8.6), (11.95, 8.6)]   # MH024
+DISCS = _DISCS + [(x, -z) for x, z in _DISCS if not under_cage(x, -z)]
 LAMPS = [(9.0, 13.0), (-6.4, -9.4), (-10.6, -25.0), (10.6, -25.0)]   # the one at (-1.5, 36.4) stood in the moved playground, gone by 2010
 
 
@@ -2272,7 +2292,8 @@ def build_hall(mb):
     for k in (-1, 1):
         box(mb, ent, k * (EW - 0.6) - 0.06, k * (EW - 0.6) + 0.06, 0, 3.2, 3.0, 3.12, MAT['steel'])
     mb.poly([ent.p(-2.93, ye - 1.8, 0.505), ent.p(2.93, ye - 1.8, 0.505), ent.p(2.93, ye - 0.5, 0.505), ent.p(-2.93, ye - 0.5, 0.505)],
-            MAT['signatlas'], uvs=sign_uv(4))   # name lettered on the gable: 望廈體育館 / Pavilhão de Mong-Há (MH064)
+            MAT['hallname'], uvs=[(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)])   # 望廈體育館 / Pavilhão de Mong-Há (MH064),
+    #                                                    the letters on the wall itself (user, 2026-10-24, with a photo)
     for k in range(5):
         cylv(mb, ent, -3.0 + k * 1.5, 0.2, H + 1.2, H + 6.0, 0.035, 6, MAT['lamppole'])         # flagpoles
     for k in range(4):                                                                         # red/white steps
