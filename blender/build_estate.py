@@ -113,9 +113,9 @@ def Ji():
     return {'t': 'j'}
 
 
-def Gi(n):
-    """n bays of the row left open: a passage from the street into the courtyard, no block."""
-    return {'t': 'g', 'n': n}
+def Gi(w):
+    """w metres of the row left open: a passage from the street into the courtyard, no block."""
+    return {'t': 'g', 'w': w}
 
 
 # 16 blocks: the end rows run the full frontage and wrap the corners, the side rows sit between them
@@ -129,6 +129,7 @@ Y, G, K, R = 'yellow', 'green', 'brick', 'red'
 CORNER_REC = 3.5
 FRONT_BW = (EX1 - EX0 - 3 * JW) / 13     # avenue row: 13 bays within the side rows' outer walls, 4.88 m
 BACK_BW = (EX1 - EX0 - 3 * JW) / 12.5    # back row: 12.5 bays from the 利誠 corner, 5.07 m (towers within ~1 m of MH001)
+SIDE_PASS = 2 * (CZ1 - CZ0 - 3 * JW) / 24   # the corner passages at the side rows' ends: two of the first layout's bays
 # the two hillside blocks up the steps from 利誠 (user, 2026-10-22: part of the estate). MH068 (2011-06-08, frontal), MH006
 # (from the top of the steps) and the aerial MH001: they stand south-east of the 利誠 side street on the raised ground and
 # face the level top of 馬交石斜坡 across a paved forecourt. Seen from the street, north-west first: block A green |
@@ -159,20 +160,23 @@ ROWS = [
                 Bi(1, [K], rec=CORNER_REC)],
          draws=[Bi(4, [K, K, Y, Y]), Ji(), Bi(5, [Y, R, R, G, G], [2]), Ji(), Bi(4, [Y, Y, K, K])],   # 利誠 end first
          draws_L=EX1 - EX0),
-    # side rows (user, 2026-10-23, photo 1 and MH001): no block in the two bays at either end but a passage from the street
-    # into the estate, alike at all four corners, and the towers nearest the ends two bays nearer them than first laid out
-    # (the bays keep their colours). 'draws' is that first layout: the shared random streams are tuned to it, so it is
-    # drawn into the scratch mesh before the row is built.
-    dict(id='nw', o=(EX0 + HZ, CZ1), d=(0, -1), L=CZ1 - CZ0, outer='street', gallery=True, gap=2,
-         items=[Gi(2), Bi(2, [Y, Y]), Ji(), Bi(8, [Y, K, K, G, Y, Y, K, K], [5]), Ji(), Bi(8, [K, K, G, Y, Y, G, R, R]), Ji(),
-                Bi(2, [Y, Y]), Gi(2)],   # back end: yellow, yellow | tower | yellow, brick, brick from photo 1
+    # side rows (user, 2026-10-23, photo 1 and MH001): no block at either end but a passage from the street into the
+    # estate, alike at all four corners, 7.8 m long (two of the first layout's bays). Between the passages 2 | 4 | 4 | 2
+    # bays of ~6.5 m and three towers, as MH001 measures the bays (its tile caps and fins; photo 1 alike) (user,
+    # 2026-10-24); the towers nearest the ends then stand ~2.6 m nearer them than first laid out (MH001's towers within
+    # ~1 m). The ground-floor passage through each row stays in the bay where it was. 'draws' is the first layout: the
+    # shared random streams are tuned to it, so it is drawn into the scratch mesh before the row is built.
+    # north-west row, from the back end: yellow, yellow | tower | yellow, brick, brick (photo 1), the rest inferred
+    dict(id='nw', o=(EX0 + HZ, CZ1), d=(0, -1), L=CZ1 - CZ0, outer='street', gallery=True,
+         items=[Gi(SIDE_PASS), Bi(2, [Y, Y]), Ji(), Bi(4, [Y, K, K, G], [2]), Ji(), Bi(4, [K, G, Y, R]), Ji(),
+                Bi(2, [Y, Y]), Gi(SIDE_PASS)],
          draws=[Bi(6, [Y, Y, G, G, K, K]), Ji(), Bi(6, [G, G, Y, Y, K, K], [3]), Ji(), Bi(6, [K, K, G, Y, Y, G]), Ji(),
                 Bi(6, [R, R, Y, Y, G, G])]),
-    # south-east row, from the avenue end (MH001, shadows lifted): yellow, red-brown | green, then red-brown from the
-    # passage on | red-brown, then yellow | the 利誠 end yellow (photo 3, 2010)
-    dict(id='se', o=(EX1 - HZ, CZ0), d=(0, 1), L=CZ1 - CZ0, outer='street', gallery=True, gap=2,
-         items=[Gi(2), Bi(2, [Y, K]), Ji(), Bi(8, [G, G, G, G, K, K, K, K], [4]), Ji(), Bi(8, [K, K, Y, Y, Y, Y, Y, Y]), Ji(),
-                Bi(2, [Y, Y]), Gi(2)],
+    # south-east row, from the avenue end (MH001, shadows lifted): yellow, red-brown | green, green, red-brown, red-brown |
+    # red-brown, yellow, yellow, yellow | the 利誠 end yellow (photo 3, 2010; too dark in MH001)
+    dict(id='se', o=(EX1 - HZ, CZ0), d=(0, 1), L=CZ1 - CZ0, outer='street', gallery=True,
+         items=[Gi(SIDE_PASS), Bi(2, [Y, K]), Ji(), Bi(4, [G, G, K, K], [1]), Ji(), Bi(4, [K, Y, Y, Y]), Ji(),
+                Bi(2, [Y, Y]), Gi(SIDE_PASS)],
          draws=[Bi(6, [K, K, Y, Y, G, G]), Ji(), Bi(6, [G, G, Y, Y, K, K], [2]), Ji(), Bi(6, [G, Y, Y, R, R, G]), Ji(),
                 Bi(6, [G, G, K, K, Y, Y])]),
     dict(id='slope1', o=(HILL['x1'], HILL['zf'] - HZ), d=(-1, 0), L=HILL['x1'] - HILL['x0'], outer='street', gallery=None,
@@ -184,13 +188,13 @@ for row in ROWS:
             continue
         items = row[key]
         L = row.get('draws_L', row['L']) if key == 'draws' else row['L']
-        fixed = sum(JW for it in items if it['t'] == 'j')
-        bays = sum(it['n'] for it in items if it['t'] != 'j')
+        fixed = sum(JW if it['t'] == 'j' else it['w'] for it in items if it['t'] != 'b')
+        bays = sum(it['n'] for it in items if it['t'] == 'b')
         bw = row['bw' if key == 'items' else 'draws_bw'] = (L - fixed) / bays
         x = 0.0
         for it in items:
             it['x0'] = x
-            x += JW if it['t'] == 'j' else it['n'] * bw
+            x += JW if it['t'] == 'j' else it['w'] if it['t'] == 'g' else it['n'] * bw
             it['x1'] = x
     dx, dz = row['d']
     for key, o in (('fr', row['o']), ('draws_fr', row.get('draws_o', row['o']))):
@@ -206,11 +210,11 @@ PASS_X = FX0 + (_FJ[1]['x0'] + _FJ[1]['x1']) / 2   # the avenue row's middle tow
 SHOES_X = FX0 + ROWS[0]['items'][1]['x0'] + 0.5 * ROWS[0]['bw']
 BUS_X = FX0 + ROWS[0]['items'][1]['x0'] + 1.5 * ROWS[0]['bw']
 OPEN_SHOPS = {'shoes': (EX0 + ROWS[0]['draws'][2]['x0'] + 0.5 * ROWS[0]['draws_bw'], EZ0, 11),   # first layout's spot,
-              'lisheng': (EX1, CZ1 - 0.5 * ROWS[3]['bw'], 3),                                     # for the scratch draw
-              'lisheng2': (EX1, CZ1 - 1.5 * ROWS[3]['bw'], None)}
+              'lisheng': (EX1, CZ1 - 0.5 * ROWS[3]['draws_bw'], 3),                               # for the scratch draw
+              'lisheng2': (EX1, CZ1 - 1.5 * ROWS[3]['draws_bw'], None)}
 ROWS[0]['shops'] = {'shoes': (SHOES_X, EZ0, 11)}
-ROWS[3]['shops'] = {'lisheng': (EX1, CZ1 - 2.5 * ROWS[3]['bw'], 3),   # the back end of the south-east row is a passage now:
-                    'lisheng2': (EX1, CZ1 - 3.5 * ROWS[3]['bw'], None)}   # 利誠 in the last two bays before it
+ROWS[3]['shops'] = {'lisheng': (EX1, CZ1 - SIDE_PASS - 0.5 * ROWS[3]['bw'], 3),   # the back end of the south-east row is
+                    'lisheng2': (EX1, CZ1 - SIDE_PASS - 1.5 * ROWS[3]['bw'], None)}   # a passage now: 利誠 in the two bays before it
 # the hillside shops, north-west first (MH068, MH006): 望廈飲食 and 金富美食 (black boards, red characters), an eatery with
 # an unreadable pale board, a green canvas awning (MH033), a striped awning, Maria Beauty Center (purple board)
 HILL_BW = ROWS[4]['bw']
@@ -261,8 +265,11 @@ NWG, SEG = CX0 + GW, CX1 - GW          # inner edges of the side galleries
 GZ0, GZ1 = CZ0 + GW, CZ1 - GW          # inner edges of the end galleries
 # each of the four U-stairs stands in front of the side row's tower nearest its end, and the playground in front of the
 # back pair (photo 1): all of them two bays nearer the ends than first laid out, like the towers (user, 2026-10-23);
-# each stair, both flights, centred on its tower (user, 2026-10-24, with photo 10)
-END_SHIFT = 2 * ROWS[2]['bw']
+# each stair, both flights, centred on its tower (user, 2026-10-24, with photo 10). With MH001's bays (2026-10-24) the
+# towers, and so the stairs, stand only ~2.6 m nearer the ends than first laid out; the playground and the planters
+# beside it stay two of the first layout's bays back, as the long planter MH001 has in front of the playground leaves no
+# room to bring it forward
+END_SHIFT = 2 * ROWS[2]['draws_bw']
 STAIRS = sorted((CZ1 - (it['x0'] + it['x1']) / 2 for it in ROWS[2]['items'] if it['t'] == 'j'), reverse=True)
 STAIRS = [STAIRS[0], STAIRS[-1]]
 ZC = HZ - 0.3                          # courtyard facade plane (row-local z)
@@ -289,9 +296,9 @@ def special_bay(row, xl, bw):
                 return 'post', int((row['L'] - xl) // bw)
         elif xl > row['L'] - row['bw']:   # the post office fills the recessed corner bay (user, 2026-10-24)
             return 'post', 0
-    g = row.get('gap', 0)
-    if row['id'] == 'nw' and g * bw <= xl < (g + 2) * bw:   # the NW row's first bays at the back, after the passage
-        return 'nursery', int(xl // bw) - g
+    g = row['items'][0]['x1'] if row['items'][0]['t'] == 'g' else 0.0
+    if row['id'] == 'nw' and g <= xl < g + 2 * bw:   # the NW row's first bays at the back, after the passage
+        return 'nursery', int((xl - g) // bw)
     if row['id'] == 'back' and xl > row['L'] - 2 * bw:   # and its glass-block windows turn the corner onto the back street (MH080)
         return 'nursery', 2 + int((row['L'] - xl) // bw)
     return None, None
@@ -2117,7 +2124,7 @@ for ri, row in enumerate(ROWS):
     mb = slope if row['id'].startswith('slope') else ROW_MB[row['id']]
     irng = random.Random(2011) if mb is slope else _irng_main   # hillside edits leave the estate's draws alone
     if 'draws' in row:   # keep the shared streams where the first layout left them (its air-conditioner marks dropped)
-        n_ac, first = len(AC_MARKS), dict(row, items=row['draws'], gap=0, bw=row['draws_bw'], first=True,
+        n_ac, first = len(AC_MARKS), dict(row, items=row['draws'], bw=row['draws_bw'], first=True,
                                           L=row.get('draws_L', row['L']), fr=row['draws_fr'])
         for it in first['items']:
             (build_block if it['t'] == 'b' else build_joint)(SCRATCH, first, it)
