@@ -148,7 +148,8 @@ ROWS = [
     # red-brown, red-brown, green), its south-east end from MH001 and MH022 (two yellow, the post office's red-brown half
     # bay), the rest from MH002 (2011, the courtyard face), MH001 and MH007, which all agree. The back row, from the 利誠
     # end: red-brown (MH033, MH001), the south-east big block green, green, green, yellow and the north-west one all yellow
-    # (MH001's back-street face; MH080 sees the two by the north-west tower yellow), the north-west end red-brown (MH080).
+    # (MH001's back-street face; MH080 sees the two by the north-west tower yellow), the north-west end red-brown (MH080)
+    # and its recessed corner bay yellow (photo 2).
     # 'draws_o' / 'draws_L': where the first layout stood (the full frontage between the side rows' outer walls)
     dict(id='front', o=(EX0 - FRONT_BW / 2, EZ0 + HZ), d=(1, 0), L=EX1 - EX0 + FRONT_BW, outer='street', gallery=True,
          items=[Bi(1, [K], rec=CORNER_REC), Bi(2, [Y, Y]), Ji(), Bi(4, [Y, K, K, G]), Ji(), Bi(4, [G, G, Y, Y]), Ji(),
@@ -157,7 +158,7 @@ ROWS = [
          draws_o=(EX0, EZ0 + HZ), draws_L=EX1 - EX0),
     dict(id='back', o=(EX1, EZ1 - HZ), d=(-1, 0), L=EX1 - EX0 + BACK_BW / 2, outer='street', gallery=True,
          items=[Bi(2, [K, K]), Ji(), Bi(4, [G, G, G, Y]), Ji(), Bi(4, [Y, Y, Y, Y]), Ji(), Bi(2, [K, K]),
-                Bi(1, [K], rec=CORNER_REC)],
+                Bi(1, [Y], rec=CORNER_REC)],   # the recessed corner bay over the nursery yellow (photo 2)
          draws=[Bi(4, [K, K, Y, Y]), Ji(), Bi(5, [Y, R, R, G, G], [2]), Ji(), Bi(4, [Y, Y, K, K])],   # 利誠 end first
          draws_L=EX1 - EX0),
     # side rows (user, 2026-10-23, photo 1 and MH001): no block at either end but a passage from the street into the
@@ -296,10 +297,11 @@ def special_bay(row, xl, bw):
                 return 'post', int((row['L'] - xl) // bw)
         elif xl > row['L'] - row['bw']:   # the post office fills the recessed corner bay (user, 2026-10-24)
             return 'post', 0
-    g = row['items'][0]['x1'] if row['items'][0]['t'] == 'g' else 0.0
-    if row['id'] == 'nw' and g <= xl < g + 2 * bw:   # the NW row's first bays at the back, after the passage
-        return 'nursery', int((xl - g) // bw)
-    if row['id'] == 'back' and xl > row['L'] - 2 * bw:   # and its glass-block windows turn the corner onto the back street (MH080)
+    if row['id'] == 'nw' and row.get('first') and xl < 2 * bw:   # where the first layout had it (drawn for the streams only)
+        return 'nursery', int(xl // bw)
+    # the nursery's door is in the back row's recessed corner bay on the back street (user, 2026-10-24, photo 2), the
+    # coloured glass-block windows beside it in the next bay (MH080)
+    if row['id'] == 'back' and xl > row['L'] - 2 * bw:
         return 'nursery', 2 + int((row['L'] - xl) // bw)
     return None, None
 
@@ -418,6 +420,7 @@ MAT = {
     'shelter': M('M_BusShelter_Metal', '#a3a8a6', 0.45, 0.7),
     'postsign': M('M_PostOffice_Sign', '#b3201f', 0.5),
     'ctxglass': M('M_Context_Glass', '#55636a', 0.15),
+    'hallglass': M('M_Hall_Glass', '#93aab2', 0.1),   # the sports hall's pale window glass (MH017, MH030)
     'signs': [M(f'M_Sign_{n}', c, 0.5) for n, c in (('Red', '#b8282a'), ('Yellow', '#f2d23c'), ('Green', '#1f6f4a'), ('White', '#f5f1e6'), ('Blue', '#1d4e8f'), ('Orange', '#e06a1f'),
                                                           ('Black', '#1f1f1d'), ('Purple', '#3b2f6e'))],
     'cloth': [M(f'M_Cloth_{i}', c, 0.95) for i, c in enumerate(['#e8e2d6', '#c9473e', '#3f6ea8', '#e3c34d', '#f2f2ee', '#6c9a6c', '#d98cab', '#4b4b4b'])],
@@ -703,9 +706,9 @@ def open_shop(mb, sf, shop, fa, fb):
         beam(mb, sf.p(xs, yh + 0.7, HZ), sf.p(xs, yh + 0.05, zo - 0.1), 0.03, MAT['steel'])
 
 
-def special_front(mb, sf, kind, fa, fb, i, depth=REC):
+def special_front(mb, sf, kind, fa, fb, i, depth=REC, col=Y):
     """Ground floor of the recessed end blocks: post office (red frames, 郵政 Correios) or the nursery (glass block),
-    depth behind the piers."""
+    depth behind the piers; col the bay's colour."""
     zw = HZ - depth
     if kind == 'post':
         box(mb, sf, fa, fb, 0, 0.3, zw, zw + 0.1, MAT['hallg'])
@@ -719,6 +722,25 @@ def special_front(mb, sf, kind, fa, fb, i, depth=REC):
         zf = HZ + 0.36
         mb.poly([sf.p(fa + 0.1, GF - 1.12, zf), sf.p(fb - 0.1, GF - 1.12, zf), sf.p(fb - 0.1, GF - 0.28, zf), sf.p(fa + 0.1, GF - 0.28, zf)],
                 MAT['postsign'], uvs=[(0.01, 0.02), (0.99, 0.02), (0.99, 0.98), (0.01, 0.98)])
+    elif i == 2:   # 望廈托兒所 in the recessed corner bay (photo 2): a glazed door between two strips of glass block, the
+        gb = 0.55  # yellow name board over them, a row of clerestory panes, the bay's mosaic above and a sheet-metal awning
+        for a, b in ((fa, fa + gb), (fb - gb, fb)):
+            box(mb, sf, a, b, 0, 2.45, zw, zw + 0.12, MAT['glassblock'])
+        box(mb, sf, fa + gb, fb - gb, 0, 2.45, zw - 0.05, zw, MAT['void'])
+        window(mb, sf, fa + gb + 0.12, fb - gb - 0.12, 0.02, 2.33, zw + 0.02, mull=True, gm=MAT['shopglass'], cells=4)
+        box(mb, sf, fa, fb, 2.45, 2.95, zw, zw + 0.14, MAT['signs'][1])
+        mb.poly([sf.p(fa + 0.08, 2.49, zw + 0.145), sf.p(fb - 0.08, 2.49, zw + 0.145), sf.p(fb - 0.08, 2.91, zw + 0.145),
+                 sf.p(fa + 0.08, 2.91, zw + 0.145)], MAT['signatlas'], uvs=sign_uv(8))
+        box(mb, sf, fa, fb, 2.95, 3.4, zw - 0.05, zw, MAT['void'])
+        np_ = 6
+        for k in range(np_ + 1):   # clerestory: six panes in white frames
+            xm = fa + (fb - fa) * k / np_
+            box(mb, sf, xm - 0.04, xm + 0.04, 2.95, 3.4, zw, zw + 0.08, MAT['frame'])
+        mb.poly([sf.p(fa, 2.98, zw + 0.03), sf.p(fb, 2.98, zw + 0.03), sf.p(fb, 3.37, zw + 0.03), sf.p(fa, 3.37, zw + 0.03)],
+                MAT['shopglass'], uvs=atlas_uv(4, (fb - fa) / 0.4))
+        box(mb, sf, fa - 0.32, fb, 3.4, GF, zw, HZ, MAT['plaster'][col])
+        prism_x(mb, sf, [(HZ - 0.02, GF + 0.12), (HZ + 0.65, GF - 0.18), (HZ + 0.65, GF - 0.14), (HZ - 0.02, GF + 0.17)],
+                fa - 0.3, fb, MAT['awning'])
     else:   # 望廈托兒所: glass-block wall, a glazed door in the middle bay, yellow sign
         box(mb, sf, fa, fb, 0, GF - 1.05, zw, zw + 0.12, MAT['glassblock'] if i != 1 else MAT['void'])
         if i == 1:
@@ -832,13 +854,15 @@ def build_block(mb, row, it):
             if sp == 'recess':   # shuttered shop at the back of the end recess: curtain 3 cm proud of the recess wall
                 shutter_bay(mb, sf.sub(0, 0, -(REC - 0.45)), fa, fb, r=REC_RNG)
             elif sp:
-                special_front(mb, sf, sp, fa, fb, sj, spd)
+                special_front(mb, sf, sp, fa, fb, sj, spd, cols[i])
             elif shop:
                 open_shop(mb, sf, shop, fa, fb)
             else:
                 shutter_bay(mb, sf, fa, fb)
-            box(mb, sf, xa, xb, GF - 1.05, GF - 0.3, HZ - 0.3, HZ, MAT['ground'])
-            if rec and sp == 'post':   # the post office: its red fascia, no canopy over it (MH022)
+            door = rec and sp == 'nursery' and sj == 2   # the nursery's own name board and clerestory under its awning
+            if not door:
+                box(mb, sf, xa, xb, GF - 1.05, GF - 0.3, HZ - 0.3, HZ, MAT['ground'])
+            if rec and sp == 'post' or door:   # the post office: its red fascia, no canopy over it (MH022); the nursery: its awning
                 continue
             box(mb, sf, xa, xb, GF - 0.3, GF - 0.14, HZ, HZ + 0.9, MAT['white'])                # canopy ledge
             if row['id'] == 'front':   # globe lamp under the canopy at the pier (photo 22)
@@ -1110,13 +1134,21 @@ PLAT = 4.25
 SLOT_RNG = random.Random(2061)   # the slot walls' windows draw from their own stream
 
 
+PLAT_EDGE = 0.35   # the green strip along both walls of a platform (MH010)
+
+
 def platform(mb, sf, ia, ib, za, zb):
-    """Gallery-level platform from za to zb (side frame), floored in cream and green cross bands (MH010)."""
+    """Gallery-level platform from za to zb (side frame), floored in cream and green cross bands inside a green strip
+    along both walls (MH010; user, 2026-10-24)."""
     box(mb, sf, ia, ib, GF - 0.3, GF - 0.02, za, zb, {'ny': MAT['soffit'], '*': MAT['white']}, skip=('py',))
+    e = PLAT_EDGE
+    for a, b in ((ia, ia + e), (ib - e, ib)):
+        box(mb, sf, a, b, GF - 0.02, GF, za, zb, {'py': MAT['tilegreen']}, skip=('ny',))
     z, k = za, 0
     while z < zb - 0.01:
         dz = min(1.1 if k % 2 == 0 else 0.55, zb - z)
-        box(mb, sf, ia, ib, GF - 0.02, GF, z, z + dz, {'py': MAT['tilecream'] if k % 2 == 0 else MAT['tilegreen']}, skip=('ny',))
+        box(mb, sf, ia + e, ib - e, GF - 0.02, GF, z, z + dz, {'py': MAT['tilecream'] if k % 2 == 0 else MAT['tilegreen']},
+            skip=('ny',))
         z, k = z + dz, k + 1
 
 
@@ -1188,6 +1220,7 @@ def build_joint(mb, row, it):
                         zk - 1.86, zk - 0.2, MAT['soffit'])                                         # flight up to it
             box(mb, sf, ia, ib, ROOF - 0.1, TOP, zk - 0.4, zk, MAT['white'])
             platform(mb, sf, ia, ib, zk, zt)
+            platform(mb, sf, ia, ib, zk - 1.86, zk)   # and the floor of the stair behind it, which was missing (user, 2026-10-24)
             railing_run(mb, sf, ia, ib, GF, zt - 0.1, MAT['bars'])
             slot_windows(mb, sf, ia, ib, (zk + 1.2, HZ - 0.6))
             continue
@@ -1785,7 +1818,6 @@ def build_ground(mb):
     flat(HALL['x0'], HALL['z1'], EX0, B['strip'], 0.03, MAT['grass'])
     flat(HALL['x1'], EZ0, EX0, HALL['z1'], 0.035, MAT['sidewalk'])
     flat(0, EZ0, HALL['x1'], HALL['z0'], 0.035, MAT['sidewalk'])                # hall forecourt on the avenue
-    box(mb, f0, FX0 - 1.2, FX0 - 0.6, 0.03, 1.05, EZ0 + 0.5, EZ0 + 1.1, MAT['rock'])   # stone post at the lane mouth
     flat(EX0, EZ1, EX1, B['strip'], 0.03, MAT['soil'])                     # sunken planted strip behind the blocks
     # the 利誠 side street (ground level) and the raised ground to its east, where the hillside blocks stood
     flat(EX1 + 1.5, EZ0, SIDE_X1, B['strip'] - 6.5, 0.021, MAT['asphalt'])
@@ -1849,7 +1881,11 @@ def build_ground(mb):
         for xa, xb in zip(xs, xs[1:]):
             q = [f0.p(xa, lo(xa), z), f0.p(xa, hi(xa), z), f0.p(xb, hi(xb), z), f0.p(xb, lo(xb), z)]
             mb.poly(q if facing < 0 else list(reversed(q)), m)
-    WX0, WX1 = MKS['x1'] + 0.6, EX1                                             # retaining wall along the planted strip
+    # the retaining wall along the planted strip starts at the nursery's corner bay: in front of its door the pavement runs
+    # up to the building, with the inscribed stone post at the mouth of the lane (photo 2, MH030; user, 2026-10-24)
+    WX0, WX1 = ROWS[1]['fr'].p(ROWS[1]['items'][-1]['x0'], 0, 0)[0], EX1
+    flat(MKS['x1'], EZ1, WX0, B['strip'], 0.04, MAT['sidewalk'])
+    box(mb, f0, 50.85, 51.55, 0.03, 1.1, EZ1 + 0.4, EZ1 + 1.1, MAT['rock'])
     slope_top(WX0, WX1, B['strip'], B['wall'], 0.9, MAT['rock'])
     slope_face(WX0, WX1, B['strip'], lambda x: 0.0, lambda x: back_h(x) + 0.9, MAT['rock'], -1)
     slope_face(WX0, WX1, B['wall'], lambda x: back_h(x) + 0.15, lambda x: back_h(x) + 0.9, MAT['rock'], 1)
@@ -1873,10 +1909,12 @@ def build_ground(mb):
         y0 = back_h(xp) + 0.9
         cylv(mb, f0, xp, zw, y0, y0 + 0.95, 0.03, 8, MAT['creampipe'])
         xp += 2.0
+    xk = max(WX0 + 0.15, B['x_lo'])   # the rails bend where the street starts to climb
     for yo in (0.5, 0.95):
-        for xa, xb in ((WX0 + 0.15, B['x_lo']), (B['x_lo'], WX1 - 0.1)):
-            beam(mb, (xa, back_h(xa) + 0.9 + yo, zw), (xb, back_h(xb) + 0.9 + yo, zw), 0.05, MAT['creampipe'])
-    xh = WX0                                                                  # U-hoop barriers along the back kerb
+        for xa, xb in ((WX0 + 0.15, xk), (xk, WX1 - 0.1)):
+            if xb - xa > 0.01:
+                beam(mb, (xa, back_h(xa) + 0.9 + yo, zw), (xb, back_h(xb) + 0.9 + yo, zw), 0.05, MAT['creampipe'])
+    xh = MKS['x1'] + 0.6                                                      # U-hoop barriers along the back kerb
     zr = B['kerb'] - 0.25
     while xh + 1.2 <= 200:
         for xq in (xh, xh + 1.2):
@@ -1987,16 +2025,41 @@ def hall_band(mb, fr, xa, xb, y, depth, thick, m):
     prism_x(mb, fr, prof, xa, xb, m)
 
 
-def hall_facade(mb, fr, xa, xb, lights):
-    """One arcaded face of the hall in a frame whose +z points out of the wall (wall plane z = 0)."""
+def gallery_box(mb, fr, xc, w=3.2):
+    """A box standing out of the cantilever gallery, its underside rounded into the gallery's bull-nose (MH016, MH029,
+    MH039; photo 2 and the lane photo of 2026-10-24)."""
+    d, y0, y1, r = 3.0, 6.6, 9.45, 1.1
+    prof = [(0, y0), (d - r, y0)] + [(d - r + math.cos(t) * r, y0 + r + math.sin(t) * r)
+                                     for t in [-math.pi / 2 + math.pi / 2 * k / 6 for k in range(1, 7)]] + [(d, y1), (0, y1)]
+    prism_x(mb, fr, prof, xc - w / 2, xc + w / 2, MAT['hallg'])
+
+
+def hall_facade(mb, fr, xa, xb, lights, lane=False, boxes=()):
+    """One arcaded face of the hall in a frame whose +z points out of the wall (wall plane z = 0). lane: the face on the
+    lane by the estate (photo 2, the 2026-10-24 lane photos): narrow round-headed recesses between broad cream piers, a
+    tall window in each, no stepped base. boxes: local x of the boxes standing out of the gallery."""
     L = xb - xa
     n = int((L - 2.0) / 4.4)
     x0 = xa + (L - n * 4.4) / 2
-    for i in range(n):                                   # tall arches, some glazed doors
+    if lane:
+        aw, ys, yt, dep = 1.0, 5.2, 6.45, 0.45   # recess half width, springing, top of the piers, depth
+        for i in range(n):
+            xc = x0 + (i + 0.5) * 4.4
+            box(mb, fr, xc - 0.5, xc + 0.5, 0.85, 4.75, 0.0, 0.04, MAT['frame'])
+            box(mb, fr, xc - 0.42, xc + 0.42, 0.93, 4.67, 0.04, 0.06, MAT['ctxglass'])          # tall window in the recess
+            prism_z(mb, fr, [(xc - aw, yt), (xc - aw, ys)] + arc(xc, ys, aw, math.pi, 0, 10)[1:-1] + [(xc + aw, ys), (xc + aw, yt)],
+                    0.0, dep, MAT['hallw'])                                                     # over the round head
+        for i in range(n + 1):                                                                  # the piers
+            pa = xa if i == 0 else x0 + i * 4.4 - (2.2 - aw)
+            pb = xb if i == n else x0 + i * 4.4 + (2.2 - aw)
+            box(mb, fr, pa, pb, 0, yt, 0.0, dep, MAT['hallw'], skip=('ny',))
+    for i in range(n if not lane else 0):               # tall arches, some glazed doors
         xc = x0 + (i + 0.5) * 4.4
         prism_z(mb, Fr(fr.p(xc, 0, 0), fr.ex, fr.ez), [(-1.7, 0.6), (1.7, 0.6), (1.7, 4.8)] + arc(0, 4.8, 1.7, 0, math.pi, 12)[1:-1] + [(-1.7, 4.8)],
                 0.0, 0.03, MAT['ctxglass'] if i % 3 == 1 else MAT['void'])
     hall_band(mb, fr, xa, xb, 6.9, 2.4, 1.4, MAT['hallg'])                       # cantilever corridor
+    for xc in boxes:
+        gallery_box(mb, fr, xc)
     railing_run(mb, fr, xa + 0.3, xb - 0.3, 8.3, 2.15, MAT['steel'])
     for i in range(n):                                   # recessed upper windows
         xc = x0 + (i + 0.5) * 4.4
@@ -2005,8 +2068,9 @@ def hall_facade(mb, fr, xa, xb, lights):
     for i in range(n + 1):
         xb_ = x0 + i * 4.4
         prism_x(mb, fr, [(0, 9.0), (2.7, 10.62), (0, 10.62)], xb_ - 0.15, xb_ + 0.15, MAT['hallg'])
-    box(mb, fr, xa, xb, 0, 0.3, 0, 1.6, {'py': MAT['hallw'], '*': MAT['hallred']})   # stepped base, red/white tiles
-    box(mb, fr, xa, xb, 0.3, 0.6, 0, 0.8, {'py': MAT['hallw'], '*': MAT['hallred']})
+    if not lane:
+        box(mb, fr, xa, xb, 0, 0.3, 0, 1.6, {'py': MAT['hallw'], '*': MAT['hallred']})   # stepped base, red/white tiles
+        box(mb, fr, xa, xb, 0.3, 0.6, 0, 0.8, {'py': MAT['hallw'], '*': MAT['hallred']})
     if lights:                                           # floodlight posts in front
         for i in range(0, n + 1, 2):
             xp = x0 + i * 4.4
@@ -2034,9 +2098,11 @@ def build_hall(mb):
     ave = Fr((0, 0, Z0), (-1, 0, 0), (0, 0, -1))        # avenue end: +z = -z
     zm = (Z0 + ZR) / 2
     EW = 7.0                                            # half width of the entrance bay
-    hall_facade(mb, street, Z0 + 1.0, zm - EW, True)
-    hall_facade(mb, street, zm + EW, ZR - 0.5, True)
-    hall_facade(mb, lane, -(ZR - 0.5), -(Z0 + 1.0), False)
+    # the gallery's boxes: at the corners and either side of the entrance on 俾利喇街 (MH016, MH029, MH039, MH027); on the
+    # lane at both ends and halfway (photo 2, the 2026-10-24 lane photo from the avenue end)
+    hall_facade(mb, street, Z0 + 1.0, zm - EW, True, boxes=(Z0 + 3.6, zm - EW - 2.0))
+    hall_facade(mb, street, zm + EW, ZR - 0.5, True, boxes=(zm + EW + 2.0, ZR - 3.0))
+    hall_facade(mb, lane, -(ZR - 1.0), -(Z0 + 1.0), False, lane=True, boxes=(-(ZR - 3.4), -zm, -(Z0 + 3.6)))
     # entrance bay: raised gable with a curved top, three glazed arches, glass canopy, name board, flagpoles
     ent = Fr((X0, 0, zm), (0, 0, 1), (-1, 0, 0))
     prof = [(-EW, 0), (EW, 0), (EW, H + 0.4)] + [(EW * math.cos(math.pi * k / 16), H + 0.4 + 2.4 * math.sin(math.pi * k / 16))
@@ -2073,8 +2139,65 @@ def build_hall(mb):
     G0 = ZR
     R0 = 12.0
     cx, cz = X0 + R0, Z1 - R0
-    box(mb, f0, X0 + R0, X1, 0, 14.5, G0, Z1, {'py': MAT['hallg'], '*': MAT['stone']})
+    # its corner on the lane rounded too, a tall window cut into it (MH017, MH030); there the block overhangs a recessed,
+    # glazed ground floor reached up three steps from the lane, a rounded lip along the overhang (photo 2, MH030)
+    R1, RS, YO = 6.0, 1.6, 4.4          # radius of the lane corner, how far its ground floor stands back, underside
+    ZE = G0 + 4.0                       # along the lane: the granite pier, a slot of windows, then the recessed entrance
+    c1x, c1z = X1 - R1, Z1 - R1
+    box(mb, f0, X0 + R0, c1x, 0, 14.5, G0, Z1, {'py': MAT['hallg'], '*': MAT['stone']})
     box(mb, f0, X0, X0 + R0, 0, 14.5, G0, cz, {'py': MAT['hallg'], '*': MAT['stone']})
+    box(mb, f0, c1x, X1, YO, 14.5, G0, c1z, {'py': MAT['hallg'], '*': MAT['stone']})
+    box(mb, f0, c1x, X1, 0, YO, G0, ZE, MAT['stone'], skip=('py',))
+    box(mb, f0, c1x, X1 - RS, 0, YO, ZE, c1z, MAT['stone'], skip=('py',))
+    box(mb, f0, X1 - RS, X1 - RS + 0.03, 0.45, YO - 0.25, ZE + 1.0, c1z - 0.3, MAT['ctxglass'])      # entrance glazing
+    for zq in [ZE + 1.0 + k * (c1z - 1.3 - ZE) / 5 for k in range(6)]:
+        box(mb, f0, X1 - RS, X1 - RS + 0.08, 0.45, YO - 0.25, zq - 0.04, zq + 0.04, MAT['frame'])
+    lip = Fr((X1 - RS, 0, 0), (0, 0, -1), (1, 0, 0))
+    hall_band(mb, lip, -c1z, -ZE, YO - 0.55, RS, 0.55, MAT['stone'])
+    nose = [(RS - 0.275 + math.cos(t) * 0.275, YO - 0.275 + math.sin(t) * 0.275) for t in [-math.pi / 2 + math.pi * k / 8 for k in range(9)]]
+    nose = [(0.0, YO - 0.55)] + nose + [(0.0, YO)]
+    ring1 = [(math.cos(t), math.sin(t)) for t in [math.pi / 2 * k / 12 for k in range(13)]]   # +x .. +z quarter
+    for (c0, s0), (c1, s1) in zip(ring1, ring1[1:]):
+        for y0, y1, rr, m in ((YO, 14.5, R1, MAT['stone']), (0.0, 0.45, R1 - RS, MAT['stone']), (0.45, YO, R1 - RS, MAT['ctxglass'])):
+            a, b = (c1x + c0 * rr, c1z + s0 * rr), (c1x + c1 * rr, c1z + s1 * rr)
+            mb.poly([(a[0], y0, a[1]), (a[0], y1, a[1]), (b[0], y1, b[1]), (b[0], y0, b[1])], m)
+        a, b = (c1x + c0 * R1, c1z + s0 * R1), (c1x + c1 * R1, c1z + s1 * R1)
+        mb.poly([(c1x, 14.5, c1z), (b[0], 14.5, b[1]), (a[0], 14.5, a[1])], MAT['hallg'])
+        ai, bi = (c1x + c0 * (R1 - RS), c1z + s0 * (R1 - RS)), (c1x + c1 * (R1 - RS), c1z + s1 * (R1 - RS))
+        mb.poly([(a[0], YO, a[1]), (b[0], YO, b[1]), (bi[0], YO, bi[1]), (ai[0], YO, ai[1])], MAT['stone'])
+        for (d0, y0), (d1, y1) in zip(nose, nose[1:]):   # the lip swept round the corner (both faces, as its winding varies)
+            r0, r1_ = R1 - RS + d0, R1 - RS + d1
+            q = [(c1x + c0 * r0, y0, c1z + s0 * r0), (c1x + c1 * r0, y0, c1z + s1 * r0),
+                 (c1x + c1 * r1_, y1, c1z + s1 * r1_), (c1x + c0 * r1_, y1, c1z + s0 * r1_)]
+            mb.poly(q, MAT['stone'])
+            mb.poly(q[::-1], MAT['stone'])
+    # the window on the corner (MH017, MH030): a tall strip of glass on the side towards the back street, a great disc
+    # cut out of it from the lane side, so the glass narrows to a sliver halfway up; its frame follows the disc's edge
+    se_, sw, rc, yc, hh_ = 6.4, 1.5, 3.6, 9.4, 3.7   # strip edge and width (along the face), disc radius, centre height, half height
+    sc = se_ - rc - 0.15                             # disc centre (along the face)
+
+    def cpt(sv, y, out=0.03):
+        t = sv / R1
+        return (c1x + (R1 + out) * math.cos(t), y, c1z + (R1 + out) * math.sin(t))
+    ys_ = [yc - hh_ + 2 * hh_ * k / 24 for k in range(25)]
+    for y0, y1 in zip(ys_, ys_[1:]):
+        lo = [max(se_ - sw, sc + math.sqrt(max(0.0, rc ** 2 - (y - yc) ** 2))) if abs(y - yc) < rc else se_ - sw for y in (y0, y1)]
+        for j in range(3):   # three strips across, so the panes follow the curve
+            f0_, f1_ = j / 3, (j + 1) / 3
+            sa = [lo[i] + (se_ - lo[i]) * f0_ for i in (0, 1)]
+            sb = [lo[i] + (se_ - lo[i]) * f1_ for i in (0, 1)]
+            mb.poly([cpt(sa[0], y0), cpt(sb[0], y0), cpt(sb[1], y1), cpt(sa[1], y1)][::-1], MAT['hallglass'])
+        for (a0, a1), (b0, b1) in (((lo[0] - 0.05, lo[1] - 0.05), (lo[0] + 0.03, lo[1] + 0.03)),
+                                   ((se_ - 0.04, se_ - 0.04), (se_ + 0.04, se_ + 0.04))):   # frame along the disc, the strip's edge
+            mb.poly([cpt(a0, y0, 0.05), cpt(b0, y0, 0.05), cpt(b1, y1, 0.05), cpt(a1, y1, 0.05)][::-1], MAT['frame'])
+    for y in (yc - hh_, yc + hh_):
+        mb.poly([cpt(se_ - sw, y - 0.04, 0.05), cpt(se_, y - 0.04, 0.05), cpt(se_, y + 0.04, 0.05), cpt(se_ - sw, y + 0.04, 0.05)][::-1],
+                MAT['frame'])
+    for k, (xs, hh) in enumerate(((X1 + 0.6, 0.15), (X1 + 0.2, 0.3), (X1 - 0.2, 0.45))):   # three steps up from the lane
+        box(mb, f0, X1 - RS, xs, 0, hh, G0 + 2.6, c1z, {'py': MAT['hallw'], '*': MAT['stone']}, skip=('nx',))
+    box(mb, f0, X1 - 0.02, X1 + 0.02, 0.5, 13.8, G0 + 2.75, G0 + 3.85, MAT['ctxglass'])           # slot of windows
+    box(mb, f0, X1 - 0.5, X1 + 1.8, 0, 15.2, G0 - 1.0, G0 + 2.6, {'py': MAT['hallg'], '*': MAT['stone']})   # the lane's pier
+    box(mb, f0, X1 + 0.8, X1 + 1.2, 15.2, 15.5, G0 + 0.6, G0 + 1.0, MAT['tlbox'])
     ring = [(math.cos(t), math.sin(t)) for t in [math.pi * (0.5 + 0.5 * k / 12) for k in range(13)]]   # +z .. -x quarter
     for (c0, s0), (c1, s1) in zip(ring, ring[1:]):
         a = (cx + c0 * R0, cz + s0 * R0)
@@ -2089,9 +2212,9 @@ def build_hall(mb):
             mb.poly([(o0[0], y0, o0[1]), (o0[0], y1, o0[1]), (o1[0], y1, o1[1]), (o1[0], y0, o1[1])], MAT['stone'])
             mb.poly([(a[0], y0, a[1]), (b[0], y0, b[1]), (o1[0], y0, o1[1]), (o0[0], y0, o0[1])][::-1], MAT['stone'])
             mb.poly([(a[0], y1, a[1]), (b[0], y1, b[1]), (o1[0], y1, o1[1]), (o0[0], y1, o0[1])], MAT['stone'])
-    box(mb, f0, X0 + R0, X1, 9.2, 10.5, Z1, Z1 + 0.03, MAT['ctxglass'])                       # ribbon window, back face
-    box(mb, f0, X0 + R0, X1 - 3.0, 0.0, 4.4, Z1, Z1 + 0.03, MAT['ctxglass'])
-    box(mb, f0, X0 + R0, X1, 4.4, 5.9, Z1, Z1 + 2.0, MAT['stone'])
+    box(mb, f0, X0 + R0, c1x, 9.2, 10.5, Z1, Z1 + 0.03, MAT['ctxglass'])                      # ribbon window, back face
+    box(mb, f0, X0 + R0, c1x, 0.0, 4.4, Z1, Z1 + 0.03, MAT['ctxglass'])
+    box(mb, f0, X0 + R0, c1x, 4.4, 5.9, Z1, Z1 + 2.0, MAT['stone'])
     box(mb, f0, X0 - 1.0, X0 + 0.6, 0, 13.2, G0 - 0.8, G0 + 0.8, MAT['stone'])                 # flat granite pier at the joint
     box(mb, f0, X0 - 0.6, X0 + 0.02, 5.6, 8.6, G0 + 1.0, cz, MAT['ctxglass'])                  # upper window, street side
     for (fx, fz) in ((X1 - 4.0, Z1 - 3.0), (X1 - 6.2, Z1 - 2.2)):                              # black flues with masts
