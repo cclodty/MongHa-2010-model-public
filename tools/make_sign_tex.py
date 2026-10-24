@@ -5,9 +5,11 @@
 - the hall's name lettered straight on its white gable (user, 2026-10-24), spaced out across it with the Portuguese line
   nearly as wide as in the user's photo of the entrance -> T_HallName_BC / T_HallName_Mask, web/tex/hallname.jpg /
   hallname_a.jpg (fonts of this Linux machine: WenQuanYi Zen Hei, Liberation Sans);
-- the real boards of 利誠美食 (fascia and blade sign, MH013), 鞋宜樂 (MH032) and 望廈托兒所 (photo 2), cut out of the photos
-  and squared up (user, 2026-10-24: paste the photos' signs on) -> T_PhotoSigns_BC, web/tex/photosigns.jpg. Cells as
-  PHOTO_SIGNS in blender/build_estate.py.
+- the post office's red fascia lettered as in MH022, 郵政 and Correios in white (user, 2026-10-24: its lettering only,
+  not the photo; the Macau Post emblem between them left out) -> T_PostSign_BC, web/tex/post.jpg;
+- the real boards of 利誠美食 (fascia and blade sign, MH013) and 望廈托兒所 (photo 2), cut out of the photos and squared up
+  (user, 2026-10-24: paste the photos' signs on; 鞋宜樂's photo was too skewed, its lettered board is back)
+  -> T_PhotoSigns_BC, web/tex/photosigns.jpg. Cells as PHOTO_SIGNS in blender/build_estate.py.
 
 Run:  python tools/make_sign_tex.py   (Pillow, numpy)
 """
@@ -61,6 +63,20 @@ rgba = Image.new('RGBA', (W2, H2), (0x34, 0x33, 0x2f, 0))
 rgba.putalpha(cov)
 masked(rgba.resize((W2 // K, H2 // K), Image.LANCZOS), 'HallName', 'hallname')
 
+# ---- the post office's fascia, 4.36 x 0.99 m: 郵 and 政 spaced out on its left half, Correios on its right (MH022)
+W3, H3 = 2048, 464
+img = Image.new('RGB', (W3 * K, H3 * K), (0xb5, 0x1e, 0x1c))
+d = ImageDraw.Draw(img)
+white = (0xf6, 0xf1, 0xe8)
+cjk3 = ImageFont.truetype('/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc', 205 * K)
+for ch, cx in (('郵', 0.17), ('政', 0.355)):
+    d.text((cx * W3 * K, 0.5 * H3 * K), ch, fill=white, font=cjk3, anchor='mm', stroke_width=4 * K, stroke_fill=white)
+lat3 = ImageFont.truetype('/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf', 190 * K)
+d.text((0.735 * W3 * K, 0.52 * H3 * K), 'Correios', fill=white, font=lat3, anchor='mm')
+img = img.resize((W3, H3), Image.LANCZOS)
+a = np.asarray(img, np.float32) * np.linspace(1.0, 0.9, W3)[None, :, None]   # a little darker towards its far end
+save(Image.fromarray(a.clip(0, 255).astype(np.uint8)), 'T_PostSign_BC', 'post')
+
 # ---- the photographed boards
 PHOTOS = os.path.join(ROOT, 'photos')
 src = lambda pat: Image.open(glob.glob(os.path.join(PHOTOS, '**', pat), recursive=True)[0]).convert('RGB')
@@ -86,12 +102,11 @@ def square_up(img, quad, w, h, sharp=80, neutral=False):
     return out.filter(ImageFilter.UnsharpMask(radius=2, percent=sharp, threshold=2)) if sharp else out
 
 
-m13, m32, p2 = src('MH013_*'), src('MH032_*'), src('相2_*')
+m13, p2 = src('MH013_*'), src('相2_*')
 CELLS = {   # name: (photo, TL, TR, BR, BL, cell x0, y0, x1, y1 in the 2048 px atlas, share of the cell's width it fills,
     #         sharpening, white board?). 利誠美食's fascia: up to where the next shop's awning hides it, the rest of the
     #         board left white
     'lisheng': (m13, ((318, 263), (430, 225.8), (430, 283.2), (321, 305)), (0, 0, 2048, 253), 0.66, 80, True),
-    'shoes': (m32, ((1497, 585), (1940, 404), (1943, 582), (1517, 787)), (0, 256, 2048, 647), 1.0, 80, False),
     'nursery': (p2, ((1340, 538), (1652, 536), (1653, 593), (1340, 595)), (0, 650, 2048, 866), 1.0, 0, False),
     'lisheng_blade': (m13, ((208, 210), (296.5, 216.5), (296.5, 273), (208, 271.5)), (0, 870, 640, 1311), 1.0, 80, False),
 }

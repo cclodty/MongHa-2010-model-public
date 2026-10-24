@@ -275,7 +275,7 @@ LIB_S = 0.705                       # plan scale: column ring radius 9.3 * 0.705
 # first floor is level with the galleries and bridges (GF); windows five to a face, ~0.96 m apart (user, 2026-10-23).
 LIB = dict(col=9.3, slab=9.35, wall=8.9, inner=5.3, jut=6.5, bay=0.96,
            plinth=0.3, l1_win=(2.55, 3.42), l2_win=(4.05, 6.5), l3=(6.75, 7.1), band=8.0, l3_win=(8.05, 9.55),
-           fascia=(9.6, 10.0), eave=10.1, apex=11.5)
+           fascia=(9.6, 10.0), eave=10.1, apex=12.3)   # roof ~2.3 m from eaves to top (MH035; user, 2026-10-24: less flat)
 BRIDGE_Z = LIB_Z
 NWG, SEG = CX0 + GW, CX1 - GW          # inner edges of the side galleries
 GZ0, GZ1 = CZ0 + GW, CZ1 - GW          # inner edges of the end galleries
@@ -384,6 +384,7 @@ MAT = {
     'court': M('M_Court_Surface', '#8f9389', 0.9),
     'cline': M('M_Court_Line', '#e9e5d6', 0.8),
     'pblue': M('M_Play_Blue', '#3a679f', 0.4, 0.3),
+    'pyellow': M('M_Play_Yellow', '#e3b62c', 0.45, 0.2),   # the playground's yellow rails and swing beam (MH024)
     'pred': M('M_Play_Red', '#b8473a', 0.5),
     'sand': M('M_Sand', '#d6c391', 1.0),
     'wood': M('M_Wood_Planter', '#9c7a4c', 0.8),
@@ -558,14 +559,13 @@ def street_bay(mb, sf, xa, xb, ib, col, post=False):
     for f in range(NF):
         y = GF + FH * f
         box(mb, sf, xa + p, xb - p, y - 0.18, y + 0.22, ZW - 0.02, ZW + 0.08, band)             # slab band, whole bay
-        if post and f == 0:
+        if post and f == 0:   # six panes, just above the post office's fascia (MH022)
             ga, gb = xa + p + 0.15, xb - p - 0.15
             box(mb, sf, xa + p, xb - p, y + 0.22, y + FH - 0.18, ZR, ZW + 0.03, MAT['white'], skip=('nz',))
-            window(mb, sf, ga, gb, y + 0.45, y + 2.2, ZW + 0.03, mull=False, gm=MAT['shopglass'], cells=4, fm=MAT['post'])
-            npn = max(2, round((gb - ga) / 0.7))   # six panes on a full bay (MH022)
-            for k in range(1, npn):
-                xm = ga + (gb - ga) * k / npn
-                box(mb, sf, xm - 0.04, xm + 0.04, y + 0.45, y + 2.2, ZW + 0.03, ZW + 0.11, MAT['post'])
+            window(mb, sf, ga, gb, y + 0.6, y + 1.8, ZW + 0.03, mull=False, gm=MAT['shopglass'], cells=4, fm=MAT['post'])
+            for t in POST_MULL1:
+                xm = ga + (gb - ga) * t
+                box(mb, sf, xm - 0.04, xm + 0.04, y + 0.6, y + 1.8, ZW + 0.03, ZW + 0.11, MAT['post'])
             continue
         box(mb, sf, bx0, bx1, y, y + 0.16, ZR, ZW - 0.02, {'py': MAT['deck'], '*': MAT['soffit']})
         railing_run(mb, sf, bx0 + 0.03, bx1 - 0.03, y + 0.16, BALC - 0.04, rail)
@@ -706,9 +706,11 @@ def shutter_bay(mb, sf, fa, fb, r=None):
         box(mb, sf, xc - 0.05, xc + 0.05, 0.1, 0.25, zs + 0.04, zs + 0.09, MAT['steel'])
 
 
-# shop boards cut out of the photos (user, 2026-10-24): cells x0, y0, x1, y1 of tools/make_sign_tex.py's 2048 px atlas
-PHOTO_SIGNS = {'lisheng': (0, 0, 2048, 253), 'shoes': (0, 256, 2048, 647), 'nursery': (0, 650, 2048, 866),
-               'lisheng_blade': (0, 870, 640, 1311)}
+# shop boards cut out of the photos (user, 2026-10-24; 鞋宜樂's lettered board back, its photo too skewed): cells x0, y0,
+# x1, y1 of tools/make_sign_tex.py's 2048 px atlas
+PHOTO_SIGNS = {'lisheng': (0, 0, 2048, 253), 'nursery': (0, 650, 2048, 866), 'lisheng_blade': (0, 870, 640, 1311)}
+POST_MULL = (0.155, 0.31, 0.44, 0.5, 0.618, 0.697, 0.848)   # the post office window's red frames across it (MH022)
+POST_MULL1 = (0.135, 0.302, 0.481, 0.664, 0.832)            # and its first floor's
 
 
 def photo_uv(name):
@@ -730,9 +732,8 @@ def open_shop(mb, sf, shop, fa, fb):
     box(mb, sf, fa, fb, 1.9, 1.96, HZ - 0.28, HZ - 0.18, frame)
     zf = HZ + 0.135
     board, awn = SHOP_LOOK[shop]
-    yb = GF - 1.15 if shop == 'shoes' else GF - 1.05   # 鞋宜樂's board is deeper (MH032)
-    box(mb, sf, fa + 0.05, fb - 0.05, yb, GF - 0.3, HZ, HZ + 0.12, MAT['signs'][board])
-    quad = [sf.p(fa + 0.05, yb, zf), sf.p(fb - 0.05, yb, zf), sf.p(fb - 0.05, GF - 0.3, zf), sf.p(fa + 0.05, GF - 0.3, zf)]
+    box(mb, sf, fa + 0.05, fb - 0.05, GF - 1.05, GF - 0.3, HZ, HZ + 0.12, MAT['signs'][board])
+    quad = [sf.p(fa + 0.05, GF - 1.05, zf), sf.p(fb - 0.05, GF - 1.05, zf), sf.p(fb - 0.05, GF - 0.3, zf), sf.p(fa + 0.05, GF - 0.3, zf)]
     if shop in PHOTO_SIGNS:
         mb.poly(quad, MAT['photosigns'], uvs=photo_uv(shop))
     elif OPEN_SHOPS[shop][2] is not None:
@@ -754,17 +755,18 @@ def special_front(mb, sf, kind, fa, fb, i, depth=REC, col=Y):
     """Ground floor of the recessed end blocks: post office (red frames, 郵政 Correios) or the nursery (glass block),
     depth behind the piers; col the bay's colour."""
     zw = HZ - depth
-    if kind == 'post':
+    if kind == 'post':   # as MH022: the window up to ~3.25 m, its red frames where the photo's are; the fascia over it
+        yg = GF - 0.55   # ~3.3-4.35 m, up across the first floor's slab, lettered 郵政 Correios (tools/make_sign_tex.py)
         box(mb, sf, fa, fb, 0, 0.3, zw, zw + 0.1, MAT['hallg'])
-        mb.poly([sf.p(fa, 0.3, zw + 0.05), sf.p(fb, 0.3, zw + 0.05), sf.p(fb, GF - 1.05, zw + 0.05), sf.p(fa, GF - 1.05, zw + 0.05)],
-                MAT['shopglass'], uvs=atlas_uv(4, (fb - fa) / (GF - 1.4)))
-        nsec = max(3, round((fb - fa) / 0.7))   # seven red-framed sections on a full bay (MH022)
-        for xm in [fa + k * (fb - fa) / nsec for k in range(nsec + 1)]:
-            box(mb, sf, xm - 0.05, xm + 0.05, 0.3, GF - 1.05, zw + 0.02, zw + 0.14, MAT['post'])
-        box(mb, sf, fa, fb, 1.95, 2.02, zw + 0.02, zw + 0.14, MAT['post'])
-        box(mb, sf, fa - 0.02, fb + 0.02, GF - 1.15, GF - 0.25, HZ - 0.05, HZ + 0.35, MAT['post'])
+        mb.poly([sf.p(fa, 0.3, zw + 0.05), sf.p(fb, 0.3, zw + 0.05), sf.p(fb, yg, zw + 0.05), sf.p(fa, yg, zw + 0.05)],
+                MAT['shopglass'], uvs=atlas_uv(4, (fb - fa) / (yg - 0.3)))
+        for xm in [fa, fb] + [fa + (fb - fa) * t for t in POST_MULL]:
+            box(mb, sf, xm - 0.04, xm + 0.04, 0.3, yg, zw + 0.02, zw + 0.12, MAT['post'])
+        box(mb, sf, fa, fb, 1.72, 1.79, zw + 0.02, zw + 0.12, MAT['post'])
+        box(mb, sf, fa, fb, yg - 0.07, yg, zw + 0.02, zw + 0.12, MAT['post'])
+        box(mb, sf, fa - 0.02, fb + 0.02, GF - 0.5, GF + 0.55, HZ - 0.05, HZ + 0.35, MAT['post'])
         zf = HZ + 0.36
-        mb.poly([sf.p(fa + 0.1, GF - 1.12, zf), sf.p(fb - 0.1, GF - 1.12, zf), sf.p(fb - 0.1, GF - 0.28, zf), sf.p(fa + 0.1, GF - 0.28, zf)],
+        mb.poly([sf.p(fa + 0.1, GF - 0.47, zf), sf.p(fb - 0.1, GF - 0.47, zf), sf.p(fb - 0.1, GF + 0.52, zf), sf.p(fa + 0.1, GF + 0.52, zf)],
                 MAT['postsign'], uvs=[(0.01, 0.02), (0.99, 0.02), (0.99, 0.98), (0.01, 0.98)])
     elif i == 2:   # 望廈托兒所 in the recessed corner bay (photo 2): a glazed door between two strips of glass block, the
         gb = 0.55  # yellow name board over them, a row of clerestory panes, the bay's mosaic above and a sheet-metal awning
@@ -885,8 +887,9 @@ def build_block(mb, row, it):
             sp, sj = special_bay(row, x0 + (i + 0.5) * bw, bw) if s < 0 else (None, None)
             if sp:
                 cm = MAT['hallg'] if sp == 'post' else MAT['white']
-                box(mb, sf, xa, xa + 0.4, 0, GF - 1.05, HZ - 0.4, HZ, cm)
-                box(mb, sf, xb - 0.4, xb, 0, GF - 1.05, HZ - 0.4, HZ, cm)
+                yp = GF - 0.5 if sp == 'post' and rec else GF - 1.05   # the post office's piers run up to its fascia
+                box(mb, sf, xa, xa + 0.4, 0, yp, HZ - 0.4, HZ, cm)
+                box(mb, sf, xb - 0.4, xb, 0, yp, HZ - 0.4, HZ, cm)
             else:
                 box(mb, sf, xa, xa + 0.32, 0.45, GF - 1.05, HZ - 0.3, HZ + 0.04, MAT['pilaster'])
                 box(mb, sf, xa - 0.02, xa + 0.34, 0, 0.45, HZ - 0.3, HZ + 0.06, MAT['hallg'])
@@ -904,7 +907,7 @@ def build_block(mb, row, it):
             else:
                 shutter_bay(mb, sf, fa, fb)
             door = rec and sp == 'nursery' and sj == 2   # the nursery's own name board and clerestory under its awning
-            if not door:
+            if not door and not (rec and sp == 'post'):   # the post office's window runs up behind its fascia (MH022)
                 box(mb, sf, xa, xb, GF - 1.05, GF - 0.3, HZ - 0.3, HZ, MAT['ground'])
             if rec and sp == 'post' or door:   # the post office: its red fascia, no canopy over it (MH022); the nursery: its awning
                 continue
@@ -1617,7 +1620,7 @@ def build_library(mb):
     for k in range(8):   # the second pane from the left on the north-west back face is the balcony door (user)
         ff = face_frame(lf, k, L['wall'] * math.cos(OCT))
         lib_glass(mb, ff, 2 * L['wall'] * math.sin(OCT), l3, f0_, *L['l3_win'], tiers=T3, door=1 if k == 7 else None)
-    # roof: low octagonal pyramid with standing seams and ridge caps over the top floor and the column ring
+    # roof: octagonal pyramid (~18 degrees, MH035) with standing seams and ridge caps over the top floor and the column ring
     cylv(mb, lf, 0, 0, f0_, f1_, L['col'] + 0.5, 8, MAT['lgreen'], phase=OCT)       # deep dark fascia (MH034)
     eave_r, apex = L['eave'], L['apex']
     ang = [OCT + 2 * math.pi * i / 8 for i in range(8)]
@@ -1696,8 +1699,8 @@ def build_courtyard(mb):
         for a, b in zip(pts, pts[1:]):
             beam(mb, f0.p(a[0], 3.05, a[1]), f0.p(b[0], 3.05, b[1]), 0.025, MAT['pred'])
     build_playground(mb)
-    # 龜池 (residents' memory) between the cage and the library
-    pond = (LX - 12, LZ - 14)
+    # 龜池 (residents' memory) between the cage and the library, 3 m nearer the bridge than first put (user, 2026-10-24)
+    pond = (LX - 12, LZ - 11)
     pf = Fr((pond[0], 0, pond[1]))
     cylv(mb, pf, 0, 0, 0, 0.55, 2.7, 24, MAT['rock'], caps=False)
     ring = arc(0, 0, 2.7, 0, 2 * math.pi, 24)
@@ -1748,18 +1751,23 @@ def build_courtyard(mb):
         sphere(mb, lp.p(0, 3.45, 0), 0.26, MAT['lamp'])
 
 
-# planter seats: (x, z from the courtyard centre LX, LZ, kind, length, width, rotation deg about y, tree?) — 'L' = chevron of
-# two arms from its corner, along local x and z. The half on the playground's side as MH024 has it (tools/camsolve_mh024.py,
-# 2026-10-24; first read off it as photo 14): the two chevron seats behind the library at +-5.8 m, the tree planters
-# either side at +-12.7 m. The ball court's half is the same turned about the library, less what the cage stands on (user,
-# 2026-10-24: the estate is symmetric; the court was laid over that half's middle). Kept from the user's 2010 account
-# (2026-10-23, MH001): all four chevrons turned round about their middle to open away from the library, the long planter
-# where MH001 has it, the planters either side of the playground's far end gone back with it (END_SHIFT) and the one
-# behind its sandpit gone (left out, drawn into the scratch mesh so the random stream stays in step)
-_BACK = [(-5.8, 11.8, 'L', 4.4, 1.6, 315, True), (5.8, 11.8, 'L', 4.4, 1.6, 315, True),   # (MH024's chevrons turned in place)
-         (-12.7, 19.9, 'R', 4.6, 2.6, 45, True), (12.7, 19.9, 'R', 4.6, 2.6, -45, True),
-         (-0.9, 24.3, 'R', 7.6, 2.2, -42, True), (-2.6, 37.0, 'R', 6.8, 2.6, 45, True),
-         (-12.1, 35.4 + END_SHIFT, 'R', 4.2, 2.4, -45, True), (12.1, 35.4 + END_SHIFT, 'R', 4.2, 2.4, 45, True)]
+# planter seats: (x, z from the courtyard centre LX, LZ, kind, length, width, rotation deg about y, tree?, second
+# length) — 'L': two arms from its outer corner at (x, z), along local x (length) and local z (second length), a stone
+# seat along both inner sides; 'R': a box centred there. Every seat is the same L, but for the long one in front of the
+# playground (and the one behind its sandpit, gone by 2010), one arm longer (user, 2026-10-24, with MH024). The half on
+# the playground's side as MH024 has it (tools/camsolve_mh024.py, 2026-10-24): the two chevrons behind the library at
+# +-5.8 m; the tree planters either side, their corner towards the side gallery and open towards the middle, the second
+# arm at the end the user marked; the long one's short arm at its library end, open the same way. The ball court's half
+# is the same turned about the library, less what the cage stands on (user, 2026-10-24: the estate is symmetric; the
+# court was laid over that half's middle); a seat reaching into the cage would be pushed out sideways (none does).
+# Kept from the user's 2010 account (2026-10-23, MH001): the chevrons turned round to open away from the library, the
+# long planter where MH001 has it, the planters either side of the playground's far end gone back with it (END_SHIFT),
+# the one behind its sandpit gone (left out, drawn into the scratch mesh so the random stream stays in step)
+_BACK = [(-5.8, 11.8, 'L', 4.4, 1.6, 315, True, 4.4), (5.8, 11.8, 'L', 4.4, 1.6, 315, True, 4.4),   # behind the library
+         (-15.25, 20.6, 'L', 4.4, 1.6, 45, True, 4.4), (15.25, 20.6, 'L', 4.4, 1.6, 225, True, 4.4),   # tree planters
+         (-4.46, 22.58, 'L', 4.4, 1.6, 48, True, 7.6),                            # in front of the playground, the long one
+         (-2.6, 37.0, 'R', 6.8, 2.6, 45, True, 6.8),                              # behind its sandpit (gone by 2010)
+         (-14.43, 34.76 + END_SHIFT, 'L', 4.4, 1.6, 45, True, 4.4), (14.43, 34.76 + END_SHIFT, 'L', 4.4, 1.6, 225, True, 4.4)]
 
 
 def under_cage(x, z):
@@ -1767,44 +1775,90 @@ def under_cage(x, z):
     return CAGE['x0'] < LX + x < CAGE['x1'] and CAGE['z0'] < LZ + z < CAGE['z1']
 
 
-PLANTERS = _BACK + [(x, -z, k, ln, w, 90 - r if k == 'L' else -r, t) for (x, z, k, ln, w, r, t) in _BACK if not under_cage(x, -z)]
+def seat_outline(x, z, kind, ln, w, rot, tree, ln2):
+    """Plan corners (from the courtyard centre) of a planter seat's boxes."""
+    c, s_ = math.cos(math.radians(rot)), math.sin(math.radians(rot))
+    arms = [(-ln / 2, ln / 2, -w / 2, w / 2)] if kind == 'R' else [(0.0, ln, 0.0, w), (0.0, w, 0.0, ln2)]
+    return [(x + u * c + v * s_, z - u * s_ + v * c) for (a, b, c0, d) in arms for u in (a, b) for v in (c0, d)]
+
+
+def mirrored(spec):
+    """The seat turned about the library onto the ball court's half, pushed out sideways clear of the cage."""
+    x, z, k, ln, w, r, t, ln2 = spec
+    m = (x, -z, k, ln2, w, 90 - r, t, ln) if k == 'L' else (x, -z, k, ln, w, -r, t, ln2)
+    if under_cage(m[0], m[1]):
+        return None
+    while any(under_cage(px, pz) for px, pz in seat_outline(*m)):
+        m = (m[0] + (0.25 if m[0] > 0 else -0.25),) + m[1:]
+    return m
+
+
+PLANTERS = _BACK + [m for m in map(mirrored, _BACK) if m]
 PLANTERS_GONE = {5}
 _DISCS = [(-6.0, 20.6), (6.0, 20.6), (-11.95, 8.6), (11.95, 8.6)]   # MH024
-DISCS = _DISCS + [(x, -z) for x, z in _DISCS if not under_cage(x, -z)]
+DISCS = _DISCS + [(x, -6.9 if z == 8.6 else -z) for x, z in _DISCS if not under_cage(x, -z)]   # (the pair by the pond 1.7 m nearer the bridge)
 LAMPS = [(9.0, 13.0), (-6.4, -9.4), (-10.6, -25.0), (10.6, -25.0)]   # the one at (-1.5, 36.4) stood in the moved playground, gone by 2010
 
 
-def planter_seat(mb, x, z, kind, ln, w, rot, tree):
-    """Raised planter (brown-red tile walls, soil, shrubs, a young tree) with a stone seat ledge along one side."""
+def planter_seat(mb, x, z, kind, ln, w, rot, tree, ln2=None):
+    """Raised planter (brown-red tile walls, soil, shrubs, a young tree) with a stone seat ledge: along one side of a box,
+    along both inner sides of an L."""
     fr = Fr((LX + x, 0, LZ + z)).sub(rot=math.radians(rot))
-    arms = [(-ln / 2, ln / 2, -w / 2, w / 2)] if kind == 'R' else [(0.0, ln, 0.0, w), (0.0, w, 0.0, ln)]
+    ln2 = ln if ln2 is None else ln2
+    arms = [(-ln / 2, ln / 2, -w / 2, w / 2)] if kind == 'R' else [(0.0, ln, 0.0, w), (0.0, w, 0.0, ln2)]
     for (a, b, c, d) in arms:
         box(mb, fr, a, b, 0, 0.62, c, d, {'py': MAT['soil'], '*': MAT['ptile']})
         box(mb, fr, a - 0.04, b + 0.04, 0.62, 0.68, c - 0.04, d + 0.04, MAT['bench'], skip=('ny',))
         box(mb, fr, a + 0.12, b - 0.12, 0.66, 0.7, c + 0.12, d - 0.12, MAT['soil'])
-    a, b, c, d = arms[0]
-    box(mb, fr, a, b, 0, 0.42, d, d + 0.45, {'py': MAT['bench'], '*': MAT['bench']})     # seat ledge
-    for (a, b, c, d) in arms:
-        nx = max(1, int((b - a) / 0.9))
+    if kind == 'R':
+        a, b, c, d = arms[0]
+        box(mb, fr, a, b, 0, 0.42, d, d + 0.45, {'py': MAT['bench'], '*': MAT['bench']})     # seat ledge
+    else:
+        box(mb, fr, w, ln, 0, 0.42, w, w + 0.45, MAT['bench'])                              # seat ledges in the inner corner
+        box(mb, fr, w, w + 0.45, 0, 0.42, w + 0.45, ln2, MAT['bench'])
+    for (a, b, c, d) in arms:   # shrubs along each arm
+        along = (b - a) >= (d - c)
+        nx = max(1, int(((b - a) if along else (d - c)) / 0.9))
         for k in range(nx):
-            t = a + (k + 0.5) * (b - a) / nx
-            c0 = fr.p(t, 0.7, (c + d) / 2)
+            t = (k + 0.5) / nx
+            c0 = fr.p(a + t * (b - a), 0.7, (c + d) / 2) if along else fr.p((a + b) / 2, 0.7, c + t * (d - c))
             SHRUBS.append(dict(p=[c0[0], c0[1], c0[2]], s=0.45 + 0.15 * rnd.random(), bouga=rnd.random() < 0.25))
-    if tree:
-        a, b, c, d = arms[-1]
-        c0 = fr.p((a + b) / 2, 0.7, (c + d) / 2)
+    if tree:   # in the box's middle, an L's corner
+        c0 = fr.p(0, 0.7, 0) if kind == 'R' else fr.p(w / 2, 0.7, w / 2)
         YOUNG_TREES.append((c0[0], c0[2], 0.9 + 0.3 * rnd.random()))
 
 
 YOUNG_TREES = []
 
 
+def ladder_bars(mb, fr, prof, half=0.3, rung=0.3, m=None):
+    """Climbing bars in fr's x-y plane: two rails half either side (local z) along the profile [(u, v), ...], rungs
+    across them every rung metres along it."""
+    m = m or MAT['lamppole']
+    for side in (-half, half):
+        for (u0, v0), (u1, v1) in zip(prof, prof[1:]):
+            beam(mb, fr.p(u0, v0, side), fr.p(u1, v1, side), 0.03, m)
+    run = 0.0
+    for (u0, v0), (u1, v1) in zip(prof, prof[1:]):
+        seg = math.hypot(u1 - u0, v1 - v0)
+        while run <= seg:
+            t = run / seg
+            pa = fr.p(u0 + t * (u1 - u0), v0 + t * (v1 - v0), 0.0)
+            beam(mb, pa - fr.ez * half, pa + fr.ez * half, 0.018, m)
+            run += rung
+        run -= seg
+
+
 def build_playground(mb):
-    """Playground (photo 14, 1990s): sandpit with a yellow timber rail, tyre climber, two arched monkey bars, a double
-    swing. By 2008-10 (photo 1) the same frames stand on black rubber safety tiles inside a timber edging, sandpit included."""
+    """Playground: the frames of MH024 (1988; the user, 2026-10-24: model what that photo shows), still there in 2008-10
+    (photo 1) but standing on black rubber safety tiles inside a timber edging, the sandpit tiled over too. Round the old
+    sandpit (4.4 m, set square to the paving's diagonal grid) a rail on blue posts, its top rail yellow; at its left
+    corner a stack of tyres on blue legs; on its library side a climbing frame (a ladder up, bars across, an arc down);
+    from its right corner post a swing beam to an A-frame, a tyre swing and a seat; from its near corner a ladder that
+    dips and climbs over a small arch. Placed as in MH024 about the sandpit (read off with tools/camsolve_mh024.py's
+    camera), a little drawn in where a frame would stand off the rubber."""
     pz = LZ + END_SHIFT   # two bays further back than photo 14's sandpit (user, 2026-10-23, photo 1)
     pg = Fr((LX, 0, pz + 28.5)).sub(rot=math.pi / 4)
-    f0 = Fr()
     for k in range(4):   # timber edging round the safety surface, 12 m side
         e = pg.sub(rot=k * math.pi / 2)
         box(mb, e, -6.0, 6.0, 0.0, 0.1, 5.8, 6.2, MAT['timber'])
@@ -1813,36 +1867,51 @@ def build_playground(mb):
     box(mb, sp, -2.2, 2.2, 0, 0.07, -2.2, 2.2, {'py': MAT['rubbertile'], '*': MAT['timber']})
     for k in range(4):
         e = sp.sub(rot=k * math.pi / 2)
-        box(mb, e, -2.3, 2.3, 0, 0.4, 2.2, 2.4, MAT['timber'])
-        box(mb, e, -2.3, 2.3, 0.95, 1.05, 2.25, 2.35, MAT['myellow'])
-        box(mb, e, 2.2, 2.4, 0, 1.05, 2.2, 2.4, MAT['myellow'])
-    sw = Fr((LX + 5.0, 0, pz + 29.3)).sub(rot=math.radians(-17))   # double swing
-    for ex in (-2.3, 2.3):
-        for ez in (-0.8, 0.8):
-            beam(mb, sw.p(ex, 0, ez), sw.p(ex, 2.4, 0), 0.08, MAT['pblue'])
-    beam(mb, sw.p(-2.4, 2.4, 0), sw.p(2.4, 2.4, 0), 0.1, MAT['myellow'])
-    for ex in (-1.0, 1.0):
-        box(mb, sw, ex - 0.25, ex + 0.25, 0.45, 0.5, -0.12, 0.12, MAT['steel'])
-        for kx in (-0.22, 0.22):
-            beam(mb, sw.p(ex + kx, 0.5, 0), sw.p(ex + kx, 2.38, 0), 0.02, MAT['pipe'])
-    ty = Fr((LX - 4.0, 0, pz + 27.6))   # tyre climber
+        box(mb, e, -2.3, 2.3, 0, 0.4, 2.2, 2.4, MAT['timber'])                       # kerb
+        box(mb, e, -2.3, 2.3, 0.95, 1.07, 2.24, 2.36, MAT['pyellow'])                 # top rail
+        box(mb, e, -2.3, 2.3, 0.62, 0.67, 2.27, 2.33, MAT['pblue'])                   # middle rail
+        for xp in (-2.3, 0.0):                                                        # posts at the corners and halfway
+            box(mb, e, xp - 0.05, xp + 0.05, 0, 1.12 if xp else 1.0, 2.25, 2.35, MAT['pblue'])
+    S = sp.p(0, 0, 0)
+    f0 = Fr((S[0], 0, S[2]))                         # site axes through the old sandpit's middle (MH024)
+    # swing: the right corner's post carries the beam out to an A-frame; a tyre on three chains, a flat seat
+    box(mb, f0, 3.2, 3.3, 0, 2.45, -0.05, 0.05, MAT['pblue'])
+    beam(mb, f0.p(3.25, 2.4, 0), f0.p(7.45, 2.4, 0), 0.07, MAT['pyellow'])
+    for ez in (-0.85, 0.85):
+        beam(mb, f0.p(7.45, 0, ez), f0.p(7.45, 2.4, 0), 0.06, MAT['pblue'])
+    tc = f0.p(4.4, 0.55, 0)
+    cylv(mb, Fr(tc), 0, 0, -0.1, 0.1, 0.42, 14, MAT['rubber'])
+    for k in range(3):
+        a = k * 2 * math.pi / 3
+        beam(mb, tc + Vector((math.cos(a) * 0.36, 0.1, math.sin(a) * 0.36)), f0.p(4.4, 2.38, 0), 0.012, MAT['pipe'])
+    box(mb, f0, 6.05, 6.55, 0.45, 0.5, -0.12, 0.12, MAT['steel'])
+    for kz in (-0.1, 0.1):
+        beam(mb, f0.p(6.3, 0.5, kz), f0.p(6.3, 2.38, kz), 0.012, MAT['pipe'])
+    # tyre stack on three blue legs, just out from the left corner
+    ty = Fr(f0.p(-3.65, 0, 0.3))
     for k in range(4):
-        cylv(mb, ty, 0, 0, 0.1 + k * 0.38, 0.38 + k * 0.38, 0.45, 14, MAT['rubber'])
-    for a in range(4):
-        ang = a * math.pi / 2
-        cylv(mb, ty, 0.5 * math.cos(ang), 0.5 * math.sin(ang), 0, 1.75, 0.03, 6, MAT['pblue'])
-    for (xa, za, xb, zb) in ((-5.9, 22.2, -0.5, 23.2), (0.6, 30.1, 3.6, 32.9)):   # arched monkey bars
-        a3, b3 = (LX + xa, pz + za), (LX + xb, pz + zb)
-        L = math.hypot(b3[0] - a3[0], b3[1] - a3[1])
-        mfr = Fr((a3[0], 0, a3[1]), ((b3[0] - a3[0]) / L, 0, (b3[1] - a3[1]) / L), (-(b3[1] - a3[1]) / L, 0, (b3[0] - a3[0]) / L))
-        pts = [(L * t, 0.4 + 1.7 * math.sin(math.pi * t)) for t in [i / 10 for i in range(11)]]
-        for side in (-0.35, 0.35):
-            for (u0, v0), (u1, v1) in zip(pts, pts[1:]):
-                beam(mb, mfr.p(u0, v0, side), mfr.p(u1, v1, side), 0.04, MAT['steel'])
-            beam(mb, mfr.p(0, 0, side), mfr.p(0, 0.4, side), 0.04, MAT['steel'])
-            beam(mb, mfr.p(L, 0, side), mfr.p(L, 0.4, side), 0.04, MAT['steel'])
-        for (u0, v0) in pts[1:-1]:
-            cylx(mb, Fr(mfr.p(0, 0, 0), mfr.ez, (-mfr.ex[0], 0, -mfr.ex[2])), -0.35, 0.35, v0, -u0, 0.02, 5, MAT['steel'])
+        cylv(mb, ty, 0, 0, 0.12 + k * 0.38, 0.47 + k * 0.38, 0.45, 14, MAT['rubber'])
+    for a in range(3):
+        ang = a * 2 * math.pi / 3 + 0.4
+        cylv(mb, ty, 0.5 * math.cos(ang), 0.5 * math.sin(ang), 0, 1.9, 0.035, 6, MAT['pblue'])
+    # climbing frame on the library side, along the avenue's direction: a ladder up at its left end, bars across at 2 m,
+    # then an arc down to its right-hand posts
+    cf = Fr(f0.p(-4.3, 0, -3.8))
+    arc_pts = [(3.0 + 1.3 * math.sin(t * math.pi / 2), 0.8 + 1.2 * math.cos(t * math.pi / 2)) for t in [i / 6 for i in range(7)]]
+    ladder_bars(mb, cf, [(0.0, 2.0), (3.0, 2.0)] + arc_pts[1:])
+    ladder_bars(mb, cf, [(0.0, 0.3), (0.0, 1.95)], rung=0.32)                       # the ladder's rungs
+    for u, v in ((0.0, 2.0), (1.5, 2.0), (3.0, 2.0), (4.3, 0.8)):                  # posts
+        for side in (-0.3, 0.3):
+            beam(mb, cf.p(u, 0, side), cf.p(u, v, side), 0.035, MAT['lamppole'])
+    # from the near corner, bars that dip and climb over a small arch to the ground
+    d = Vector((0.915, 0.0, 0.404))
+    lf_ = Fr(f0.p(0.0, 0, 3.35), tuple(d), (-d[2], 0.0, d[0]))
+    prof = [(0.0, 1.2), (0.6, 0.95), (1.2, 0.75), (1.8, 0.95), (2.3, 1.45), (2.7, 1.7), (3.1, 1.45), (3.45, 0.9)]
+    ladder_bars(mb, lf_, prof)
+    for u, v in ((0.0, 1.2), (3.45, 0.9)):
+        for side in (-0.3, 0.3):
+            beam(mb, lf_.p(u, 0, side), lf_.p(u, v, side), 0.035, MAT['lamppole'])
+
 
 # ------------------------------------------------------------------ ground, streets, sports hall (simplified), context
 GATE_H = 2.3   # head rail of the steel gates

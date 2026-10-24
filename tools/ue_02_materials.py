@@ -426,6 +426,7 @@ SPEC.update({
     'M_Court_Surface': {**dict(NormalTex='T_Stucco_N', Tint='#868a80', Roughness=0.9, GrimeAmount=0.5, GrimeScale=0.08), **FLOOR},
     'M_Court_Line': dict(Tint='#ddd9cb', Roughness=0.7),
     'M_Play_Blue': dict(Tint='#2f5a91', Roughness=0.4, Metallic=0.3),
+    'M_Play_Yellow': dict(Tint='#e3b62c', Roughness=0.45, Metallic=0.2),
     'M_Play_Red': dict(Tint='#a83b30', Roughness=0.5),
     'M_Sand': dict(NormalTex='T_Stucco_N', UVScale=3.0, Tint='#c9b585', Roughness=1.0),
     'M_Wood_Planter': dict(Tint='#8a6a42', Roughness=0.8),

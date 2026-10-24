@@ -149,24 +149,7 @@ save('T_Signs_BC', blur(a, 1).clip(0, 1))
 os.remove(sc.render.filepath)
 print('SIGNS_DONE')
 
-# ---- the post office fascia (red board with white lettering), its own 1024 x 256 texture
-for o in list(bpy.data.objects):
-    if o.type != 'CAMERA':
-        bpy.data.objects.remove(o)
-W2, H2 = 1024, 256
-rect(0, 0, W2, H2, '#b3201f')
-text('郵政局', 'hei', W2 * 0.3, H2 * 0.5, W2 * 0.42, H2 * 0.6, '#fbf6ea')
-text('CORREIOS', 'latin', W2 * 0.73, H2 * 0.52, W2 * 0.4, H2 * 0.3, '#fbf6ea')
-co.location = (W2 * U / 2, -H2 * U / 2, 10)
-cam.ortho_scale = W2 * U
-sc.render.resolution_x, sc.render.resolution_y = W2, H2
-bpy.ops.render.render(write_still=True)
-im = bpy.data.images.load(sc.render.filepath)
-a = np.array(im.pixels[:], np.float32).reshape(H2, W2, 4)[::-1, :, :3]
-a *= (0.88 + 0.14 * tile_noise(W2, 12, seed=5)[:H2])[..., None]
-save('T_PostSign_BC', blur(a, 1).clip(0, 1))
-os.remove(sc.render.filepath)
-print('POST_DONE')
+# (the post office's fascia, T_PostSign_BC, is lettered by tools/make_sign_tex.py since 2026-10-24)
 
 # ---- the 2010 sports-for-all billboard on the sports hall's avenue end (MH008): 2048 x 1024, only the wording legible
 #      in the photo (全城動起來 / Participa a cidade inteira / 2010), colour dots in place of its crowd photo
