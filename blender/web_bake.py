@@ -2,7 +2,9 @@
 
 Run on the exported scene:
   blender -b export/MongHa_2010.blend -P blender/web_bake.py -- [--quick] [--only=SM_Library,SM_Courtyard] [--samples=256]
-      [--sun-samples=24] [--vc-samples=160] [--denoise]
+      [--sun-samples=24] [--vc-samples=160] [--denoise] [--out=export/web_bake]
+--out: write the GLBs, lightmaps and manifest there instead of web/assets (copy them over once the bake has finished,
+so a long bake never leaves web/assets half new).
 Without a GPU (a cloud machine's CPU is ~100 times slower), bake with fewer samples and --denoise: each lightmap's sky
 and bounce light goes through OpenImageDenoise (the compositor's Denoise node, on the CPU), e.g.
   -- --samples=96 --sun-samples=24 --vc-samples=160 --denoise   (about two hours on four CPU cores)
@@ -38,7 +40,7 @@ try:
 except Exception:
     pass
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, 'web', 'assets')
+OUT = os.path.join(ROOT, next((a.split('=', 1)[1] for a in ARGS if a.startswith('--out=')), os.path.join('web', 'assets')))
 os.makedirs(OUT, exist_ok=True)
 LMAX = 1.6      # sky + bounce only (the sun is added live); values are albedo multipliers
 SKY = json.load(open(os.path.join(ROOT, 'export', 'sky.json'), encoding='utf-8'))
