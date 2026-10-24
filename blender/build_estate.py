@@ -130,8 +130,9 @@ CORNER_REC = 3.5
 FRONT_BW = (EX1 - EX0 - 3 * JW) / 13     # avenue row: 13 bays within the side rows' outer walls, 4.88 m
 BACK_BW = (EX1 - EX0 - 3 * JW) / 12.5    # back row: 12.5 bays from the 利誠 corner, 5.07 m (towers within ~1 m of MH001)
 SIDE_PASS = 2 * (CZ1 - CZ0 - 3 * JW) / 24   # the corner passages at the side rows' ends: two of the first layout's bays
-PASS_GAL_IN = 1.0   # the end galleries over the corner passages stop short of the street, at the end row's first window
-#                     at least this far in (user, 2026-10-24: the gate fits; the corridor ends about at a window)
+PASS_GAL_IN = 2.0   # the end galleries over the corner passages stop short of the street, at the end row's first window
+#                     at least this far in (user, 2026-10-24: the gate fits; the corridor ends about at a window, pulled
+#                     in at all four corners)
 # the two hillside blocks up the steps from 利誠 (user, 2026-10-22: part of the estate). MH068 (2011-06-08, frontal), MH006
 # (from the top of the steps) and the aerial MH001: they stand south-east of the 利誠 side street on the raised ground and
 # face the level top of 馬交石斜坡 across a paved forecourt. Seen from the street, north-west first: block A green |
@@ -168,7 +169,8 @@ ROWS = [
     # estate, alike at all four corners, 7.8 m long (two of the first layout's bays). Between the passages 2 | 4 | 4 | 2
     # bays of ~6.5 m and three towers, as MH001 measures the bays (its tile caps and fins; photo 1 alike) (user,
     # 2026-10-24); the towers nearest the ends then stand ~2.6 m nearer them than first laid out (MH001's towers within
-    # ~1 m). The ground-floor passage through each row stays in the bay where it was. 'draws' is the first layout: the
+    # ~1 m). The ground-floor passage through the north-west row stays in the bay where it was; the south-east row has none
+# (user, 2026-10-24: a shuttered shop there, no way into the estate). 'draws' is the first layout: the
     # shared random streams are tuned to it, so it is drawn into the scratch mesh before the row is built.
     # north-west row, from the back end: yellow, yellow | tower | yellow, brick, brick (photo 1), the rest inferred
     dict(id='nw', o=(EX0 + HZ, CZ1), d=(0, -1), L=CZ1 - CZ0, outer='street', gallery=True,
@@ -179,8 +181,8 @@ ROWS = [
     # south-east row, from the avenue end (MH001, shadows lifted): yellow, red-brown | green, green, red-brown, red-brown |
     # red-brown, yellow, yellow, yellow | the 利誠 end yellow (photo 3, 2010; too dark in MH001)
     dict(id='se', o=(EX1 - HZ, CZ0), d=(0, 1), L=CZ1 - CZ0, outer='street', gallery=True,
-         items=[Gi(SIDE_PASS), Bi(2, [Y, K]), Ji(), Bi(4, [G, G, K, K], [1]), Ji(), Bi(4, [K, Y, Y, Y]), Ji(),
-                Bi(2, [Y, Y]), Gi(SIDE_PASS)],
+         items=[Gi(SIDE_PASS), Bi(2, [Y, K]), Ji(), Bi(4, [G, G, K, K]), Ji(), Bi(4, [K, Y, Y, Y]), Ji(),
+                Bi(2, [Y, Y]), Gi(SIDE_PASS)],   # no passage through the green bay: a shuttered shop (user, 2026-10-24)
          draws=[Bi(6, [K, K, Y, Y, G, G]), Ji(), Bi(6, [G, G, Y, Y, K, K], [2]), Ji(), Bi(6, [G, Y, Y, R, R, G]), Ji(),
                 Bi(6, [G, G, K, K, Y, Y])]),
     dict(id='slope1', o=(HILL['x1'], HILL['zf'] - HZ), d=(-1, 0), L=HILL['x1'] - HILL['x0'], outer='street', gallery=None,
@@ -432,6 +434,7 @@ MAT = {
     'timber': M('M_Play_Timber', '#8a6440', 0.8),
     'shelter': M('M_BusShelter_Metal', '#a3a8a6', 0.45, 0.7),
     'postsign': M('M_PostOffice_Sign', '#b3201f', 0.5),
+    'desporto': M('M_Sign_Desporto', '#ffffff', 0.5),   # 體育發展局 logo on the sports hall's gable (tools/make_logo_tex.py)
     'ctxglass': M('M_Context_Glass', '#55636a', 0.15),
     'hallglass': M('M_Hall_Glass', '#93aab2', 0.1),   # the sports hall's pale window glass (MH017, MH030)
     'signs': [M(f'M_Sign_{n}', c, 0.5) for n, c in (('Red', '#b8282a'), ('Yellow', '#f2d23c'), ('Green', '#1f6f4a'), ('White', '#f5f1e6'), ('Blue', '#1d4e8f'), ('Orange', '#e06a1f'),
@@ -2253,11 +2256,13 @@ def build_hall(mb):
     hall_facade(mb, street, Z0 + 1.0, zm - EW, True, boxes=(Z0 + 3.6, zm - EW - 2.0), ends=(True, False))
     hall_facade(mb, street, zm + EW, ZR - 0.5, True, boxes=(zm + EW + 2.0, ZR - 3.0), ends=(False, True))
     hall_facade(mb, lane, -(ZR - 1.0), -(Z0 + 1.0), False, lane=True, boxes=(-(ZR - 3.4), -zm, -(Z0 + 3.6)))
-    # entrance bay: raised gable with a curved top, three glazed arches, glass canopy, name board, flagpoles
+    # entrance bay: raised gable with a low triangular top, three glazed arches, glass canopy, the 體育發展局 logo near the
+    # apex and the name under the eaves, flagpoles (user, 2026-10-24, with a photo of the entrance)
     ent = Fr((X0, 0, zm), (0, 0, 1), (-1, 0, 0))
-    prof = [(-EW, 0), (EW, 0), (EW, H + 0.4)] + [(EW * math.cos(math.pi * k / 16), H + 0.4 + 2.4 * math.sin(math.pi * k / 16))
-                                                 for k in range(1, 16)] + [(-EW, H + 0.4)]
-    prism_z(mb, ent, prof, -0.2, 0.5, MAT['hallw'])
+    ye, ya = H + 0.4, H + 2.1                           # eaves, apex
+    prism_z(mb, ent, [(-EW, 0), (EW, 0), (EW, ye), (0, ya), (-EW, ye)], -0.2, 0.5, MAT['hallw'])
+    mb.poly([ent.p(-0.72, ye - 0.07, 0.505), ent.p(0.72, ye - 0.07, 0.505), ent.p(0.72, ye + 1.37, 0.505), ent.p(-0.72, ye + 1.37, 0.505)],
+            MAT['desporto'], uvs=[(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)])
     for k in (-1, 0, 1):
         xc = k * 4.3
         prism_z(mb, Fr(ent.p(xc, 0, 0), ent.ex, ent.ez), [(-1.8, 0.4), (1.8, 0.4), (1.8, 6.2)] + arc(0, 6.2, 1.8, 0, math.pi, 12)[1:-1]
@@ -2266,7 +2271,7 @@ def build_hall(mb):
     box(mb, ent, -EW + 0.4, EW - 0.4, 3.2, 3.3, 0.5, 3.2, MAT['ctxglass'])                    # glass canopy
     for k in (-1, 1):
         box(mb, ent, k * (EW - 0.6) - 0.06, k * (EW - 0.6) + 0.06, 0, 3.2, 3.0, 3.12, MAT['steel'])
-    mb.poly([ent.p(-3.6, 7.9, 0.505), ent.p(3.6, 7.9, 0.505), ent.p(3.6, 9.5, 0.505), ent.p(-3.6, 9.5, 0.505)],
+    mb.poly([ent.p(-2.93, ye - 1.8, 0.505), ent.p(2.93, ye - 1.8, 0.505), ent.p(2.93, ye - 0.5, 0.505), ent.p(-2.93, ye - 0.5, 0.505)],
             MAT['signatlas'], uvs=sign_uv(4))   # name lettered on the gable: 望廈體育館 / Pavilhão de Mong-Há (MH064)
     for k in range(5):
         cylv(mb, ent, -3.0 + k * 1.5, 0.2, H + 1.2, H + 6.0, 0.035, 6, MAT['lamppole'])         # flagpoles
@@ -2500,22 +2505,8 @@ for rid in ('front', 'back'):   # the end rows' outer ends face the side streets
             box(ROW_MB[rid], ef, lo, hi, y - 0.1, y + 0.08, 0.0, 0.05, MAT['slab'][ecol] if rid == 'front' and f > 0 else MAT['white'])
         if rid == 'front':   # the avenue row's end walls: mosaic of the end bay from the second floor up, rendered white below (MH022)
             box(ROW_MB[rid], ef, lo, hi, GF - 0.3, GF + FH - 0.1, 0.0, 0.015, MAT['white'], skip=('nz',))
-        if post:   # post office corner: local +x runs to the (recessed) avenue corner. Its frontage turns onto the side street:
-            ga, gb = hi - 9.6, hi - 0.4   # red-framed glazing behind a row of grey square piers, the red fascia above (MH022)
-            box(ROW_MB[rid], ef, ga, gb, 0, 0.3, 0.0, 0.1, MAT['hallg'])
-            mb_ = ROW_MB[rid]
-            mb_.poly([ef.p(ga, 0.3, 0.05), ef.p(gb, 0.3, 0.05), ef.p(gb, GF - 1.05, 0.05), ef.p(ga, GF - 1.05, 0.05)],
-                     MAT['shopglass'], uvs=atlas_uv(4, (gb - ga) / (GF - 1.4)))
-            for xm in [ga + k * (gb - ga) / 12 for k in range(13)]:
-                box(mb_, ef, xm - 0.04, xm + 0.04, 0.3, GF - 1.05, 0.02, 0.12, MAT['post'])
-            box(mb_, ef, ga, gb, 1.95, 2.02, 0.02, 0.12, MAT['post'])
-            for k in range(5):
-                xm = gb - k * 2.3
-                box(mb_, ef, xm - 0.25, xm + 0.25, 0, GF - 1.15, 0.0, 0.6, MAT['hallg'])
-            box(mb_, ef, ga - 0.2, hi + 0.02, GF - 1.15, GF - 0.25, -0.05, 0.75, MAT['post'])
-            for sa in (hi - 4.0, hi - 8.6):
-                mb_.poly([ef.p(sa, GF - 1.12, 0.76), ef.p(sa + 3.4, GF - 1.12, 0.76), ef.p(sa + 3.4, GF - 0.28, 0.76), ef.p(sa, GF - 0.28, 0.76)],
-                         MAT['postsign'], uvs=[(0.01, 0.02), (0.99, 0.02), (0.99, 0.98), (0.01, 0.98)])
+        if post:   # the post office's frontage turning onto the side street (MH022: glazing behind grey piers, two signs) was
+            atlas_uv(4)   # not there in 2010, only the avenue face (user, 2026-10-24): its glazing drawn, not built
 _irng_keep, irng = irng, random.Random(2051)   # the passages at the side rows' ends (user): the side row's white end wall
 for row in (ROWS[2], ROWS[3]):                  # with small windows and floor bands (MH001), on a stream of their own; the
     fr = row['fr']                              # end row across the passage shows its bays (passage_bay), so its white wall

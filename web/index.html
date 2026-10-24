@@ -267,6 +267,7 @@ function config(name) {
   if (name === 'M_Sign_Atlas') return { map: 'signs', rep: 1, white: true, rough: 0.5 };
   if (name === 'M_PostOffice_Sign') return { map: 'post', rep: 1, white: true, rough: 0.5 };
   if (name === 'M_Billboard') return { map: 'billboard', rep: 1, white: true, rough: 0.6 };
+  if (name === 'M_Sign_Desporto') return { map: 'desporto', alpha: 'desporto_a', rep: 1, white: true, rough: 0.5 };
   if (/^M_Context_(Concrete|Facade_B|Facade_C)$/.test(name)) return { map: 'facade', rep: 1 / 12, gain: 1.15, rough: 0.8 };
   if (name === 'M_Hall_Stone') return { map: 'granite', rep: 1 / 2.4, gain: 1.7, rough: 0.6 };
   if (name === 'M_Leaves') return { map: 'leaves', alpha: 'leaves_a', rep: 1, white: true, rough: 0.8, leaf: true };

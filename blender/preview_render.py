@@ -137,6 +137,8 @@ def config(name):
         return dict(map='post', rep=1, white=True, rough=0.5)
     if name == 'M_Billboard':
         return dict(map='billboard', rep=1, white=True, rough=0.6)
+    if name == 'M_Sign_Desporto':
+        return dict(map='desporto', alpha='desporto_a', rep=1, white=True, rough=0.5)
     if name in ('M_Context_Concrete', 'M_Context_Facade_B', 'M_Context_Facade_C'):
         return dict(map='facade', rep=1 / 12, gain=1.15, rough=0.8)
     if name == 'M_Hall_Stone':
