@@ -2,6 +2,10 @@
 
 Run on the exported scene:
   blender -b export/MongHa_2010.blend -P blender/web_bake.py -- [--quick] [--only=SM_Library,SM_Courtyard] [--samples=256]
+      [--sun-samples=24] [--vc-samples=160] [--denoise]
+Without a GPU (a cloud machine's CPU is ~100 times slower), bake with fewer samples and --denoise: each lightmap's sky
+and bounce light goes through OpenImageDenoise (the compositor's Denoise node, on the CPU), e.g.
+  -- --samples=96 --sun-samples=24 --vc-samples=160 --denoise   (about two hours on four CPU cores)
 
 Every mesh is split three ways:
   *_LM  large faces  -> own lightmap UV ('LM') + baked lightmap image (direct + indirect diffuse light)
@@ -15,6 +19,7 @@ import json
 import math
 import os
 import sys
+import tempfile
 import time
 
 import bmesh
@@ -25,6 +30,13 @@ ARGS = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 QUICK = '--quick' in ARGS
 ONLY = next((a.split('=', 1)[1].split(',') for a in ARGS if a.startswith('--only=')), None)
 SAMPLES = int(next((a.split('=', 1)[1] for a in ARGS if a.startswith('--samples=')), 48 if QUICK else 1536))
+SUN_SAMPLES = int(next((a.split('=', 1)[1] for a in ARGS if a.startswith('--sun-samples=')), min(SAMPLES, 256)))   # sun only
+VC_SAMPLES = int(next((a.split('=', 1)[1] for a in ARGS if a.startswith('--vc-samples=')), SAMPLES))   # per-vertex light
+DENOISE = '--denoise' in ARGS
+try:
+    sys.stdout.reconfigure(line_buffering=True)   # progress lines as they come, also when logged to a file
+except Exception:
+    pass
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'web', 'assets')
 os.makedirs(OUT, exist_ok=True)
@@ -62,7 +74,8 @@ scene.cycles.samples = SAMPLES
 scene.cycles.max_bounces = 6
 scene.cycles.diffuse_bounces = 4
 scene.render.bake.margin = 6
-print('BAKE device', prefs.compute_device_type, [d.name for d in prefs.devices if d.use], 'samples', SAMPLES)
+print('BAKE device', prefs.compute_device_type, [d.name for d in prefs.devices if d.use], 'samples', SAMPLES, 'sun', SUN_SAMPLES,
+      'vc', VC_SAMPLES, 'denoise', DENOISE)
 
 # ---------------------------------------------------------------- light: Poly Haven HDRI sky (sun removed) + matching sun lamp
 for ob in list(bpy.data.objects):
@@ -330,6 +343,54 @@ def save_jpg(name, arr, q=90):
     bpy.data.images.remove(out)
 
 
+_DN = {}
+
+
+def denoise(px):
+    """OpenImageDenoise over a baked lightmap (linear, HDR), through the compositor's Denoise node on the CPU, in a
+    scene of its own with nothing to render."""
+    res = px.shape[0]
+    if not _DN:
+        dn = bpy.data.scenes.new('Denoise')
+        dn.render.engine = 'CYCLES'
+        dn.cycles.samples = 1
+        dn.cycles.device = 'CPU'
+        dn.render.compositor_device = 'CPU'
+        dn.render.compositor_denoise_device = 'CPU'
+        dn.render.compositor_denoise_final_quality = 'HIGH'
+        dn.render.use_compositing = True
+        dn.render.resolution_percentage = 100
+        dn.render.image_settings.file_format = 'OPEN_EXR'
+        dn.render.image_settings.color_depth = '32'
+        ng = bpy.data.node_groups.new('Denoise', 'CompositorNodeTree')
+        dn.compositing_node_group = ng
+        ng.interface.new_socket('Image', in_out='OUTPUT', socket_type='NodeSocketColor')
+        src, node, out = ng.nodes.new('CompositorNodeImage'), ng.nodes.new('CompositorNodeDenoise'), ng.nodes.new('NodeGroupOutput')
+        node.inputs['HDR'].default_value = True
+        ng.links.new(src.outputs['Image'], node.inputs['Image'])
+        ng.links.new(node.outputs['Image'], out.inputs[0])
+        _DN.update(scene=dn, src=src, dir=tempfile.mkdtemp(prefix='mh_denoise_'))
+    dn = _DN['scene']
+    img = bpy.data.images.new('denoise_in', res, res, alpha=False, float_buffer=True)
+    img.colorspace_settings.name = 'Non-Color'
+    rgba = np.ones((res, res, 4), np.float32)
+    rgba[:, :, :3] = px
+    img.pixels.foreach_set(rgba.ravel())
+    _DN['src'].image = img
+    dn.render.resolution_x = dn.render.resolution_y = res
+    path = os.path.join(_DN['dir'], 'denoised.exr')
+    dn.render.filepath = path
+    bpy.ops.render.render(write_still=True, scene=dn.name)
+    got = bpy.data.images.load(path)
+    got.colorspace_settings.name = 'Non-Color'
+    arr = np.empty(res * res * 4, np.float32)
+    got.pixels.foreach_get(arr)
+    for im in (got, img):
+        bpy.data.images.remove(im)
+    os.remove(path)
+    return np.clip(arr.reshape(res, res, 4)[:, :, :3], 0, None)
+
+
 def sun_mask(direct, normals):
     """Sun visibility 0..1 from the sun-only direct bake and the surface normal (Cycles: value = E cos / pi)."""
     cosg = normals @ np.array(SUN_B, np.float32)
@@ -342,7 +403,7 @@ def bake_lightmap(ob, res):
     scene.cycles.samples = SAMPLES
     sky_on(True)
     full = bake_image(ob, res, 'full', type='DIFFUSE', pass_filter={'DIRECT', 'INDIRECT'})
-    scene.cycles.samples = min(SAMPLES, 256)
+    scene.cycles.samples = SUN_SAMPLES
     sky_on(False)
     direct = bake_image(ob, res, 'sun', type='DIFFUSE', pass_filter={'DIRECT'})
     scene.cycles.samples = 4
@@ -352,6 +413,8 @@ def bake_lightmap(ob, res):
     sun_g = direct[:, :, 1] / max(SKY['sun_color'][1], 1e-3)
     mask = sun_mask(sun_g, nrm)
     px = np.clip(full - direct, 0, None)                       # sky + bounce
+    if DENOISE:
+        px = denoise(px)
     save_jpg(ob.name + '_SM', mask, 92)
     enc = encode_srgb(px / LMAX)
     out = bpy.data.images.new(ob.name + '_lm', res, res, alpha=False)
@@ -383,10 +446,10 @@ def bake_vertex(ob):
         arr = np.empty(n * 4, np.float32)
         me.color_attributes['BakeF'].data.foreach_get('color', arr)
         return arr.reshape(n, 4)[:, :3]
-    scene.cycles.samples = SAMPLES
+    scene.cycles.samples = VC_SAMPLES
     sky_on(True)
     full = bake_corners(type='DIFFUSE', pass_filter={'DIRECT', 'INDIRECT'})
-    scene.cycles.samples = min(SAMPLES, 256)
+    scene.cycles.samples = SUN_SAMPLES
     sky_on(False)
     direct = bake_corners(type='DIFFUSE', pass_filter={'DIRECT'})
     sky_on(True)
@@ -430,7 +493,8 @@ if ONLY:
             o.hide_render = True        # still casts nothing; quick pilots bake fewer objects
 gf = ground_far(bpy.data.objects['SM_Ground_Streets']) if 'SM_Ground_Streets' in bpy.data.objects else None
 src = [o for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith('SM_') and not o.hide_render]
-manifest = dict(lmax=LMAX, vc_encoding='sqrt', lm_encoding='srgb', objects={}, samples=SAMPLES,
+manifest = dict(lmax=LMAX, vc_encoding='sqrt', lm_encoding='srgb', objects={}, samples=SAMPLES, sun_samples=SUN_SAMPLES,
+                vc_samples=VC_SAMPLES, denoised=DENOISE,
                 sun=SKY['sun_dir_site'], sun_strength=SUN_E, sun_color=SKY['sun_color'], sky_K=SKY['web_sky_K'],
                 horizon=SKY['horizon_rgb_web'], views=MARK['views'])
 for o in src:

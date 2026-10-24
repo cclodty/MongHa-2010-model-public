@@ -9,6 +9,7 @@ export/*
 !export/sky.json
 !export/cloth_cells.json
 !export/camsolve.json
+!export/camsolve_mh024.json
 backups/
 .claude/
 __pycache__/
