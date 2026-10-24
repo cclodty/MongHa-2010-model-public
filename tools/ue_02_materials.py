@@ -453,6 +453,7 @@ SPEC.update({
     'M_TrafficLight_Red': dict(Tint='#4a1210', Roughness=0.25),
     'M_Roof_Tank': dict(Tint='#cfd2d0', Roughness=0.35, Metallic=0.8, GrimeAmount=0.5),
     'M_PostOffice_Red': dict(Tint='#b3201f', Roughness=0.5),
+    'M_Frame_FanRed': dict(Tint='#8a3324', Roughness=0.5),   # the stair towers' fan windows (user, 2026-10-24)
     # round 4-6 slots (same hexes as build_estate.py)
     'M_Planter_Tile': dict(BaseTex='T_Mosaic_BC', NormalTex='T_Mosaic_N', RoughTex='T_Mosaic_R', UVScale=1.0, Tint='#8a4a35', Roughness=0.9, GrimeAmount=0.5),
     'M_Tile_White': dict(MOSAIC, Tint='#e4e1d8', GrimeAmount=0.55),

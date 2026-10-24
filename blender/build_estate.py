@@ -225,10 +225,12 @@ ROWS[3]['shops'] = {'lisheng': (EX1, _SE_T3 - 0.5 * ROWS[3]['bw'], 3),   # 利�
 # the hillside shops, north-west first (MH068, MH006): 望廈飲食 and 金富美食 (black boards, red characters), an eatery with
 # an unreadable pale board, a green canvas awning (MH033), a striped awning, Maria Beauty Center (purple board)
 HILL_BW = ROWS[4]['bw']
+HILL_SHOPS = ('mhfood', 'kamfu', 'hill3', 'hill4', 'hill5', 'maria')   # their boards and names taken off (user, 2026-10-24)
 HX = [HILL['x0'] + (k + 0.5) * HILL_BW + (JW if k > 3 else 0) for k in range(6)]
 OPEN_SHOPS.update({k: (HX[i], HILL['zf'], c) for i, (k, c) in enumerate((('mhfood', 0), ('kamfu', 1), ('hill3', None),
                                                                          ('hill4', None), ('hill5', None), ('maria', 2)))})
-FRONT_TREES = [(EX0 + f * (EX1 - EX0), -1.5, r) for f, r in ((0.145, 2.0), (0.33, 3.0), (0.645, 1.9), (0.92, 2.0))]   # photos 21, 22
+FRONT_TREES = [(EX0 + f * (EX1 - EX0), -1.5, r) for f, r in ((0.175, 2.0), (0.33, 3.0), (0.645, 1.9), (0.92, 2.0))]   # photos 21, 22;
+# the first one past the bus shelter's end, in front of the tower (it stood in the shelter: user, 2026-10-24)
 SHOP_LOOK = {'shoes': (1, None), 'lisheng': (3, 'canvas'), 'lisheng2': (3, 'awninggreen'), 'mhfood': (6, 'awning'), 'kamfu': (6, None), 'hill3': (3, None),
              'hill4': (3, 'awninggreen'), 'hill5': (3, 'canvasred'), 'maria': (7, None)}   # board colour (MAT['signs'] index), awning
 REC = 1.6   # depth of the covered recess at the two ends of the frontage
@@ -444,6 +446,7 @@ MAT = {
                                                           ('Black', '#1f1f1d'), ('Purple', '#3b2f6e'))],
     'cloth': [M(f'M_Cloth_{i}', c, 0.95) for i, c in enumerate(['#e8e2d6', '#c9473e', '#3f6ea8', '#e3c34d', '#f2f2ee', '#6c9a6c', '#d98cab', '#4b4b4b'])],
     'post': M('M_PostOffice_Red', '#b3201f', 0.5),
+    'fanred': M('M_Frame_FanRed', '#8a3324', 0.5),
 }
 
 # ------------------------------------------------------------------ collections
@@ -505,7 +508,8 @@ def ac_mark(sf, kind, xc, y0, z0):
 # the top floor has no balconies on either face: a flat wall with two windows a bay, standing a little behind the floors
 # below and the white walls either side, a grey sunshade along its foot (user, 2026-10-24, MH002 = their photo, MH005)
 YT = GF + FH * (NF - 1)   # its floor level
-SB = 0.2                  # how far its wall stands behind the facade below
+SB = 0.2                  # how far its wall stands behind the facade below on the courtyard side
+SB_ST = 0.4               # and on the street side, where the pilasters are flush below (user, 2026-10-24: the other face too)
 FIN_TOP = 0.15            # the courtyard pilasters' face up there, from the courtyard facade plane (0.85 below)
 
 
@@ -639,9 +643,9 @@ def street_bay(mb, sf, xa, xb, ib, col, post=False):
                     bx0 - 0.04, bx1 + 0.04, MAT['awning'])
     # the top floor (see YT): a wall across the bay a little behind the facade, a window over the balcony below and one over
     # the window, the sunshade at its foot
-    zt = ZW - SB
+    zt = ZW - SB_ST
     box(mb, sf, xa + p, xb - p, YT, ROOF, ZR, zt, {'ny': MAT['soffit'], '*': tile}, skip=('nz', 'py'))
-    box(mb, sf, xa + p, xb - p, YT - 0.08, YT + 0.02, zt, ZW + 0.3, {'py': MAT['screed'], '*': MAT['soffit']})
+    box(mb, sf, xa + p, xb - p, YT - 0.08, YT + 0.02, zt, ZW + 0.12, {'py': MAT['screed'], '*': MAT['soffit']})
     keep, irng = irng, top_rng(sf, xa)
     for c in ((bx0 + bx1) / 2, (wx0 + wx1) / 2):
         window(mb, sf, c - 0.3 * ww, c + 0.3 * ww, YT + 0.95, YT + 2.25, zt, bars=irng.random() < 0.3)
@@ -798,12 +802,13 @@ def open_shop(mb, sf, shop, fa, fb):
     box(mb, sf, fa, fb, 1.9, 1.96, HZ - 0.28, HZ - 0.18, frame)
     zf = HZ + 0.135
     board, awn = SHOP_LOOK[shop]
-    box(mb, sf, fa + 0.05, fb - 0.05, GF - 1.05, GF - 0.3, HZ, HZ + 0.12, MAT['signs'][board])
-    quad = [sf.p(fa + 0.05, GF - 1.05, zf), sf.p(fb - 0.05, GF - 1.05, zf), sf.p(fb - 0.05, GF - 0.3, zf), sf.p(fa + 0.05, GF - 0.3, zf)]
-    if shop in PHOTO_SIGNS:
-        mb.poly(quad, MAT['photosigns'], uvs=photo_uv(shop))
-    elif OPEN_SHOPS[shop][2] is not None:
-        mb.poly(quad, MAT['signatlas'], uvs=sign_uv(OPEN_SHOPS[shop][2]))
+    if shop not in HILL_SHOPS:   # the hillside row's boards and names taken off (user, 2026-10-24)
+        box(mb, sf, fa + 0.05, fb - 0.05, GF - 1.05, GF - 0.3, HZ, HZ + 0.12, MAT['signs'][board])
+        quad = [sf.p(fa + 0.05, GF - 1.05, zf), sf.p(fb - 0.05, GF - 1.05, zf), sf.p(fb - 0.05, GF - 0.3, zf), sf.p(fa + 0.05, GF - 0.3, zf)]
+        if shop in PHOTO_SIGNS:
+            mb.poly(quad, MAT['photosigns'], uvs=photo_uv(shop))
+        elif OPEN_SHOPS[shop][2] is not None:
+            mb.poly(quad, MAT['signatlas'], uvs=sign_uv(OPEN_SHOPS[shop][2]))
     if awn:   # canvas awning (利誠 grey, its neighbour green, photo 3; hillside: white and striped, MH068)
         prism_x(mb, sf, [(HZ, GF - 1.2), (HZ + 1.4, GF - 1.65), (HZ + 1.4, GF - 1.6), (HZ, GF - 1.15)], fa, fb, MAT[awn])
     if shop == 'lisheng':   # yellow blade sign standing out from the wall on a bracket (photo 3), at the back-street end
@@ -1168,16 +1173,19 @@ def gable(mb, fr, w, base):
     rf = r * 0.78
     half = [(x, y) for x, y in arc(0, base + gr, rf, 0, math.pi, 20)]
     mb.poly([fr.p(x, y, 0.01) for x, y in half], MAT['void'])
+    m = MAT['fanred']   # its bars, arcs and frame red-brown (user, 2026-10-24; MH001, MH002, MH005)
     for i in range(11):
         a = math.pi * i / 10
         p0 = fr.p(math.cos(a) * rf * 0.28, base + gr + math.sin(a) * rf * 0.28, 0.05)
         p1 = fr.p(math.cos(a) * rf, base + gr + math.sin(a) * rf, 0.05)
-        beam(mb, p0, p1, 0.07, MAT['white'], up=tuple(fr.ez))
-    pts = arc(0, base + gr, rf * 0.6, 0, math.pi, 12)
-    for a, b in zip(pts, pts[1:]):
-        beam(mb, fr.p(a[0], a[1], 0.05), fr.p(b[0], b[1], 0.05), 0.07, MAT['white'], up=tuple(fr.ez))
+        beam(mb, p0, p1, 0.07, m, up=tuple(fr.ez))
+    for k, rr in ((12, rf * 0.6), (20, rf)):   # the middle arc and the frame round the fan
+        pts = arc(0, base + gr, rr, 0, math.pi, k)
+        for a, b in zip(pts, pts[1:]):
+            beam(mb, fr.p(a[0], a[1], 0.05), fr.p(b[0], b[1], 0.05), 0.07 if rr < rf else 0.1, m, up=tuple(fr.ez))
+    beam(mb, fr.p(-rf, base + gr, 0.05), fr.p(rf, base + gr, 0.05), 0.1, m, up=tuple(fr.ez))   # and its sill
     hub = [(x, y) for x, y in arc(0, base + gr, rf * 0.28, 0, math.pi, 8)]
-    mb.poly([fr.p(x, y, 0.06) for x, y in hub], MAT['white'])
+    mb.poly([fr.p(x, y, 0.06) for x, y in hub], m)
 
 
 # 馬交石 (MH078, MH079): a granite boulder carved RAMPA DOS CAVALLEIROS 1847 under a crowned shield, in a niche of dressed
@@ -1863,10 +1871,11 @@ def mirrored(spec):
 
 PLANTERS = _BACK + [m for m in map(mirrored, _BACK) if m]
 PLANTERS_GONE = {5}
-# and one more long L behind the playground, the one in front of it turned about the playground's middle, its short arm
-# reaching in under the back gallery (user, 2026-10-24: part of it under the corridor, no column there); set aside from
-# the middle tower's door, clear of the rubber, no tree under the deck; its plants on a stream of their own
-BEHIND_PLAY = (-6.26, 49.38, 'L', 7.6, 1.6, 42, False, 4.4)
+# and one more long L behind the playground (user, 2026-10-24: part of it under the corridor, no column there), turned
+# 90 degrees from the first try (user, 2026-10-24): its corner under the back gallery, both arms out towards the
+# playground and the seats in its crook facing it; set aside from the middle tower's door and the tree planter beside it,
+# clear of the rubber, no tree; its plants on a stream of their own
+BEHIND_PLAY = (-5.0, 51.3, 'L', 7.6, 1.6, 132, False, 4.4)
 _DISCS = [(-6.0, 20.6), (6.0, 20.6), (-11.95, 8.6), (11.95, 8.6)]   # MH024
 DISCS = _DISCS + [(x, -6.9 if z == 8.6 else -z) for x, z in _DISCS if not under_cage(x, -z)]   # (the pair by the pond 1.7 m nearer the bridge)
 LAMPS = [(9.0, 13.0), (-6.4, -9.4), (-10.6, -25.0), (10.6, -25.0)]   # the one at (-1.5, 36.4) stood in the moved playground, gone by 2010
@@ -2056,22 +2065,7 @@ def build_ground(mb):
     box(mb, f0, SIDE_X1, SLOPE['x1'], 0, B['H'], SLOPE['z0'], PZ0, {'py': MAT['grass'], '*': MAT['rock']}, skip=('pz',))
     box(mb, f0, SIDE_X1, PX1, 0, B['H'], PZ0, B['strip'], {'py': MAT['sidewalk'], '*': MAT['rock']}, skip=('nz', 'px'))
     box(mb, f0, PX1, SLOPE['x1'], 0, B['H'], PZ0, B['strip'], {'py': MAT['grass'], '*': MAT['rock']}, skip=('nz', 'nx'))
-    za, zb, xa_, xb_ = HILL['zf'] + 0.45, B['strip'] - 0.05, SIDE_X1 + 0.05, PX1   # green grid lines of the forecourt
-    for sgn in (1, -1):
-        for k in range(-80, 80):
-            c = k * 5.0   # line x - sgn * z = c, clipped to the rectangle
-            ts = sorted(t for t in (za, zb, (xa_ - c) * sgn, (xb_ - c) * sgn) if za - 1e-6 <= t <= zb + 1e-6
-                        and xa_ - 1e-6 <= c + sgn * t <= xb_ + 1e-6)
-            if len(ts) < 2 or ts[-1] - ts[0] < 0.4:
-                continue
-            a, b = (c + sgn * ts[0], ts[0]), (c + sgn * ts[-1], ts[-1])
-            dx, dz = b[0] - a[0], b[1] - a[1]
-            ln = math.hypot(dx, dz)
-            nx, nz = -dz / ln * 0.2, dx / ln * 0.2
-            q = [(a[0] - nx, a[1] - nz), (a[0] + nx, a[1] + nz), (b[0] + nx, b[1] + nz), (b[0] - nx, b[1] - nz)]
-            if sum(q[i][0] * q[(i + 1) % 4][1] - q[(i + 1) % 4][0] * q[i][1] for i in range(4)) > 0:
-                q.reverse()   # upward faces run clockwise in (x, z)
-            mb.poly([f0.p(x, B['H'] + 0.006, z) for x, z in q], MAT['paintgreen'])
+    # (no green grid lines on the forecourt: user, 2026-10-24)
     px0, px1, pz0, pz1, ph = HILL['x1'] - 2 * HILL_BW - JW - 0.3, HILL['x1'] - HILL_BW - 0.3, B['strip'] - 2.0, B['strip'] - 0.4, 0.75
     box(mb, f0, px0, px1, B['H'], B['H'] + ph, pz0, pz1, {'py': MAT['soil'], 'ny': None, '*': MAT['rock']})   # planter (MH068)
     xq = px0 + 0.1
@@ -2213,10 +2207,8 @@ def build_ground(mb):
         cylz_y = B['H'] + yo
         beam(mb, (SIDE_X1 + 0.15, cylz_y, SLOPE['z0'] + 0.3), (SIDE_X1 + 0.15, cylz_y, zP), 0.05, MAT['creampipe'])
     build_makau_stone(mb, MKS_FR)
-    # top of the steps (MH033 = photo 23): the same steel gate, leaves standing open towards the street, granite pier with
-    # a plaque
+    # top of the steps (MH033 = photo 23): a granite pier with a plaque; no gate there (user, 2026-10-24)
     zg = B['wall'] - 0.3
-    iron_gate(mb, Fr((0, top, zg), (1, 0, 0), (0, 0, 1)), sx0, sx1, 2, open_=(0, 1), out=True)
     box(mb, f0, sx0 - 1.3, sx0 - 0.05, 0, top + 3.0, zg - 0.45, zg + 0.45, MAT['rock'])          # granite pier
     box(mb, f0, sx0 - 1.05, sx0 - 0.3, top + 1.3, top + 2.3, zg + 0.45, zg + 0.49, MAT['steel'])   # dark plaque
     x = -245.0
