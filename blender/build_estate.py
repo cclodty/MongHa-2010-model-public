@@ -218,7 +218,10 @@ def back_h(x):
 # Position, jut and roof refitted to MH001 with this shape (2026-10-23): the four columns standing on the paving are the
 # jut's, so the octagon sits ~4 m nearer the ball court than the earlier fit, which took them for the column ring
 # (centre z 76.9, ring radius 6.54 m, jut 4.57 m, rms 4.3 px; eave ~11.2 m high, 7.1 m in radius).
-LIB_X, LIB_Z = LX - 1.0, LZ + 4.0   # centre of the red column ring
+# The estate is laid out symmetrically and the two bridges line up with the side rows' middle stair towers (user,
+# 2026-10-24): the library stands on the courtyard's centre, ~4 m nearer the ball court than that fit (and 1 m off it
+# across, which the fit also had).
+LIB_X, LIB_Z = LX, LZ               # centre of the red column ring
 LIB_S = 0.705                       # plan scale: column ring radius 9.3 * 0.705 = 6.56 m
 # Heights from MH034, taken from the first-floor gallery (its horizon sits ~1.5 m above the first floor), scaled so the
 # first floor is level with the galleries and bridges (GF); windows five to a face, ~0.96 m apart (user, 2026-10-23).
@@ -228,11 +231,12 @@ LIB = dict(col=9.3, slab=9.35, wall=8.9, inner=5.3, jut=6.5, bay=0.96,
 BRIDGE_Z = LIB_Z
 NWG, SEG = CX0 + GW, CX1 - GW          # inner edges of the side galleries
 GZ0, GZ1 = CZ0 + GW, CZ1 - GW          # inner edges of the end galleries
-STAIRS = [LZ + 29.0, LZ - 29.0]       # four U-stairs (photo 14: back pair 29 m behind the library)
-# each stair stands in front of the side row's tower nearest its end, and the playground in front of the back pair
-# (photo 1): all of them two bays nearer the ends than first laid out, like the towers (user, 2026-10-23)
+# each of the four U-stairs stands in front of the side row's tower nearest its end, and the playground in front of the
+# back pair (photo 1): all of them two bays nearer the ends than first laid out, like the towers (user, 2026-10-23);
+# each stair, both flights, centred on its tower (user, 2026-10-24, with photo 10)
 END_SHIFT = 2 * ROWS[2]['bw']
-STAIRS = [STAIRS[0] + END_SHIFT, STAIRS[1] - END_SHIFT]
+STAIRS = sorted((CZ1 - (it['x0'] + it['x1']) / 2 for it in ROWS[2]['items'] if it['t'] == 'j'), reverse=True)
+STAIRS = [STAIRS[0], STAIRS[-1]]
 ZC = HZ - 0.3                          # courtyard facade plane (row-local z)
 ZL = ZC - 1.3                          # back wall of the courtyard loggias
 
@@ -1189,9 +1193,8 @@ def build_galleries(mb):
     box(mb, f0, SEG, CX1, GF - 0.3, GF, GZ0, GZ1, deck)
     parapet_run(mb, f0, NWG, SEG, GZ0 - 0.11, GF)
     parapet_run(mb, Fr((0, 0, 0), (-1, 0, 0), (0, 0, -1)), -SEG, -NWG, -(GZ1 + 0.11), GF)
-    gaps = [(BRIDGE_Z - 2.0, BRIDGE_Z + 2.0)] + [stair_flight_z(z) for z in STAIRS]
-    zrun(mb, NWG - 0.11, GZ0, GZ1, GF, gaps)
-    zrun(mb, SEG + 0.11, GZ0, GZ1, GF, gaps)
+    for xg, side in ((NWG - 0.11, 1), (SEG + 0.11, -1)):   # gaps for the bridge and the stairs' upper flights
+        zrun(mb, xg, GZ0, GZ1, GF, [(BRIDGE_Z - 2.0, BRIDGE_Z + 2.0)] + [stair_flight_z(z, side) for z in STAIRS])
     for x in [NWG + 0.5 + k * 4.4 for k in range(int((SEG - NWG) / 4.4) + 1)]:
         for z in (GZ0 - 0.4, GZ1 + 0.4):
             cylv(mb, f0, x, z, 0, GF - 0.3, 0.3, 16, MAT['mred'], caps=False)
@@ -1219,9 +1222,12 @@ def build_bridge(mb, xa, xb, z):
 STEPS_HALF, RUN, FLW, LAND, GAP = 12, 0.30, 1.5, 1.8, 0.25   # per flight: risers, tread; flight width; landing; gap
 
 
-def stair_flight_z(zc):
-    """z range of the upper flight (the one that meets the gallery deck), towards the library."""
-    d = -1 if zc > LZ else 1
+def stair_flight_z(zc, side):
+    """z range of the upper flight (the one that meets the gallery deck). The four stairs are one design turned to face
+    the courtyard: seen from it, the upper flight is on the left, so towards the back street on the north-west side
+    (side = +1) and towards the avenue on the south-east side (photo 14's back pair, photo 10's front stair, user
+    2026-10-24)."""
+    d = side
     a, b = zc + d * GAP / 2, zc + d * (GAP / 2 + FLW)
     return min(a, b), max(a, b)
 
@@ -1256,8 +1262,8 @@ def build_stair_u(mb, x_edge, zc, side):
     """Dog-leg stair standing out from a gallery (photos 14, user crop): the upper flight leaves the deck flush and
     runs out into the courtyard to a landing on red posts; the lower flight returns to the ground beside the gallery.
     Both flights are open underneath. side = +1 when the courtyard is towards +x."""
-    ua, ub = stair_flight_z(zc)                         # upper flight
-    d = 1 if zc > LZ else -1                            # lower flight sits on the far side of zc
+    ua, ub = stair_flight_z(zc, side)                   # upper flight
+    d = -side                                           # lower flight sits on the other side of zc
     la, lb = sorted((zc + d * GAP / 2, zc + d * (GAP / 2 + FLW)))
     L = STEPS_HALF * RUN
     x_land = x_edge + side * L
