@@ -56,6 +56,7 @@ MAX_RES = 2048 if QUICK else 4096
 AREA_TH = 0.3   # m^2: below this a face is lit per vertex (keeps the lightmap island count manageable)
 NO_BAKE = ('M_Glass_Residential', 'M_Shop_Glass', 'M_Glass_Library', 'M_Context_Glass', 'M_Lamp_Globe', 'M_TrafficLight_Green')
 SEE_THROUGH = {'M_ChainLink': 0.3, 'M_BreezeBlock': 0.55, 'M_Cloth_Atlas': 0.9}
+CARDS = ('M_Sign_Desporto', 'M_Sign_HallName')   # a logo and lettering on cards 5 mm off the hall's gable, cut out in the viewer
 VC_FORCE = ('M_Leaves', 'M_Bark')   # foliage is lit per vertex whatever the card size
 
 scene = bpy.context.scene
@@ -142,6 +143,13 @@ def see_through_shadows_only(m, b):
     nt.links.new(res.outputs[0], a_in)
 
 
+def card_only(m, b):
+    """A card that only carries a cut-out logo or lettering bakes as opaque itself (bake rays start as camera rays) but
+    is invisible to every other ray: the wall that shows round the letters must not bake in the card's shade."""
+    lp = m.node_tree.nodes.new('ShaderNodeLightPath')
+    m.node_tree.links.new(lp.outputs['Is Camera Ray'], b.inputs['Alpha'])
+
+
 # ---------------------------------------------------------------- materials: a bake image node in each, see-through where needed
 BAKE_NODE = 'LM_BAKE'
 for m in bpy.data.materials:
@@ -154,6 +162,8 @@ for m in bpy.data.materials:
         b.inputs['Alpha'].default_value = SEE_THROUGH[m.name]
     if b and (m.name in SEE_THROUGH or m.name == 'M_Leaves'):
         see_through_shadows_only(m, b)
+    if b and m.name in CARDS:
+        card_only(m, b)
     if b and m.name in NO_BAKE and 'Glass' in m.name:   # glass lets light into the rooms but casts a faint shadow
         b.inputs['Alpha'].default_value = 0.15
 
