@@ -136,8 +136,8 @@ BACK_BW = (EX1 - EX0 - 3 * JW) / 12.5    # back row: 12.5 bays from the 利誠 c
 HILL = dict(x0=EX1 + 7.5, x1=EX1 + 7.5 + 6 * 5.0 + JW, zf=EZ1 - 2.0, y0=3.0)   # x0/x1 NW / SE ends, zf street face (MH006 camera)
 ROWS = [
     # per-bay colours, listed in each row's own direction. Back row's south-east end red-brown (MH033). Front row from photos (NW end red-brown then yellow, MH007 and
-    # photo 21; red-brown over the post office corner, MH022); the other rows follow the same grammar (MH002, MH005, MH080),
-    # keeping each block's main colour, but their exact sequences are inferred.
+    # photo 21; red-brown over the post office corner, MH022); the back and south-east rows checked bay by bay against
+    # MH001 (2026-10-24); the north-west row follows the same grammar (MH002, MH005), its ends from photos 1 and 2.
     # end rows (user, 2026-10-23, with MH001): a small block at either end and two big ones between, three stair towers
     # (the corner ones under a barrel vault, the middle one with a flat stair room), alike front and back. No passage into
     # the courtyard under the middle tower: its ground floor has the residents' doors like the others (user). The small
@@ -145,7 +145,9 @@ ROWS = [
     # width along a row, so the front row has 13 (4.88 m) and the back row 12.5 (5.07 m; its towers then sit within ~1 m of
     # MH001's). Colours: the avenue's north-west end and big block from photo 21 (recess red-brown, two yellow; yellow,
     # red-brown, red-brown, green), its south-east end from MH001 and MH022 (two yellow, the post office's red-brown half
-    # bay); the rest as the first layout ('draws') had them.
+    # bay), the rest from MH002 (2011, the courtyard face), MH001 and MH007, which all agree. The back row, from the 利誠
+    # end: red-brown (MH033, MH001), the south-east big block green, green, green, yellow and the north-west one all yellow
+    # (MH001's back-street face; MH080 sees the two by the north-west tower yellow), the north-west end red-brown (MH080).
     # 'draws_o' / 'draws_L': where the first layout stood (the full frontage between the side rows' outer walls)
     dict(id='front', o=(EX0 - FRONT_BW / 2, EZ0 + HZ), d=(1, 0), L=EX1 - EX0 + FRONT_BW, outer='street', gallery=True,
          items=[Bi(1, [K], rec=CORNER_REC), Bi(2, [Y, Y]), Ji(), Bi(4, [Y, K, K, G]), Ji(), Bi(4, [G, G, Y, Y]), Ji(),
@@ -153,7 +155,7 @@ ROWS = [
          draws=[Bi(4, [K, Y, Y, Y]), Ji(), Bi(5, [Y, K, K, G, G], [2]), Ji(), Bi(4, [Y, Y, K, K])],
          draws_o=(EX0, EZ0 + HZ), draws_L=EX1 - EX0),
     dict(id='back', o=(EX1, EZ1 - HZ), d=(-1, 0), L=EX1 - EX0 + BACK_BW / 2, outer='street', gallery=True,
-         items=[Bi(2, [K, K]), Ji(), Bi(4, [Y, Y, Y, R]), Ji(), Bi(4, [G, G, Y, Y]), Ji(), Bi(2, [K, K]),
+         items=[Bi(2, [K, K]), Ji(), Bi(4, [G, G, G, Y]), Ji(), Bi(4, [Y, Y, Y, Y]), Ji(), Bi(2, [K, K]),
                 Bi(1, [K], rec=CORNER_REC)],
          draws=[Bi(4, [K, K, Y, Y]), Ji(), Bi(5, [Y, R, R, G, G], [2]), Ji(), Bi(4, [Y, Y, K, K])],   # 利誠 end first
          draws_L=EX1 - EX0),
@@ -166,9 +168,11 @@ ROWS = [
                 Bi(2, [Y, Y]), Gi(2)],   # back end: yellow, yellow | tower | yellow, brick, brick from photo 1
          draws=[Bi(6, [Y, Y, G, G, K, K]), Ji(), Bi(6, [G, G, Y, Y, K, K], [3]), Ji(), Bi(6, [K, K, G, Y, Y, G]), Ji(),
                 Bi(6, [R, R, Y, Y, G, G])]),
+    # south-east row, from the avenue end (MH001, shadows lifted): yellow, red-brown | green, then red-brown from the
+    # passage on | red-brown, then yellow | the 利誠 end yellow (photo 3, 2010)
     dict(id='se', o=(EX1 - HZ, CZ0), d=(0, 1), L=CZ1 - CZ0, outer='street', gallery=True, gap=2,
-         items=[Gi(2), Bi(2, [Y, Y]), Ji(), Bi(8, [G, G, G, G, Y, Y, K, K], [4]), Ji(), Bi(8, [G, Y, Y, R, R, G, G, G]), Ji(),
-                Bi(2, [K, K]), Gi(2)],
+         items=[Gi(2), Bi(2, [Y, K]), Ji(), Bi(8, [G, G, G, G, K, K, K, K], [4]), Ji(), Bi(8, [K, K, Y, Y, Y, Y, Y, Y]), Ji(),
+                Bi(2, [Y, Y]), Gi(2)],
          draws=[Bi(6, [K, K, Y, Y, G, G]), Ji(), Bi(6, [G, G, Y, Y, K, K], [2]), Ji(), Bi(6, [G, Y, Y, R, R, G]), Ji(),
                 Bi(6, [G, G, K, K, Y, Y])]),
     dict(id='slope1', o=(HILL['x1'], HILL['zf'] - HZ), d=(-1, 0), L=HILL['x1'] - HILL['x0'], outer='street', gallery=None,
@@ -878,15 +882,18 @@ def build_block(mb, row, it):
                 continue
             if in_court(row, x0 + (i + 0.5) * bw):
                 court_bay(mb, sf, xa, xb, i, cols[i])
+            elif not row.get('first'):   # (the first layout, drawn for its streams only, had a white wall here)
+                passage_bay(mb, sf, xa, xb, i, cols[i])
         if street:   # flush white pilasters between bays instead of the courtyard fins
             for i in range(n + 1):
                 xi = X(x0 + i * bw, s)
                 box(mb, sf, xi - 0.18, xi + 0.18, GF - 0.3, ROOF + 0.3, ZR, ZW + 0.12, MAT['white'])
-        else:        # slim white pilasters standing off the courtyard wall, gallery deck to roof
+        else:        # slim white pilasters standing off the courtyard wall, gallery deck to roof (the end ones within the row)
             for i in range(n + 1):
-                if in_court(row, x0 + i * bw):
+                if in_court(row, x0 + i * bw) or not row.get('first'):
                     xi = X(x0 + i * bw, s)
-                    box(mb, sf, xi - 0.17, xi + 0.17, GF - 0.3, ROOF + 0.3, ZL + 0.2, ZC + 0.85, MAT['white'])
+                    box(mb, sf, max(xi - 0.17, 0.0), min(xi + 0.17, row['L']), GF - 0.3, ROOF + 0.3, ZL + 0.2, ZC + 0.85,
+                        MAT['white'])
         # sloped terracotta tile band and its white cap
         xa, xb = sorted((X(x0, s), X(x1, s)))
         prism_x(mb, sf, [(ZC, ROOF + 0.3), (HZ + 0.95, ROOF + 0.3), (HZ + 0.5, TOP), (ZC, TOP)], xa, xb, MAT['rooftile'])
@@ -932,17 +939,27 @@ def build_block(mb, row, it):
         xi = x1 if dn > 0 else x0   # its own tile cap: a white post on the courtyard side where it meets the next block (MH001)
         box(mb, fr, xi - 0.2, xi + 0.2, ROOF + 0.3, TOP + 0.55, ZC - 0.2, HZ + 0.98, MAT['white'])
         xe = sorted(((EX0 - fr.o.x) * fr.ex.x, (EX1 - fr.o.x) * fr.ex.x))   # row-local x of the side rows' outer walls
-        for a, b in ((x0, min(x1, xe[0])), (max(x0, xe[1]), x1)):          # the part standing out past them
-            if b - a > 0.05:
-                side_cap(mb, fr, a, b)
+        for a, b in ((x0, min(x1, xe[0])), (max(x0, xe[1]), x1)):          # the part standing out past them: its upper
+            if b - a > 0.05:                                                 # floors in the bay's colour (passage_bay),
+                box(mb, fr, a, b, 0, GF - 0.3, HZ - 0.2, HZ, MAT['white'])  # the ground floor closed in white
+                side_cap(SCRATCH, fr, a, b)                                  # (the white cap it had, for STEP_RNG)
 
 
 STEP_RNG = random.Random(2091)   # the step walls' windows draw from their own stream
+PASS_RNG = random.Random(2101)   # and the end rows' faces on the corner passages from theirs
+
+
+def passage_bay(mb, sf, xa, xb, ib, col):
+    """Courtyard-side face of an end-row bay beside a corner passage, or standing out past the side rows: the same as the
+    courtyard bays, in the bay's own colour (user, 2026-10-24, with MH001), not the white end wall it had."""
+    global irng
+    keep, irng = irng, PASS_RNG
+    court_bay(mb, sf, xa, xb, ib, col)
+    irng = keep
 
 
 def side_cap(mb, fr, xa, xb):
-    """Courtyard-side face of the part of a corner bay that stands out past the side rows' outer walls: white, ground to
-    roof, a small window on every floor."""
+    """The white cap first built on the part of a corner bay standing out past the side rows (now drawn, not built)."""
     global irng
     box(mb, fr, xa, xb, 0, ROOF + 0.3, HZ - 0.2, HZ, MAT['white'])
     keep, irng = irng, STEP_RNG
@@ -2173,10 +2190,10 @@ for rid in ('front', 'back'):   # the end rows' outer ends face the side streets
             for sa in (hi - 4.0, hi - 8.6):
                 mb_.poly([ef.p(sa, GF - 1.12, 0.76), ef.p(sa + 3.4, GF - 1.12, 0.76), ef.p(sa + 3.4, GF - 0.28, 0.76), ef.p(sa, GF - 0.28, 0.76)],
                          MAT['postsign'], uvs=[(0.01, 0.02), (0.99, 0.02), (0.99, 0.98), (0.01, 0.98)])
-_irng_keep, irng = irng, random.Random(2051)   # the passages at the side rows' ends (user): white end walls either side
-for row in (ROWS[2], ROWS[3]):                  # with small windows and floor bands (MH001), on a stream of their own
-    fr = row['fr']
-    for k, it in enumerate(row['items']):
+_irng_keep, irng = irng, random.Random(2051)   # the passages at the side rows' ends (user): the side row's white end wall
+for row in (ROWS[2], ROWS[3]):                  # with small windows and floor bands (MH001), on a stream of their own; the
+    fr = row['fr']                              # end row across the passage shows its bays (passage_bay), so its white wall
+    for k, it in enumerate(row['items']):       # is drawn, not built
         if it['t'] == 'g':
             s_ = -1 if k == 0 else 1   # along the row, from the block to the passage
             end_wall(ROW_MB[row['id']], fr.p(it['x1'] if k == 0 else it['x0'], 0, 0), fr.ex * s_)
@@ -2188,7 +2205,7 @@ for row in (ROWS[2], ROWS[3]):                  # with small windows and floor b
                 ends = [(er['fr'].p(xx, 0, 0) - o).dot(ex_) for xx in (jt['x0'] + 0.4, jt['x1'] - 0.4)]
                 if jt['t'] == 'j' and all(abs(e) < HZ for e in ends):
                     gap = (min(ends), max(ends))
-            end_wall(ROW_MB[end_row], o, fr.ex * -s_, gap)
+            end_wall(SCRATCH, o, fr.ex * -s_, gap)
 irng = _irng_keep
 gal = MB('SM_Galleries_Bridges', C_EST)
 build_galleries(gal)
