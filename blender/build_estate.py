@@ -100,13 +100,14 @@ EX1, EZ1 = EX0 + 2 * D + COURT_W, EZ0 + 2 * D + COURT_L
 CX0, CX1, CZ0, CZ1 = EX0 + D, EX1 - D, EZ0 + D, EZ1 - D
 
 
-def Bi(n, color, passages=(), serr=False, rec=0.0):
+def Bi(n, color, passages=(), serr=False, rec=0.0, w=1.0):
     """color: one colour for the block, or a list with one colour per bay (2026-10-22 photo package: each block between
     the white stair towers is painted in sections of one or two bays, every bay with its own tile cap, MH002/MH005/MH068).
-    rec: the whole block, every floor, stands this far back from the street (the estate's corner bays)."""
+    rec: the whole block, every floor, stands this far back from the street (the estate's corner bays); w: its bays' width
+    as a fraction of the row's bay."""
     cols = list(color) if isinstance(color, (list, tuple)) else [color] * n
     assert len(cols) == n, (n, cols)
-    return {'t': 'b', 'n': n, 'color': cols[0], 'cols': cols, 'pass': list(passages), 'serr': serr, 'rec': rec}
+    return {'t': 'b', 'n': n, 'color': cols[0], 'cols': cols, 'pass': list(passages), 'serr': serr, 'rec': rec, 'w': w}
 
 
 def Ji():
@@ -120,10 +121,10 @@ def Gi(n):
 
 # 16 blocks: the end rows run the full frontage and wrap the corners, the side rows sit between them
 Y, G, K, R = 'yellow', 'green', 'brick', 'red'
-# At three of the estate's four outer corners the corner bay, the end rows' last bay, stands back from the street all the
-# way up; not at the 利誠 corner (user, 2026-10-24, with photo 21 and MH022: the post office fills the one at the avenue's
-# south-east end, a white side wall with the post office's board where the frontage steps back). Depth from photo 21 and
-# MH022 (estimated).
+# At three of the estate's four outer corners the end rows end in half a bay that stands back from the street all the way
+# up, after two full bays from the corner tower; not at the 利誠 corner (user, 2026-10-24, with photo 21, MH022 and MH007:
+# the post office fills the one at the avenue's south-east end, a white side wall with the post office's board where the
+# frontage steps back). Depth from photo 21 and MH022 (estimated).
 CORNER_REC = 3.5
 # the two hillside blocks up the steps from 利誠 (user, 2026-10-22: part of the estate). MH068 (2011-06-08, frontal), MH006
 # (from the top of the steps) and the aerial MH001: they stand south-east of the 利誠 side street on the raised ground and
@@ -136,15 +137,19 @@ ROWS = [
     # keeping each block's main colour, but their exact sequences are inferred.
     # end rows (user, 2026-10-23, with MH001): a small block at either end and two big ones between, three stair towers
     # (the corner ones under a barrel vault, the middle one with a flat stair room), alike front and back. No passage into
-    # the courtyard under the middle tower: its ground floor has the residents' doors like the others (user). MH022: the
-    # post office has two red-brown bays over it, then the white tower. Colours: each new bay takes the colour of the bay of
-    # the first layout ('draws') that stood there.
+    # the courtyard under the middle tower: its ground floor has the residents' doors like the others (user). The small
+    # blocks are two bays and the recessed half bay at the corner (user, 2026-10-24), the 利誠 end two bays; bays the same
+    # width along a row, so the front row has 13 (4.88 m) and the back row 12.5 (5.07 m; its towers then sit within ~1 m of
+    # MH001's). Colours: the avenue's north-west end and big block from photo 21 (recess red-brown, two yellow; yellow,
+    # red-brown, red-brown, green), its south-east end from MH001 and MH022 (two yellow, the post office's red-brown half
+    # bay); the rest as the first layout ('draws') had them.
     dict(id='front', o=(EX0, EZ0 + HZ), d=(1, 0), L=EX1 - EX0, outer='street', gallery=True,
-         items=[Bi(1, [K], rec=CORNER_REC), Bi(1, [Y]), Ji(), Bi(4, [Y, Y, Y, K]), Ji(), Bi(4, [G, G, Y, Y]), Ji(), Bi(1, [K]),
-                Bi(1, [K], rec=CORNER_REC)],
+         items=[Bi(1, [K], rec=CORNER_REC, w=0.5), Bi(2, [Y, Y]), Ji(), Bi(4, [Y, K, K, G]), Ji(), Bi(4, [G, G, Y, Y]), Ji(),
+                Bi(2, [Y, Y]), Bi(1, [K], rec=CORNER_REC, w=0.5)],
          draws=[Bi(4, [K, Y, Y, Y]), Ji(), Bi(5, [Y, K, K, G, G], [2]), Ji(), Bi(4, [Y, Y, K, K])]),
     dict(id='back', o=(EX1, EZ1 - HZ), d=(-1, 0), L=EX1 - EX0, outer='street', gallery=True,
-         items=[Bi(2, [K, K]), Ji(), Bi(4, [Y, Y, Y, R]), Ji(), Bi(4, [G, G, Y, Y]), Ji(), Bi(1, [K]), Bi(1, [K], rec=CORNER_REC)],
+         items=[Bi(2, [K, K]), Ji(), Bi(4, [Y, Y, Y, R]), Ji(), Bi(4, [G, G, Y, Y]), Ji(), Bi(2, [K, K]),
+                Bi(1, [K], rec=CORNER_REC, w=0.5)],
          draws=[Bi(4, [K, K, Y, Y]), Ji(), Bi(5, [Y, R, R, G, G], [2]), Ji(), Bi(4, [Y, Y, K, K])]),   # 利誠 end first
     # side rows (user, 2026-10-23, photo 1 and MH001): no block in the two bays at either end but a passage from the street
     # into the estate, alike at all four corners, and the towers nearest the ends two bays nearer them than first laid out
@@ -169,25 +174,24 @@ for row in ROWS:
             continue
         items = row[key]
         fixed = sum(JW for it in items if it['t'] == 'j')
-        bays = sum(it['n'] for it in items if it['t'] != 'j')
+        bays = sum(it['n'] * it.get('w', 1.0) for it in items if it['t'] != 'j')
         bw = row['bw' if key == 'items' else 'draws_bw'] = (row['L'] - fixed) / bays
         x = 0.0
         for it in items:
             it['x0'] = x
-            x += JW if it['t'] == 'j' else it['n'] * bw
+            x += JW if it['t'] == 'j' else it['n'] * it.get('w', 1.0) * bw
             it['x1'] = x
     dx, dz = row['d']
     row['fr'] = Fr((row['o'][0], row.get('y0', 0.0), row['o'][1]), (dx, 0, dz), (-dz, 0, dx))
 
 _FJ = [it for it in ROWS[0]['items'] if it['t'] == 'j']
 PASS_X = EX0 + (_FJ[1]['x0'] + _FJ[1]['x1']) / 2   # the avenue row's middle tower (zebra crossing)
-# (site x, z) near which the two trading shops stood (user, 2026-10-22): 鞋宜樂 beside the north-west stair tower with the
-# bus stop next to it (photo 21), one bay further north-west than first placed: the bay between that tower and the recessed
-# corner bay (user, 2026-10-24), the bus shelter in front of the bay on the tower's other side; 利誠美食 at the back end of
-# the south-east side street (top-left seen from the avenue), up the steps from there is the 望廈飲食 spot; sign atlas
-# cells 11 and 10
+# (site x, z) near which the two trading shops stood (user, 2026-10-22): from the avenue's north-west corner (photo 21,
+# user 2026-10-24): the recessed half bay, 鞋宜樂, the bay with the bus shelter in front, the stair tower; 利誠美食 at the
+# back end of the south-east side street (top-left seen from the avenue), up the steps from there is the 望廈飲食 spot;
+# sign atlas cells 11 and 10
 SHOES_X = EX0 + ROWS[0]['items'][1]['x0'] + 0.5 * ROWS[0]['bw']
-BUS_X = EX0 + _FJ[0]['x1'] + 0.5 * ROWS[0]['bw']
+BUS_X = EX0 + ROWS[0]['items'][1]['x0'] + 1.5 * ROWS[0]['bw']
 OPEN_SHOPS = {'shoes': (EX0 + ROWS[0]['draws'][2]['x0'] + 0.5 * ROWS[0]['draws_bw'], EZ0, 11),   # first layout's spot,
               'lisheng': (EX1, CZ1 - 0.5 * ROWS[3]['bw'], 3),                                     # for the scratch draw
               'lisheng2': (EX1, CZ1 - 1.5 * ROWS[3]['bw'], None)}
@@ -270,7 +274,7 @@ def special_bay(row, xl, bw):
                 return 'recess', int(xl // bw)
             if xl > row['L'] - 3 * bw:
                 return 'post', int((row['L'] - xl) // bw)
-        elif xl > row['L'] - bw:   # the post office fills the recessed corner bay (user, 2026-10-24)
+        elif xl > row['L'] - 0.5 * row['bw']:   # the post office fills the recessed half bay at the corner (user, 2026-10-24)
             return 'post', 0
     g = row.get('gap', 0)
     if row['id'] == 'nw' and g * bw <= xl < (g + 2) * bw:   # the NW row's first bays at the back, after the passage
@@ -517,8 +521,9 @@ def street_bay(mb, sf, xa, xb, ib, col, full=False, post=False):
             ga, gb = xa + p + 0.15, xb - p - 0.15
             box(mb, sf, xa + p, xb - p, y + 0.22, y + FH - 0.18, ZR, ZW + 0.03, MAT['white'], skip=('nz',))
             window(mb, sf, ga, gb, y + 0.45, y + 2.2, ZW + 0.03, mull=False, gm=MAT['shopglass'], cells=4, fm=MAT['post'])
-            for k in range(1, 5):
-                xm = ga + (gb - ga) * k / 5
+            npn = max(2, round((gb - ga) / 0.8))
+            for k in range(1, npn):
+                xm = ga + (gb - ga) * k / npn
                 box(mb, sf, xm - 0.04, xm + 0.04, y + 0.45, y + 2.2, ZW + 0.03, ZW + 0.11, MAT['post'])
             continue
         box(mb, sf, bx0, bx1, y, y + 0.16, ZR, ZW - 0.02, {'py': MAT['deck'], '*': MAT['soffit']})
@@ -748,7 +753,7 @@ def light_well(mb, fr, xm):
 
 
 def build_block(mb, row, it):
-    fr, bw = row['fr'], row['bw']
+    fr, bw = row['fr'], row['bw'] * it.get('w', 1.0)
     x0, x1, n = it['x0'], it['x1'], it['n']
     cols = it['cols']
     rec = it.get('rec', 0.0)   # a recessed corner bay: everything on the street side stands back by rec
