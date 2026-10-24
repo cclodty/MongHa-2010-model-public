@@ -169,13 +169,13 @@ ROWS = [
     # estate, alike at all four corners, 7.8 m long (two of the first layout's bays). Between the passages 2 | 4 | 4 | 2
     # bays of ~6.5 m and three towers, as MH001 measures the bays (its tile caps and fins; photo 1 alike) (user,
     # 2026-10-24); the towers nearest the ends then stand ~2.6 m nearer them than first laid out (MH001's towers within
-    # ~1 m). The ground-floor passage through the north-west row stays in the bay where it was; the south-east row has none
-# (user, 2026-10-24: a shuttered shop there, no way into the estate). 'draws' is the first layout: the
+    # ~1 m). Neither side row has a ground-floor passage through it (user, 2026-10-24: the south-east one a shuttered shop,
+    # the north-west one plain wall on the lane, the towers' doors the only ways in from there). 'draws' is the first layout: the
     # shared random streams are tuned to it, so it is drawn into the scratch mesh before the row is built.
     # north-west row, from the back end: yellow, yellow | tower | yellow, brick, brick (photo 1), the rest inferred
     dict(id='nw', o=(EX0 + HZ, CZ1), d=(0, -1), L=CZ1 - CZ0, outer='street', gallery=True,
-         items=[Gi(SIDE_PASS), Bi(2, [Y, Y]), Ji(), Bi(4, [Y, K, K, G], [2]), Ji(), Bi(4, [K, G, Y, R]), Ji(),
-                Bi(2, [Y, Y]), Gi(SIDE_PASS)],
+         items=[Gi(SIDE_PASS), Bi(2, [Y, Y]), Ji(), Bi(4, [Y, K, K, G]), Ji(), Bi(4, [K, G, Y, R]), Ji(),
+                Bi(2, [Y, Y]), Gi(SIDE_PASS)],   # no passage through it either: plain wall on the lane (user, 2026-10-24)
          draws=[Bi(6, [Y, Y, G, G, K, K]), Ji(), Bi(6, [G, G, Y, Y, K, K], [3]), Ji(), Bi(6, [K, K, G, Y, Y, G]), Ji(),
                 Bi(6, [R, R, Y, Y, G, G])]),
     # south-east row, from the avenue end (MH001, shadows lifted): yellow, red-brown | green, green, red-brown, red-brown |
@@ -491,11 +491,50 @@ def blob(mb, c, r, m, sy=1.0):
 
 
 AC_MARKS = []   # every air-conditioner box, so the Unreal export can swap in scanned units (blender/ue_export.py, tools/ue_09_props.py)
+AC_HELD = None  # a list while a floor is drawn for the streams only: its units land here, to be hung on the floor built instead
 
 
 def ac_mark(sf, kind, xc, y0, z0):
     """kind 'window' | 'split'; (xc, y0, z0) = bottom centre where the unit meets the wall, in frame sf (local +z = out)."""
+    if AC_HELD is not None:
+        AC_HELD.append((kind, xc, y0))
+        return
     AC_MARKS.append(dict(kind=kind, p=[round(v, 4) for v in sf.p(xc, y0, z0)], out=[round(v, 5) for v in sf.ez]))
+
+
+# the top floor has no balconies on either face: a flat wall with two windows a bay, standing a little behind the floors
+# below and the white walls either side, a grey sunshade along its foot (user, 2026-10-24, MH002 = their photo, MH005)
+YT = GF + FH * (NF - 1)   # its floor level
+SB = 0.2                  # how far its wall stands behind the facade below
+FIN_TOP = 0.15            # the courtyard pilasters' face up there, from the courtyard facade plane (0.85 below)
+
+
+def held_floor(mb, f):
+    """Where floor f is built: the top floor as it was goes to the scratch mesh (its random draws kept, its units held)."""
+    global AC_HELD
+    if f == NF - 1:
+        AC_HELD = []
+        return SCRATCH
+    return mb
+
+
+def top_units(mb, sf, z, street):
+    """Hang the units the old top floor drew (held_floor) on the new wall at depth z."""
+    global AC_HELD
+    held, AC_HELD = AC_HELD or [], None
+    for kind, xc, y0 in held:
+        if kind == 'window':
+            box(mb, sf, xc - 0.33, xc + 0.33, y0, y0 + 0.42, z, z + (0.42 if street else 0.4), MAT['ac'])
+        else:
+            box(mb, sf, xc - 0.38, xc + 0.38, y0, y0 + 0.53, z + 0.06, z + 0.34, MAT['ac'])
+            for k in (-0.3, 0.3):
+                box(mb, sf, xc + k - 0.02, xc + k + 0.02, y0 - 0.05, y0, z, z + 0.4, MAT['pole'])
+        ac_mark(sf, kind, xc, y0, z)
+
+
+def top_rng(sf, xa):
+    """The new top floor's own stream, one per bay, so its windows leave the rest alone."""
+    return random.Random('top %.2f %.2f %.2f' % tuple(sf.p(xa, 0, 0)))
 
 
 def sphere(mb, c, r, m, seg=32, rings=16):
@@ -535,7 +574,8 @@ def railing_run(mb, fr, xa, xb, y, z, m=None):
 
 
 # street side (photos 21, 23): flat mosaic wall, each bay half window + half balcony, slab bands, awnings. The balconies are
-# cut into the wall: their railings stand on thick slab bands that run unbroken across the bay (MH005, MH038, MH068)
+# cut into the wall: their railings stand on thick slab bands that run unbroken across the bay (MH005, MH038, MH068). The
+# top floor has no balcony (see YT)
 ZW_OUT = 0.35       # the street facade stands this far in from the row's outer line
 ZW = HZ - ZW_OUT    # street facade plane
 ZR = HZ - LOG       # balcony back wall (the residential core face)
@@ -545,6 +585,7 @@ BALC = ZW + 0.06    # balcony front: railing just proud of the wall plane
 def street_bay(mb, sf, xa, xb, ib, col, post=False):
     """post: the post office's bay, its first floor a band of red-framed windows across the bay (MH022). (The hillside
     blocks' green bays, one balcony across the bay in MH068, are the estate's like the rest: user, 2026-10-24.)"""
+    global irng
     w, p = xb - xa, 0.18
     bwid = (w - 2 * p) * 0.5
     if ib % 2 == 0:
@@ -554,47 +595,58 @@ def street_bay(mb, sf, xa, xb, ib, col, post=False):
     tile, band = MAT['plaster'][col], MAT['slab'][col]
     rail = MAT['balrail'] if irng.random() < 0.7 else MAT['rail']
     ww = wx1 - wx0
-    box(mb, sf, wx0, wx1, GF, ROOF, ZR, ZW, tile, skip=('nz',))
+    box(mb, sf, wx0, wx1, GF, YT, ZR, ZW, tile, skip=('nz',))
     cylv(mb, sf, xa, ZW + 0.2, GF - 0.3, ROOF + 0.3, 0.05, 8, MAT['white'])                     # drain pipe on the pilaster
     for f in range(NF):
         y = GF + FH * f
-        box(mb, sf, xa + p, xb - p, y - 0.18, y + 0.22, ZW - 0.02, ZW + 0.08, band)             # slab band, whole bay
+        mf = held_floor(mb, f)
+        box(mf, sf, xa + p, xb - p, y - 0.18, y + 0.22, ZW - 0.02, ZW + 0.08, band)             # slab band, whole bay
         if post and f == 0:   # six panes, just above the post office's fascia (MH022)
             ga, gb = xa + p + 0.15, xb - p - 0.15
-            box(mb, sf, xa + p, xb - p, y + 0.22, y + FH - 0.18, ZR, ZW + 0.03, MAT['white'], skip=('nz',))
-            window(mb, sf, ga, gb, y + 0.6, y + 1.8, ZW + 0.03, mull=False, gm=MAT['shopglass'], cells=4, fm=MAT['post'])
+            box(mf, sf, xa + p, xb - p, y + 0.22, y + FH - 0.18, ZR, ZW + 0.03, MAT['white'], skip=('nz',))
+            window(mf, sf, ga, gb, y + 0.6, y + 1.8, ZW + 0.03, mull=False, gm=MAT['shopglass'], cells=4, fm=MAT['post'])
             for t in POST_MULL1:
                 xm = ga + (gb - ga) * t
-                box(mb, sf, xm - 0.04, xm + 0.04, y + 0.6, y + 1.8, ZW + 0.03, ZW + 0.11, MAT['post'])
+                box(mf, sf, xm - 0.04, xm + 0.04, y + 0.6, y + 1.8, ZW + 0.03, ZW + 0.11, MAT['post'])
             continue
-        box(mb, sf, bx0, bx1, y, y + 0.16, ZR, ZW - 0.02, {'py': MAT['deck'], '*': MAT['soffit']})
-        railing_run(mb, sf, bx0 + 0.03, bx1 - 0.03, y + 0.16, BALC - 0.04, rail)
-        window(mb, sf, bx0 + 0.15, bx1 - 0.15, y + 0.2, y + 2.35, ZR, mull=True)                 # balcony door
-        window(mb, sf, wx0 + 0.2 * ww, wx1 - 0.2 * ww, y + 0.95, y + 2.25, ZW, bars=irng.random() < 0.3)
+        box(mf, sf, bx0, bx1, y, y + 0.16, ZR, ZW - 0.02, {'py': MAT['deck'], '*': MAT['soffit']})
+        railing_run(mf, sf, bx0 + 0.03, bx1 - 0.03, y + 0.16, BALC - 0.04, rail)
+        window(mf, sf, bx0 + 0.15, bx1 - 0.15, y + 0.2, y + 2.35, ZR, mull=True)                 # balcony door
+        window(mf, sf, wx0 + 0.2 * ww, wx1 - 0.2 * ww, y + 0.95, y + 2.25, ZW, bars=irng.random() < 0.3)
         r = irng.random()
         if r < 0.3:      # window-type air conditioner under the window
             xc = wx0 + 0.5 * ww
-            box(mb, sf, xc - 0.33, xc + 0.33, y + 0.5, y + 0.92, ZW, ZW + 0.42, MAT['ac'])
+            box(mf, sf, xc - 0.33, xc + 0.33, y + 0.5, y + 0.92, ZW, ZW + 0.42, MAT['ac'])
             ac_mark(sf, 'window', xc, y + 0.5, ZW)
         elif r < 0.65:   # split unit on a wall bracket
             xc = wx0 + (0.18 if irng.random() < 0.5 else 0.82) * ww
-            box(mb, sf, xc - 0.38, xc + 0.38, y + 0.35, y + 0.88, ZW + 0.06, ZW + 0.34, MAT['ac'])
+            box(mf, sf, xc - 0.38, xc + 0.38, y + 0.35, y + 0.88, ZW + 0.06, ZW + 0.34, MAT['ac'])
             ac_mark(sf, 'split', xc, y + 0.35, ZW)
             for k in (-0.3, 0.3):
-                box(mb, sf, xc + k - 0.02, xc + k + 0.02, y + 0.3, y + 0.35, ZW, ZW + 0.4, MAT['pole'])
+                box(mf, sf, xc + k - 0.02, xc + k + 0.02, y + 0.3, y + 0.35, ZW, ZW + 0.4, MAT['pole'])
         if irng.random() < 0.55:   # laundry inside the balcony front
-            cylx(mb, sf, bx0 + 0.05, bx1 - 0.05, y + 2.45, BALC - 0.18, 0.02, 6, MAT['pole'])
+            cylx(mf, sf, bx0 + 0.05, bx1 - 0.05, y + 2.45, BALC - 0.18, 0.02, 6, MAT['pole'])
             xx = bx0 + 0.1
             while xx < bx1 - 0.3:
                 cell = CLOTH['cells'][irng.randrange(len(CLOTH['cells']))]
                 k = irng.uniform(0.8, 1.0)
                 if xx + cell['size'][0] * k > bx1 - 0.05:
                     break
-                garment(mb, sf, xx, y + 2.42, BALC - 0.18, cell, k)
+                garment(mf, sf, xx, y + 2.42, BALC - 0.18, cell, k)
                 xx += cell['size'][0] * k + 0.04 + 0.2 * irng.random()
         if (f == NF - 1 and irng.random() < 0.8) or irng.random() < 0.06:   # sheet-metal awning
-            prism_x(mb, sf, [(ZR, y + FH - 0.13), (ZW + 0.65, y + FH - 0.6), (ZW + 0.65, y + FH - 0.55), (ZR, y + FH - 0.08)],
+            prism_x(mf, sf, [(ZR, y + FH - 0.13), (ZW + 0.65, y + FH - 0.6), (ZW + 0.65, y + FH - 0.55), (ZR, y + FH - 0.08)],
                     bx0 - 0.04, bx1 + 0.04, MAT['awning'])
+    # the top floor (see YT): a wall across the bay a little behind the facade, a window over the balcony below and one over
+    # the window, the sunshade at its foot
+    zt = ZW - SB
+    box(mb, sf, xa + p, xb - p, YT, ROOF, ZR, zt, {'ny': MAT['soffit'], '*': tile}, skip=('nz', 'py'))
+    box(mb, sf, xa + p, xb - p, YT - 0.08, YT + 0.02, zt, ZW + 0.3, {'py': MAT['screed'], '*': MAT['soffit']})
+    keep, irng = irng, top_rng(sf, xa)
+    for c in ((bx0 + bx1) / 2, (wx0 + wx1) / 2):
+        window(mb, sf, c - 0.3 * ww, c + 0.3 * ww, YT + 0.95, YT + 2.25, zt, bars=irng.random() < 0.3)
+    irng = keep
+    top_units(mb, sf, zt, True)
 
 
 def court_layout(xa, xb, ib):
@@ -621,7 +673,9 @@ def court_window_xs(row):
 
 def court_bay(mb, sf, xa, xb, ib, col):
     """Courtyard side (photo 14): flat wall between slim white pilasters, a recessed loggia and a window per bay
-    on every floor including the gallery floor, white floor bands, window air-conditioners, laundry in the loggias."""
+    on every floor from the gallery floor up to the one under the top floor (which has none: see YT), white floor bands,
+    window air-conditioners, laundry in the loggias."""
+    global irng
     p = 0.17
     lx0, lx1, ox0, ox1 = court_layout(xa, xb, ib)
     tile = MAT['plaster'][col]
@@ -629,37 +683,49 @@ def court_bay(mb, sf, xa, xb, ib, col):
     rail = MAT['balrail'] if irng.random() < 0.4 else MAT['rail']
     for f in range(NF):
         y = GF + FH * f
+        mf = held_floor(mb, f)
         segs = [(xa + p, lx0), (lx1, xb - p)]
         for a_, b_ in segs:
             if b_ - a_ > 0.02:
-                box(mb, sf, a_, b_, y, y + FH, ZL, ZC, wallm, skip=('py', 'ny'))
-        box(mb, sf, lx0, lx1, y + 2.45, y + FH, ZL, ZC, wallm, skip=('py',))           # lintel over the loggia
-        box(mb, sf, lx0, lx1, y, y + 0.12, ZL, ZC + 0.03, {'py': MAT['deck'], '*': MAT['slab'][col]})
-        box(mb, sf, lx0, lx1, y + 0.12, y + 0.55, ZC - 0.12, ZC, {'pz': tile, '*': MAT['white']})   # low wall
-        box(mb, sf, lx0, lx1, y + 1.0, y + 1.05, ZC - 0.09, ZC - 0.03, rail)
+                box(mf, sf, a_, b_, y, y + FH, ZL, ZC, wallm, skip=('py', 'ny'))
+        box(mf, sf, lx0, lx1, y + 2.45, y + FH, ZL, ZC, wallm, skip=('py',))           # lintel over the loggia
+        box(mf, sf, lx0, lx1, y, y + 0.12, ZL, ZC + 0.03, {'py': MAT['deck'], '*': MAT['slab'][col]})
+        box(mf, sf, lx0, lx1, y + 0.12, y + 0.55, ZC - 0.12, ZC, {'pz': tile, '*': MAT['white']})   # low wall
+        box(mf, sf, lx0, lx1, y + 1.0, y + 1.05, ZC - 0.09, ZC - 0.03, rail)
         xv = lx0 + 0.12
         while xv < lx1 - 0.08:
-            box(mb, sf, xv - 0.009, xv + 0.009, y + 0.55, y + 1.0, ZC - 0.07, ZC - 0.05, rail)
+            box(mf, sf, xv - 0.009, xv + 0.009, y + 0.55, y + 1.0, ZC - 0.07, ZC - 0.05, rail)
             xv += 0.13
         lwid = lx1 - lx0
-        window(mb, sf, lx0 + 0.1 * lwid, lx0 + 0.45 * lwid, y + 0.95, y + 2.25, ZL, bars=irng.random() < 0.3)
-        window(mb, sf, lx0 + 0.55 * lwid, lx0 + 0.9 * lwid, y + 0.15, y + 2.3, ZL, mull=True)
-        window(mb, sf, ox0, ox1, y + 0.95, y + 2.25, ZC, bars=irng.random() < 0.2)
+        window(mf, sf, lx0 + 0.1 * lwid, lx0 + 0.45 * lwid, y + 0.95, y + 2.25, ZL, bars=irng.random() < 0.3)
+        window(mf, sf, lx0 + 0.55 * lwid, lx0 + 0.9 * lwid, y + 0.15, y + 2.3, ZL, mull=True)
+        window(mf, sf, ox0, ox1, y + 0.95, y + 2.25, ZC, bars=irng.random() < 0.2)
         if irng.random() < 0.45:                                                       # window air-conditioner
             xc = (ox0 + ox1) / 2
-            box(mb, sf, xc - 0.33, xc + 0.33, y + 0.98, y + 1.4, ZC, ZC + 0.4, MAT['ac'])
+            box(mf, sf, xc - 0.33, xc + 0.33, y + 0.98, y + 1.4, ZC, ZC + 0.4, MAT['ac'])
             ac_mark(sf, 'window', xc, y + 0.98, ZC)
         if irng.random() < 0.55:                                                       # laundry inside the loggia
-            cylx(mb, sf, lx0 + 0.05, lx1 - 0.05, y + 2.35, ZC - 0.35, 0.02, 6, MAT['pole'])
+            cylx(mf, sf, lx0 + 0.05, lx1 - 0.05, y + 2.35, ZC - 0.35, 0.02, 6, MAT['pole'])
             xx = lx0 + 0.1
             while xx < lx1 - 0.3:
                 cell = CLOTH['cells'][irng.randrange(len(CLOTH['cells']))]
                 k = irng.uniform(0.75, 0.95)
                 if xx + cell['size'][0] * k > lx1 - 0.05:
                     break
-                garment(mb, sf, xx, y + 2.32, ZC - 0.35, cell, k)
+                garment(mf, sf, xx, y + 2.32, ZC - 0.35, cell, k)
                 xx += cell['size'][0] * k + 0.05 + 0.2 * irng.random()
-        box(mb, sf, xa + p, xb - p, y - 0.1, y + 0.08, ZC, ZC + 0.05, MAT['white'])       # floor band
+        box(mf, sf, xa + p, xb - p, y - 0.1, y + 0.08, ZC, ZC + 0.05, MAT['white'])       # floor band
+    # the top floor (see YT): no loggia, a flat wall a little behind the facade and the pilasters, two windows, the sunshade
+    # at its foot reaching the pilasters' face up there
+    zt = ZC - SB
+    box(mb, sf, xa + p, xb - p, YT, ROOF, ZL, zt, wallm, skip=('py', 'nz'))
+    box(mb, sf, xa + p, xb - p, YT - 0.08, YT + 0.02, zt, ZC + FIN_TOP, {'py': MAT['screed'], '*': MAT['soffit']})
+    keep, irng = irng, top_rng(sf, xa)
+    ww = ox1 - ox0
+    for c in ((lx0 + lx1) / 2, (ox0 + ox1) / 2):
+        window(mb, sf, c - ww / 2, c + ww / 2, YT + 0.95, YT + 2.25, zt, bars=irng.random() < 0.2)
+    irng = keep
+    top_units(mb, sf, zt, False)
 
 
 def window(mb, fr, xa, xb, ya, yb, z, bars=False, mull=True, gm=None, cells=8, fm=None):
@@ -881,10 +947,19 @@ def build_block(mb, row, it):
         if sides[s] != 'street':
             continue
         sf = side(s)
+        lane = row['id'] == 'nw' and not row.get('first')   # the lane by the sports hall: no shops, plain wall but for the
+        #                                                    towers' doors (user, 2026-10-24); the first layout as it was
         for i in range(n):
             xa, xb = X(x0 + i * bw, s), X(x0 + (i + 1) * bw, s)
             xa, xb = min(xa, xb), max(xa, xb)
             sp, sj = special_bay(row, x0 + (i + 0.5) * bw, bw) if s < 0 else (None, None)
+            if lane:   # its shutters drawn, not built, so the row's random stream stays in step; no canopy, so no units on it
+                box(mb, sf, xa, xb, 0.45, GF - 0.3, HZ - 0.3, HZ - 0.02, MAT['ground'])
+                box(mb, sf, xa, xb, 0, 0.45, HZ - 0.3, HZ + 0.02, MAT['hallg'])
+                shutter_bay(SCRATCH, sf, xa + 0.32, xb)
+                for _ in range(LEDGE_RNG.choice((0, 0, 1, 2, 3))):
+                    LEDGE_RNG.uniform(-0.15, 0.15)
+                continue
             if sp:
                 cm = MAT['hallg'] if sp == 'post' else MAT['white']
                 yp = GF - 0.5 if sp == 'post' and rec else GF - 1.05   # the post office's piers run up to its fascia
@@ -920,12 +995,8 @@ def build_block(mb, row, it):
                 xc = xa + (xb - xa) * (k + 0.5 + LEDGE_RNG.uniform(-0.15, 0.15)) / max(nac, 1)
                 box(mb, sf, xc - 0.38, xc + 0.38, GF - 0.14, GF + 0.42, HZ - 0.02, HZ + 0.3, MAT['ac'])
                 ac_mark(sf, 'split', xc, GF - 0.14, HZ - 0.02)
-    # --- courtyard arcade (columns, beam, dado, doors)
+    # --- courtyard arcade (beam, dado, doors; no red columns under the gallery, user 2026-10-24)
     if sides[1] == 'court':
-        for i in range(n + 1):
-            x = x0 + i * bw + (0.4 if i == 0 else -0.4 if i == n else 0)
-            if in_court(row, x):
-                cylv(mb, fr, x, HZ - 0.4, 0, GF - 0.3, 0.3, 16, MAT['mred'], caps=False)
         box(mb, fr, x0, x1, GF - 0.75, GF - 0.3, HZ - 0.75, HZ - 0.05, MAT['ground'])
         for a, b in segs:
             sx0, sx1 = x0 + a * bw, x0 + b * bw
@@ -966,12 +1037,15 @@ def build_block(mb, row, it):
             for i in range(n + 1):
                 xi = X(x0 + i * bw, s)
                 box(mb, sf, xi - 0.18, xi + 0.18, GF - 0.3, ROOF + 0.3, ZR, ZW + 0.12, MAT['white'])
-        else:        # slim white pilasters standing off the courtyard wall, gallery deck to roof (the end ones within the row)
+        else:        # slim white pilasters standing off the courtyard wall, gallery deck to roof (the end ones within the row),
+            #          stepping back above the railing under the top floor to stand only a little proud of it (MH002)
             for i in range(n + 1):
                 if in_court(row, x0 + i * bw) or not row.get('first'):
                     xi = X(x0 + i * bw, s)
-                    box(mb, sf, max(xi - 0.17, 0.0), min(xi + 0.17, row['L']), GF - 0.3, ROOF + 0.3, ZL + 0.2, ZC + 0.85,
-                        MAT['white'])
+                    pa, pb, yh = max(xi - 0.17, 0.0), min(xi + 0.17, row['L']), YT - 1.85
+                    box(mb, sf, pa, pb, GF - 0.3, yh, ZL + 0.2, ZC + 0.85, MAT['white'], skip=('py',))
+                    prism_x(mb, sf, [(ZL + 0.2, yh), (ZC + 0.85, yh), (ZC + FIN_TOP, YT), (ZL + 0.2, YT)], pa, pb, MAT['white'])
+                    box(mb, sf, pa, pb, YT, ROOF + 0.3, ZL + 0.2, ZC + FIN_TOP, MAT['white'], skip=('ny',))   # (MH002)
         # sloped terracotta tile band and its white cap
         xa, xb = sorted((X(x0, s), X(x1, s)))
         prism_x(mb, sf, [(ZC, ROOF + 0.3), (HZ + 0.95, ROOF + 0.3), (HZ + 0.5, TOP), (ZC, TOP)], xa, xb, MAT['rooftile'])
@@ -1387,13 +1461,9 @@ def build_galleries(mb):
     parapet_run(mb, Fr((0, 0, 0), (-1, 0, 0), (0, 0, -1)), -SEG, -NWG, -(GZ1 + 0.11), GF)
     for xg, side in ((NWG - 0.11, 1), (SEG + 0.11, -1)):   # gaps for the bridge and the stairs' upper flights
         zrun(mb, xg, GZ0, GZ1, GF, [(BRIDGE_Z - 2.0, BRIDGE_Z + 2.0)] + [stair_flight_z(z, side) for z in STAIRS])
-    for x in [NWG + 0.5 + k * 4.4 for k in range(int((SEG - NWG) / 4.4) + 1)]:
-        for z in (GZ0 - 0.4, GZ1 + 0.4):
+    for x in (NWG - 0.4, SEG + 0.4):   # the gallery is cantilevered: red columns down to the ground only at its inner
+        for z in (GZ0 - 0.4, GZ1 + 0.4):   # corners, the bridges and the stairs (user, 2026-10-24; MH024, photo 10)
             cylv(mb, f0, x, z, 0, GF - 0.3, 0.3, 16, MAT['mred'], caps=False)
-    for z in [GZ0 + 2.2 + k * 4.4 for k in range(int((GZ1 - GZ0) / 4.4))]:
-        if all(abs(z - c) > 2.6 for c in [BRIDGE_Z] + STAIRS):
-            for x in (NWG - 0.4, SEG + 0.4):
-                cylv(mb, f0, x, z, 0, GF - 0.3, 0.3, 16, MAT['mred'], caps=False)
     for (x, z) in ((CX0, CZ0), (CX1, CZ0), (CX0, CZ1), (CX1, CZ1)):   # inner corners: close the facade slot
         sx, sz = (1 if x == CX0 else -1), (1 if z == CZ0 else -1)
         box(mb, f0, x - sx * 0.65, x + sx * 0.08, GF - 0.3, ROOF + 0.3, z - sz * 0.65, z + sz * 0.08, MAT['white'])
@@ -1476,6 +1546,13 @@ def build_stair_u(mb, x_edge, zc, side):
     stair_rail(mb, (x_land, GF / 2, zo_l), (x_edge + side * 0.3, 0.1, zo_l))
     stair_rail(mb, (x_edge + side * 0.6, 0.25, zm + d * 0.1), (x_land, GF / 2, zm + d * 0.1))
     stair_rail(mb, (x_land, GF / 2, zm - d * 0.1), (x_edge, GF, zm - d * 0.1))
+    # the inner rails joined up, no post at the foot (user, 2026-10-24): a bar down to the bottom tread, and round the
+    # turn at the landing from one flight's rails to the other's
+    beam(mb, (x_edge + side * 0.6, 0.16, zm + d * 0.1), (x_edge + side * 0.6, 1.33, zm + d * 0.1), 0.04, MAT['creampipe'])
+    beam(mb, (x_land, GF / 2, zm - d * 0.1), (x_land, GF / 2 + 1.07, zm - d * 0.1), 0.04, MAT['creampipe'])
+    beam(mb, (x_land, GF / 2, zm + d * 0.1), (x_land, GF / 2 + 1.07, zm + d * 0.1), 0.04, MAT['creampipe'])
+    for h in (0.3, 0.55, 0.8, 1.05):
+        beam(mb, (x_land, GF / 2 + h, zm - 0.12), (x_land, GF / 2 + h, zm + 0.12), 0.04, MAT['creampipe'])
     for (px, pz, h) in ((x_edge + side * 0.25, zo_l, 1.4), (x_far, zo_u, GF / 2 + 1.4), (x_far, zo_l, GF / 2 + 1.4)):
         cylv(mb, Fr(), px, pz, 0, h, 0.22, 16, MAT['mred'])
         cylv(mb, Fr(), px, pz, h, h + 0.08, 0.27, 16, MAT['mred'])
@@ -1563,7 +1640,7 @@ def build_library(mb):
     L = LIB
     f0_, f1_ = L['fascia']
     l2, (l3a, l3) = GF, L['l3']           # first floor level with the galleries and bridges; top floor slab
-    T2, T3 = (0.19, 0.25), (0.15, 0.19)   # three-part windows: shares of the top light and the bottom pane (MH034)
+    T3 = (0.15, 0.19)                     # three-part windows: shares of the top light and the bottom pane (MH034)
 
     def jut(p):   # the three back faces are moved this far towards the back street
         return p[0], p[1] + L['jut']
@@ -1592,11 +1669,9 @@ def build_library(mb):
         fr, ln = lib_seg(lf, a, b)
         if i in (4, 10):   # where the room steps in from the octagon to the walkway: solid
             box(mb, fr, -ln / 2, ln / 2, l2, l3a, -0.2, 0.0, MAT['lcream'])
-        elif i in (0, 1, 2, 3, 11):   # the jut: windows the top floor's size under the same head, wall below (user, 2026-10-24)
-            yb = L['l2_win'][1]
+        else:   # windows the top floor's size under the same head, wall below: the jut (user, 2026-10-24), and the faces
+            yb = L['l2_win'][1]   # the bridges and the walkway look at as well (user, 2026-10-24: wall all round below them)
             lib_glass(mb, fr, ln, l2, l3a, yb - (L['l3_win'][1] - L['l3_win'][0]), yb, tiers=T3)
-        else:
-            lib_glass(mb, fr, ln, l2, l3a, *L['l2_win'], tiers=T2)
     # top floor: slab with the balcony, a cream band with a sunk panel round the slab edge (the balcony parapet round the
     # jut), the glass behind and above it
     lib_slab(mb, lf, outline, l3a, l3, MAT['deck'], MAT['soffit'], MAT['lcream'])
@@ -1722,6 +1797,7 @@ def build_courtyard(mb):
             YOUNG_TREES[n_tr:] = [None] * (len(YOUNG_TREES) - n_tr)   # keeps the other trees' species
             continue
         planter_seat(mb, *spec)
+    planter_seat(mb, *BEHIND_PLAY, rng=random.Random(4401))
     for (x, z) in DISCS:
         dfr = Fr((LX + x, 0, LZ + z))
         cylv(mb, dfr, 0, 0, 0, 0.06, 0.85, 20, MAT['bench'])
@@ -1729,7 +1805,7 @@ def build_courtyard(mb):
         for k in range(5):
             a = k * 1.256
             SHRUBS.append(dict(p=[LX + x + math.cos(a) * 0.4, 0.08, LZ + z + math.sin(a) * 0.4], s=0.28, bouga=False))
-    # big four-legged stone benches under the bridges (photo 14)
+    # big four-legged stone benches under the bridges (photo 14), the only ones in the courtyard (user, 2026-10-24)
     for xs in (-1, 1):   # four per side: two rows of two under each bridge (user)
         for dx, dz in ((10.2, -1.9), (15.5, -1.9), (10.2, 1.9), (15.5, 1.9)):   # at the bridge's edges (MH024)
             bf = Fr((LX + xs * dx, 0, BRIDGE_Z + dz))
@@ -1737,14 +1813,6 @@ def build_courtyard(mb):
             for ex in (-0.9, 0.9):
                 for ez in (-0.22, 0.22):
                     box(mb, bf, ex - 0.1, ex + 0.1, 0, 0.34, ez - 0.1, ez + 0.1, MAT['bench'])
-    # slab benches under the side gallery overhangs, just outside the column line, where residents sat and played chess
-    # (YOLIVING recreation the user confirmed for the surroundings, 2026-10-22); kept clear of the stairs and bridge posts
-    for xb in (CX0 + 1.3, CX1 - 1.3):
-        for zb in (LZ - 18, LZ - 8, LZ + 8, LZ + 18):
-            bf = Fr((xb, 0, zb), ex=(0, 0, 1), ez=(-1, 0, 0))
-            box(mb, bf, -1.0, 1.0, 0.36, 0.46, -0.24, 0.24, MAT['bench'])
-            for ex in (-0.8, 0.8):
-                box(mb, bf, ex - 0.09, ex + 0.09, 0, 0.36, -0.19, 0.19, MAT['bench'])
     for (x, z) in LAMPS:
         lp = Fr((LX + x, 0, LZ + z))
         cylv(mb, lp, 0, 0, 0, 3.2, 0.07, 10, MAT['steel'], r1=0.05)
@@ -1795,14 +1863,19 @@ def mirrored(spec):
 
 PLANTERS = _BACK + [m for m in map(mirrored, _BACK) if m]
 PLANTERS_GONE = {5}
+# and one more long L behind the playground, the one in front of it turned about the playground's middle, its short arm
+# reaching in under the back gallery (user, 2026-10-24: part of it under the corridor, no column there); set aside from
+# the middle tower's door, clear of the rubber, no tree under the deck; its plants on a stream of their own
+BEHIND_PLAY = (-6.26, 49.38, 'L', 7.6, 1.6, 42, False, 4.4)
 _DISCS = [(-6.0, 20.6), (6.0, 20.6), (-11.95, 8.6), (11.95, 8.6)]   # MH024
 DISCS = _DISCS + [(x, -6.9 if z == 8.6 else -z) for x, z in _DISCS if not under_cage(x, -z)]   # (the pair by the pond 1.7 m nearer the bridge)
 LAMPS = [(9.0, 13.0), (-6.4, -9.4), (-10.6, -25.0), (10.6, -25.0)]   # the one at (-1.5, 36.4) stood in the moved playground, gone by 2010
 
 
-def planter_seat(mb, x, z, kind, ln, w, rot, tree, ln2=None):
+def planter_seat(mb, x, z, kind, ln, w, rot, tree, ln2=None, rng=None):
     """Raised planter (brown-red tile walls, soil, shrubs, a young tree) with a stone seat ledge: along one side of a box,
-    along both inner sides of an L."""
+    along both inner sides of an L. rng: the stream its shrubs and tree draw from (the shared one by default)."""
+    rng = rng or rnd
     fr = Fr((LX + x, 0, LZ + z)).sub(rot=math.radians(rot))
     ln2 = ln if ln2 is None else ln2
     arms = [(-ln / 2, ln / 2, -w / 2, w / 2)] if kind == 'R' else [(0.0, ln, 0.0, w), (0.0, w, 0.0, ln2)]
@@ -1822,10 +1895,10 @@ def planter_seat(mb, x, z, kind, ln, w, rot, tree, ln2=None):
         for k in range(nx):
             t = (k + 0.5) / nx
             c0 = fr.p(a + t * (b - a), 0.7, (c + d) / 2) if along else fr.p((a + b) / 2, 0.7, c + t * (d - c))
-            SHRUBS.append(dict(p=[c0[0], c0[1], c0[2]], s=0.45 + 0.15 * rnd.random(), bouga=rnd.random() < 0.25))
+            SHRUBS.append(dict(p=[c0[0], c0[1], c0[2]], s=0.45 + 0.15 * rng.random(), bouga=rng.random() < 0.25))
     if tree:   # in the box's middle, an L's corner
         c0 = fr.p(0, 0.7, 0) if kind == 'R' else fr.p(w / 2, 0.7, w / 2)
-        YOUNG_TREES.append((c0[0], c0[2], 0.9 + 0.3 * rnd.random()))
+        YOUNG_TREES.append((c0[0], c0[2], 0.9 + 0.3 * rng.random()))
 
 
 YOUNG_TREES = []
@@ -2247,7 +2320,8 @@ def hall_facade(mb, fr, xa, xb, lights, lane=False, boxes=(), ends=(False, False
     pavement, round-headed doors and barred windows with fan grilles in its back wall, railings between the piers;
     ends: the corner bay at that end is solid, one big arch with a glazed screen in it under the gallery's box. lane:
     the face on the lane by the estate (photo 2, the 2026-10-24 lane photos): narrow round-headed recesses between broad
-    cream piers, a tall window in each, no stepped base. boxes: local x of the boxes standing out of the gallery."""
+    cream piers, a tall window in each, the same red and white steps along its foot (user, 2026-10-24). boxes: local x of
+    the boxes standing out of the gallery."""
     CB = 6.0                                             # corner bay
     ca, cb = xa + (CB if ends[0] else 0.0), xb - (CB if ends[1] else 0.0)
     L = cb - ca
@@ -2265,6 +2339,8 @@ def hall_facade(mb, fr, xa, xb, lights, lane=False, boxes=(), ends=(False, False
             pa = xa if i == 0 else x0 + i * 4.4 - (2.2 - aw)
             pb = xb if i == n else x0 + i * 4.4 + (2.2 - aw)
             box(mb, fr, pa, pb, 0, yt, 0.0, dep, MAT['hallw'], skip=('ny',))
+        for k in range(4):   # the same red and white steps along its foot as on 俾利喇街 (user, 2026-10-24), off the piers
+            box(mb, fr, xa, xb, 0, 0.15 + (HALL_FL - 0.15) * (k + 1) / 4, 0.0, dep + 0.3 * (4 - k), {'py': MAT['hallw'], '*': MAT['hallred']})
     else:
         AD, YA, FL, PD, AW, YS = HALL_AD, HALL_YA, HALL_FL, 0.8, 1.7, 4.8   # the arch ring's depth, half width, springing
         for i in range(n):
