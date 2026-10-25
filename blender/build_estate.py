@@ -1453,14 +1453,18 @@ def parapet_run(mb, fr, xa, xb, z, y):
     box(mb, fr, xa, xb, y, y + 0.85, z - 0.11, z + 0.11, MAT['myellow'])
     box(mb, fr, xa, xb, y + 0.85, y + 0.9, z - 0.13, z + 0.13, MAT['myellow'])
     n = max(1, round(L / 4.4))
-    for i in range(n + 1):
-        xp = xa + L * i / n
-        box(mb, fr, xp - 0.17, xp + 0.17, y, y + 1.3, z - 0.17, z + 0.17, MAT['mred'])
+    r = 0.18   # round red mosaic posts, a little above the top rail; the rails stop at them (user, 2026-10-25, with a photo)
+    posts = [xa + L * i / n for i in range(n + 1)]
+    for xp in posts:
+        cylv(mb, fr, xp, z, y, y + 1.38, r, 16, MAT['mred'])
     k = max(1, round(L / 1.5))
     for i in range(k + 1):
-        cylv(mb, fr, xa + L * i / k, z, y + 0.9, y + 1.32, 0.025, 6, MAT['creampipe'])
-    for h in (1.32, 1.1):
-        cylx(mb, fr, xa, xb, y + h, z, 0.03, 8, MAT['creampipe'])
+        xs = xa + L * i / k
+        if min(abs(xs - xp) for xp in posts) > r + 0.05:
+            cylv(mb, fr, xs, z, y + 0.9, y + 1.32, 0.025, 6, MAT['creampipe'])
+    for a, b in zip(posts, posts[1:]):
+        for h in (1.32, 1.1):
+            cylx(mb, fr, a + r - 0.01, b - r + 0.01, y + h, z, 0.03, 8, MAT['creampipe'])
 
 
 def zrun(mb, x, za, zb, y, gaps=()):

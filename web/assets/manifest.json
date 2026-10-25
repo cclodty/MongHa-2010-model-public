@@ -3,23 +3,6 @@
  "vc_encoding": "sqrt",
  "lm_encoding": "srgb",
  "objects": {
-  "SM_Galleries_Bridges_LM": {
-   "family": "SM_Galleries_Bridges",
-   "kind": "LM",
-   "lightmap": "SM_Galleries_Bridges_LM.jpg",
-   "mask": "SM_Galleries_Bridges_LM_SM.jpg",
-   "res": 2048,
-   "stats": {
-    "mean": 0.07513570040464401,
-    "p99": 0.4693490266799927,
-    "max": 0.9629647731781006,
-    "lit": 0.057282447814941406
-   }
-  },
-  "SM_Galleries_Bridges_VC": {
-   "family": "SM_Galleries_Bridges",
-   "kind": "VC"
-  },
   "SM_SportsHall_Simple_LM": {
    "family": "SM_SportsHall_Simple",
    "kind": "LM",
@@ -255,6 +238,23 @@
   "SM_Ground_Streets_NB": {
    "family": "SM_Ground_Streets",
    "kind": "NB"
+  },
+  "SM_Galleries_Bridges_LM": {
+   "family": "SM_Galleries_Bridges",
+   "kind": "LM",
+   "lightmap": "SM_Galleries_Bridges_LM.jpg",
+   "mask": "SM_Galleries_Bridges_LM_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.07730533927679062,
+    "p99": 0.45769038796424866,
+    "max": 1.0871641635894775,
+    "lit": 0.05611157417297363
+   }
+  },
+  "SM_Galleries_Bridges_VC": {
+   "family": "SM_Galleries_Bridges",
+   "kind": "VC"
   }
  },
  "samples": 96,
@@ -1400,9 +1400,9 @@
   {
    "family": "SM_Galleries_Bridges",
    "glb": "SM_Galleries_Bridges.glb",
-   "bytes": 1047216,
+   "bytes": 1670668,
    "packed": "SM_Galleries_Bridges.glb.json",
-   "packed_bytes": 1396360
+   "packed_bytes": 2227632
   },
   {
    "family": "SM_Ground_Far",
@@ -1454,6 +1454,7 @@
   "SM_Estate_NW",
   "SM_Estate_SE",
   "SM_Estate_SlopeBlocks",
+  "SM_Galleries_Bridges",
   "SM_Ground_Far",
   "SM_Ground_Streets",
   "SM_Library",
