@@ -3,27 +3,6 @@
  "vc_encoding": "sqrt",
  "lm_encoding": "srgb",
  "objects": {
-  "SM_Courtyard_LM": {
-   "family": "SM_Courtyard",
-   "kind": "LM",
-   "lightmap": "SM_Courtyard_LM.jpg",
-   "mask": "SM_Courtyard_LM_SM.jpg",
-   "res": 2048,
-   "stats": {
-    "mean": 0.12796063721179962,
-    "p99": 0.520379900932312,
-    "max": 1.1478300094604492,
-    "lit": 0.20483899116516113
-   }
-  },
-  "SM_Courtyard_VC": {
-   "family": "SM_Courtyard",
-   "kind": "VC"
-  },
-  "SM_Courtyard_NB": {
-   "family": "SM_Courtyard",
-   "kind": "NB"
-  },
   "SM_Galleries_Bridges_LM": {
    "family": "SM_Galleries_Bridges",
    "kind": "LM",
@@ -39,44 +18,6 @@
   },
   "SM_Galleries_Bridges_VC": {
    "family": "SM_Galleries_Bridges",
-   "kind": "VC"
-  },
-  "SM_Ground_Far_LM": {
-   "family": "SM_Ground_Far",
-   "kind": "LM",
-   "lightmap": "SM_Ground_Far_LM.jpg",
-   "mask": "SM_Ground_Far_LM_SM.jpg",
-   "res": 512,
-   "stats": {
-    "mean": 0.47533583641052246,
-    "p99": 0.7697845101356506,
-    "max": 0.8505628705024719,
-    "lit": 0.8224639892578125
-   }
-  },
-  "SM_Ground_Streets_LM": {
-   "family": "SM_Ground_Streets",
-   "kind": "LM",
-   "lightmap": "SM_Ground_Streets_LM.jpg",
-   "mask": "SM_Ground_Streets_LM_SM.jpg",
-   "res": 4096,
-   "stats": {
-    "mean": 0.07079576700925827,
-    "p99": 0.7581092119216919,
-    "max": 1.0956313610076904,
-    "lit": 0.11091315746307373
-   }
-  },
-  "SM_Ground_Streets_VC": {
-   "family": "SM_Ground_Streets",
-   "kind": "VC"
-  },
-  "SM_Ground_Streets_NB": {
-   "family": "SM_Ground_Streets",
-   "kind": "NB"
-  },
-  "SM_Shrubs_VC": {
-   "family": "SM_Shrubs",
    "kind": "VC"
   },
   "SM_SportsHall_Simple_LM": {
@@ -254,6 +195,65 @@
   },
   "SM_Library_NB": {
    "family": "SM_Library",
+   "kind": "NB"
+  },
+  "SM_Courtyard_LM": {
+   "family": "SM_Courtyard",
+   "kind": "LM",
+   "lightmap": "SM_Courtyard_LM.jpg",
+   "mask": "SM_Courtyard_LM_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.1291513890028,
+    "p99": 0.5212110877037048,
+    "max": 1.6123192310333252,
+    "lit": 0.2066645622253418
+   }
+  },
+  "SM_Courtyard_VC": {
+   "family": "SM_Courtyard",
+   "kind": "VC"
+  },
+  "SM_Courtyard_NB": {
+   "family": "SM_Courtyard",
+   "kind": "NB"
+  },
+  "SM_Shrubs_VC": {
+   "family": "SM_Shrubs",
+   "kind": "VC"
+  },
+  "SM_Ground_Far_LM": {
+   "family": "SM_Ground_Far",
+   "kind": "LM",
+   "lightmap": "SM_Ground_Far_LM.jpg",
+   "mask": "SM_Ground_Far_LM_SM.jpg",
+   "res": 512,
+   "stats": {
+    "mean": 0.4753510653972626,
+    "p99": 0.7697890400886536,
+    "max": 0.850565493106842,
+    "lit": 0.8224639892578125
+   }
+  },
+  "SM_Ground_Streets_LM": {
+   "family": "SM_Ground_Streets",
+   "kind": "LM",
+   "lightmap": "SM_Ground_Streets_LM.jpg",
+   "mask": "SM_Ground_Streets_LM_SM.jpg",
+   "res": 4096,
+   "stats": {
+    "mean": 0.07089182734489441,
+    "p99": 0.7581299543380737,
+    "max": 1.0953768491744995,
+    "lit": 0.11056828498840332
+   }
+  },
+  "SM_Ground_Streets_VC": {
+   "family": "SM_Ground_Streets",
+   "kind": "VC"
+  },
+  "SM_Ground_Streets_NB": {
+   "family": "SM_Ground_Streets",
    "kind": "NB"
   }
  },
@@ -596,6 +596,15 @@
    ],
    "rough": 0.4,
    "metal": 0.3
+  },
+  "M_Glass_Fan": {
+   "color": [
+    0.3231,
+    0.4072,
+    0.4508
+   ],
+   "rough": 0.12,
+   "metal": 0.0
   },
   "M_Glass_Library": {
    "color": [
@@ -1343,24 +1352,15 @@
    ],
    "rough": 0.6,
    "metal": 0.0
-  },
-  "M_Glass_Fan": {
-   "color": [
-    0.3231,
-    0.4072,
-    0.4508
-   ],
-   "rough": 0.12,
-   "metal": 0.0
   }
  },
  "files": [
   {
    "family": "SM_Courtyard",
    "glb": "SM_Courtyard.glb",
-   "bytes": 332188,
+   "bytes": 332444,
    "packed": "SM_Courtyard.glb.json",
-   "packed_bytes": 442984
+   "packed_bytes": 443324
   },
   {
    "family": "SM_Estate_BACK",
@@ -1414,9 +1414,9 @@
   {
    "family": "SM_Ground_Streets",
    "glb": "SM_Ground_Streets.glb",
-   "bytes": 460900,
+   "bytes": 460904,
    "packed": "SM_Ground_Streets.glb.json",
-   "packed_bytes": 614605
+   "packed_bytes": 614609
   },
   {
    "family": "SM_Library",
@@ -1428,9 +1428,9 @@
   {
    "family": "SM_Shrubs",
    "glb": "SM_Shrubs.glb",
-   "bytes": 83644,
+   "bytes": 83668,
    "packed": "SM_Shrubs.glb.json",
-   "packed_bytes": 111589
+   "packed_bytes": 111621
   },
   {
    "family": "SM_SportsHall_Simple",
@@ -1448,11 +1448,15 @@
   }
  ],
  "rebaked": [
+  "SM_Courtyard",
   "SM_Estate_BACK",
   "SM_Estate_FRONT",
   "SM_Estate_NW",
   "SM_Estate_SE",
   "SM_Estate_SlopeBlocks",
-  "SM_Library"
+  "SM_Ground_Far",
+  "SM_Ground_Streets",
+  "SM_Library",
+  "SM_Shrubs"
  ]
 }

@@ -1889,8 +1889,8 @@ PLANTERS_GONE = {5}
 # and one more long L behind the playground (user, 2026-10-24: part of it under the corridor, no column there), turned
 # 90 degrees from the first try (user, 2026-10-24): its corner under the back gallery, both arms out towards the
 # playground and the seats in its crook facing it; set aside from the middle tower's door and the tree planter beside it,
-# clear of the rubber, no tree; its plants on a stream of their own
-BEHIND_PLAY = (-5.0, 51.3, 'L', 7.6, 1.6, 132, False, 4.4)
+# clear of the rubber, no tree; its plants on a stream of their own; centred on the playground's axis (user, 2026-10-25)
+BEHIND_PLAY = (0.91, 51.3, 'L', 7.6, 1.6, 132, False, 4.4)
 _DISCS = [(-6.0, 20.6), (6.0, 20.6), (-11.95, 8.6), (11.95, 8.6)]   # MH024
 DISCS = _DISCS + [(x, -6.9 if z == 8.6 else -z) for x, z in _DISCS if not under_cage(x, -z)]   # (the pair by the pond 1.7 m nearer the bridge)
 LAMPS = [(9.0, 13.0), (-6.4, -9.4), (-10.6, -25.0), (10.6, -25.0)]   # the one at (-1.5, 36.4) stood in the moved playground, gone by 2010
