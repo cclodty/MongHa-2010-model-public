@@ -1,0 +1,36 @@
+# Publish the baked web version (web/) on GitHub Pages at every push to main.
+name: Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the site from web/
+        run: |
+          mkdir _site
+          cp -r web/assets web/tex web/draco _site/
+          cp web/og.jpg _site/ 2>/dev/null || true
+          # the page is written for claude.ai, which adds the document skeleton; a plain host needs it in the file
+          { printf '<!doctype html>\n<meta charset="utf-8">\n'; cat web/index.html; } > _site/index.html
+          rm -f _site/assets/*.glb   # the viewer loads the .glb.json wrappers
+          touch _site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
