@@ -24,137 +24,6 @@
    "family": "SM_Courtyard",
    "kind": "NB"
   },
-  "SM_Estate_BACK_LM": {
-   "family": "SM_Estate_BACK",
-   "kind": "LM",
-   "lightmap": "SM_Estate_BACK_LM.jpg",
-   "mask": "SM_Estate_BACK_LM_SM.jpg",
-   "res": 4096,
-   "stats": {
-    "mean": 0.06659410148859024,
-    "p99": 0.7056913375854492,
-    "max": 1.2947295904159546,
-    "lit": 0.059579551219940186
-   }
-  },
-  "SM_Estate_BACK_VC": {
-   "family": "SM_Estate_BACK",
-   "kind": "VC"
-  },
-  "SM_Estate_BACK_NB": {
-   "family": "SM_Estate_BACK",
-   "kind": "NB"
-  },
-  "SM_Estate_FRONT_LM": {
-   "family": "SM_Estate_FRONT",
-   "kind": "LM",
-   "lightmap": "SM_Estate_FRONT_LM.jpg",
-   "mask": "SM_Estate_FRONT_LM_SM.jpg",
-   "res": 4096,
-   "stats": {
-    "mean": 0.06501876562833786,
-    "p99": 0.6823023557662964,
-    "max": 1.3795543909072876,
-    "lit": 0.06114429235458374
-   }
-  },
-  "SM_Estate_FRONT_VC": {
-   "family": "SM_Estate_FRONT",
-   "kind": "VC"
-  },
-  "SM_Estate_FRONT_NB": {
-   "family": "SM_Estate_FRONT",
-   "kind": "NB"
-  },
-  "SM_Estate_NW_LM0": {
-   "family": "SM_Estate_NW",
-   "kind": "LM",
-   "lightmap": "SM_Estate_NW_LM0.jpg",
-   "mask": "SM_Estate_NW_LM0_SM.jpg",
-   "res": 2048,
-   "stats": {
-    "mean": 0.07830052077770233,
-    "p99": 0.7461147308349609,
-    "max": 1.4187657833099365,
-    "lit": 0.07924318313598633
-   }
-  },
-  "SM_Estate_NW_LM1": {
-   "family": "SM_Estate_NW",
-   "kind": "LM",
-   "lightmap": "SM_Estate_NW_LM1.jpg",
-   "mask": "SM_Estate_NW_LM1_SM.jpg",
-   "res": 2048,
-   "stats": {
-    "mean": 0.07421143352985382,
-    "p99": 0.7341220378875732,
-    "max": 1.3119267225265503,
-    "lit": 0.07739901542663574
-   }
-  },
-  "SM_Estate_NW_VC": {
-   "family": "SM_Estate_NW",
-   "kind": "VC"
-  },
-  "SM_Estate_NW_NB": {
-   "family": "SM_Estate_NW",
-   "kind": "NB"
-  },
-  "SM_Estate_SE_LM0": {
-   "family": "SM_Estate_SE",
-   "kind": "LM",
-   "lightmap": "SM_Estate_SE_LM0.jpg",
-   "mask": "SM_Estate_SE_LM0_SM.jpg",
-   "res": 2048,
-   "stats": {
-    "mean": 0.08265020698308945,
-    "p99": 0.7382465600967407,
-    "max": 1.1081905364990234,
-    "lit": 0.07625865936279297
-   }
-  },
-  "SM_Estate_SE_LM1": {
-   "family": "SM_Estate_SE",
-   "kind": "LM",
-   "lightmap": "SM_Estate_SE_LM1.jpg",
-   "mask": "SM_Estate_SE_LM1_SM.jpg",
-   "res": 2048,
-   "stats": {
-    "mean": 0.08133337646722794,
-    "p99": 0.7318487167358398,
-    "max": 1.2635204792022705,
-    "lit": 0.08244967460632324
-   }
-  },
-  "SM_Estate_SE_VC": {
-   "family": "SM_Estate_SE",
-   "kind": "VC"
-  },
-  "SM_Estate_SE_NB": {
-   "family": "SM_Estate_SE",
-   "kind": "NB"
-  },
-  "SM_Estate_SlopeBlocks_LM": {
-   "family": "SM_Estate_SlopeBlocks",
-   "kind": "LM",
-   "lightmap": "SM_Estate_SlopeBlocks_LM.jpg",
-   "mask": "SM_Estate_SlopeBlocks_LM_SM.jpg",
-   "res": 2048,
-   "stats": {
-    "mean": 0.09876292943954468,
-    "p99": 0.7341175079345703,
-    "max": 1.3348793983459473,
-    "lit": 0.08629417419433594
-   }
-  },
-  "SM_Estate_SlopeBlocks_VC": {
-   "family": "SM_Estate_SlopeBlocks",
-   "kind": "VC"
-  },
-  "SM_Estate_SlopeBlocks_NB": {
-   "family": "SM_Estate_SlopeBlocks",
-   "kind": "NB"
-  },
   "SM_Galleries_Bridges_LM": {
    "family": "SM_Galleries_Bridges",
    "kind": "LM",
@@ -206,27 +75,6 @@
    "family": "SM_Ground_Streets",
    "kind": "NB"
   },
-  "SM_Library_LM": {
-   "family": "SM_Library",
-   "kind": "LM",
-   "lightmap": "SM_Library_LM.jpg",
-   "mask": "SM_Library_LM_SM.jpg",
-   "res": 2048,
-   "stats": {
-    "mean": 0.08268409222364426,
-    "p99": 0.5883734226226807,
-    "max": 1.0067687034606934,
-    "lit": 0.09995388984680176
-   }
-  },
-  "SM_Library_VC": {
-   "family": "SM_Library",
-   "kind": "VC"
-  },
-  "SM_Library_NB": {
-   "family": "SM_Library",
-   "kind": "NB"
-  },
   "SM_Shrubs_VC": {
    "family": "SM_Shrubs",
    "kind": "VC"
@@ -255,6 +103,158 @@
   "SM_Trees_VC": {
    "family": "SM_Trees",
    "kind": "VC"
+  },
+  "SM_Estate_BACK_LM": {
+   "family": "SM_Estate_BACK",
+   "kind": "LM",
+   "lightmap": "SM_Estate_BACK_LM.jpg",
+   "mask": "SM_Estate_BACK_LM_SM.jpg",
+   "res": 4096,
+   "stats": {
+    "mean": 0.06985152512788773,
+    "p99": 0.7165647745132446,
+    "max": 1.2991812229156494,
+    "lit": 0.060728609561920166
+   }
+  },
+  "SM_Estate_BACK_VC": {
+   "family": "SM_Estate_BACK",
+   "kind": "VC"
+  },
+  "SM_Estate_BACK_NB": {
+   "family": "SM_Estate_BACK",
+   "kind": "NB"
+  },
+  "SM_Estate_FRONT_LM": {
+   "family": "SM_Estate_FRONT",
+   "kind": "LM",
+   "lightmap": "SM_Estate_FRONT_LM.jpg",
+   "mask": "SM_Estate_FRONT_LM_SM.jpg",
+   "res": 4096,
+   "stats": {
+    "mean": 0.06945788860321045,
+    "p99": 0.694208025932312,
+    "max": 1.3350145816802979,
+    "lit": 0.06215101480484009
+   }
+  },
+  "SM_Estate_FRONT_VC": {
+   "family": "SM_Estate_FRONT",
+   "kind": "VC"
+  },
+  "SM_Estate_FRONT_NB": {
+   "family": "SM_Estate_FRONT",
+   "kind": "NB"
+  },
+  "SM_Estate_NW_LM0": {
+   "family": "SM_Estate_NW",
+   "kind": "LM",
+   "lightmap": "SM_Estate_NW_LM0.jpg",
+   "mask": "SM_Estate_NW_LM0_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.08154747635126114,
+    "p99": 0.7482569813728333,
+    "max": 1.2254533767700195,
+    "lit": 0.07866311073303223
+   }
+  },
+  "SM_Estate_NW_LM1": {
+   "family": "SM_Estate_NW",
+   "kind": "LM",
+   "lightmap": "SM_Estate_NW_LM1.jpg",
+   "mask": "SM_Estate_NW_LM1_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.07502597570419312,
+    "p99": 0.7355281114578247,
+    "max": 1.3508297204971313,
+    "lit": 0.07981491088867188
+   }
+  },
+  "SM_Estate_NW_VC": {
+   "family": "SM_Estate_NW",
+   "kind": "VC"
+  },
+  "SM_Estate_NW_NB": {
+   "family": "SM_Estate_NW",
+   "kind": "NB"
+  },
+  "SM_Estate_SE_LM0": {
+   "family": "SM_Estate_SE",
+   "kind": "LM",
+   "lightmap": "SM_Estate_SE_LM0.jpg",
+   "mask": "SM_Estate_SE_LM0_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.08682969957590103,
+    "p99": 0.7444365620613098,
+    "max": 1.4308645725250244,
+    "lit": 0.07753777503967285
+   }
+  },
+  "SM_Estate_SE_LM1": {
+   "family": "SM_Estate_SE",
+   "kind": "LM",
+   "lightmap": "SM_Estate_SE_LM1.jpg",
+   "mask": "SM_Estate_SE_LM1_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.08351839333772659,
+    "p99": 0.7311960458755493,
+    "max": 1.2525627613067627,
+    "lit": 0.08639192581176758
+   }
+  },
+  "SM_Estate_SE_VC": {
+   "family": "SM_Estate_SE",
+   "kind": "VC"
+  },
+  "SM_Estate_SE_NB": {
+   "family": "SM_Estate_SE",
+   "kind": "NB"
+  },
+  "SM_Estate_SlopeBlocks_LM": {
+   "family": "SM_Estate_SlopeBlocks",
+   "kind": "LM",
+   "lightmap": "SM_Estate_SlopeBlocks_LM.jpg",
+   "mask": "SM_Estate_SlopeBlocks_LM_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.10174498707056046,
+    "p99": 0.7411149740219116,
+    "max": 1.2113510370254517,
+    "lit": 0.08833980560302734
+   }
+  },
+  "SM_Estate_SlopeBlocks_VC": {
+   "family": "SM_Estate_SlopeBlocks",
+   "kind": "VC"
+  },
+  "SM_Estate_SlopeBlocks_NB": {
+   "family": "SM_Estate_SlopeBlocks",
+   "kind": "NB"
+  },
+  "SM_Library_LM": {
+   "family": "SM_Library",
+   "kind": "LM",
+   "lightmap": "SM_Library_LM.jpg",
+   "mask": "SM_Library_LM_SM.jpg",
+   "res": 2048,
+   "stats": {
+    "mean": 0.08398530632257462,
+    "p99": 0.5900058150291443,
+    "max": 1.0312358140945435,
+    "lit": 0.10274076461791992
+   }
+  },
+  "SM_Library_VC": {
+   "family": "SM_Library",
+   "kind": "VC"
+  },
+  "SM_Library_NB": {
+   "family": "SM_Library",
+   "kind": "NB"
   }
  },
  "samples": 96,
@@ -1343,6 +1343,15 @@
    ],
    "rough": 0.6,
    "metal": 0.0
+  },
+  "M_Glass_Fan": {
+   "color": [
+    0.3231,
+    0.4072,
+    0.4508
+   ],
+   "rough": 0.12,
+   "metal": 0.0
   }
  },
  "files": [
@@ -1356,37 +1365,37 @@
   {
    "family": "SM_Estate_BACK",
    "glb": "SM_Estate_BACK.glb",
-   "bytes": 1922072,
+   "bytes": 1927124,
    "packed": "SM_Estate_BACK.glb.json",
-   "packed_bytes": 2562830
+   "packed_bytes": 2569470
   },
   {
    "family": "SM_Estate_FRONT",
    "glb": "SM_Estate_FRONT.glb",
-   "bytes": 2119504,
+   "bytes": 2126068,
    "packed": "SM_Estate_FRONT.glb.json",
-   "packed_bytes": 2826075
+   "packed_bytes": 2834735
   },
   {
    "family": "SM_Estate_NW",
    "glb": "SM_Estate_NW.glb",
-   "bytes": 2098476,
+   "bytes": 2098996,
    "packed": "SM_Estate_NW.glb.json",
-   "packed_bytes": 2798032
+   "packed_bytes": 2798636
   },
   {
    "family": "SM_Estate_SE",
    "glb": "SM_Estate_SE.glb",
-   "bytes": 2098532,
+   "bytes": 2100944,
    "packed": "SM_Estate_SE.glb.json",
-   "packed_bytes": 2798108
+   "packed_bytes": 2801232
   },
   {
    "family": "SM_Estate_SlopeBlocks",
    "glb": "SM_Estate_SlopeBlocks.glb",
-   "bytes": 895988,
+   "bytes": 896896,
    "packed": "SM_Estate_SlopeBlocks.glb.json",
-   "packed_bytes": 1194725
+   "packed_bytes": 1195841
   },
   {
    "family": "SM_Galleries_Bridges",
@@ -1412,9 +1421,9 @@
   {
    "family": "SM_Library",
    "glb": "SM_Library.glb",
-   "bytes": 534136,
+   "bytes": 536208,
    "packed": "SM_Library.glb.json",
-   "packed_bytes": 712246
+   "packed_bytes": 715006
   },
   {
    "family": "SM_Shrubs",
@@ -1437,5 +1446,13 @@
    "packed": "SM_Trees.glb.json",
    "packed_bytes": 346600
   }
+ ],
+ "rebaked": [
+  "SM_Estate_BACK",
+  "SM_Estate_FRONT",
+  "SM_Estate_NW",
+  "SM_Estate_SE",
+  "SM_Estate_SlopeBlocks",
+  "SM_Library"
  ]
 }

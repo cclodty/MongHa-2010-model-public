@@ -441,6 +441,7 @@ MAT = {
     'hallname': M('M_Sign_HallName', '#ffffff', 0.5),   # the hall's name lettered on its gable (tools/make_sign_tex.py)
     'photosigns': M('M_Sign_Photos', '#ffffff', 0.6),   # shop boards cut out of the photos (tools/make_sign_tex.py)
     'ctxglass': M('M_Context_Glass', '#55636a', 0.15),
+    'fanglass': M('M_Glass_Fan', '#9aabb3', 0.12),   # the stair towers' fan lights: pale, the sky in them (MH005)
     'hallglass': M('M_Hall_Glass', '#93aab2', 0.1),   # the sports hall's pale window glass (MH017, MH030)
     'signs': [M(f'M_Sign_{n}', c, 0.5) for n, c in (('Red', '#b8282a'), ('Yellow', '#f2d23c'), ('Green', '#1f6f4a'), ('White', '#f5f1e6'), ('Blue', '#1d4e8f'), ('Orange', '#e06a1f'),
                                                           ('Black', '#1f1f1d'), ('Purple', '#3b2f6e'))],
@@ -1186,7 +1187,7 @@ def gable(mb, fr, w, base):
     prism_z(mb, fr, prof, -0.35, 0.0, MAT['white'])
     rf = r * 0.78
     half = [(x, y) for x, y in arc(0, base + gr, rf, 0, math.pi, 20)]
-    mb.poly([fr.p(x, y, 0.01) for x, y in half], MAT['ctxglass'])   # glazed (MH005); the dark void baked black (user, 2026-10-24)
+    mb.poly([fr.p(x, y, 0.01) for x, y in half], MAT['fanglass'])   # glazed (MH005); the dark void baked black (user, 2026-10-24)
     m = MAT['fanred']   # its bars, arcs and frame red-brown (user, 2026-10-24; MH001, MH002, MH005)
     for i in range(11):
         a = math.pi * i / 10

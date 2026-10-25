@@ -395,6 +395,7 @@ SPEC.update({
     'M_Shop_Glass': dict(glass=True, InteriorTex='T_ShopAtlas_BC', Cells=4, Depth=0.12, InteriorNits=3200.0, Tint='#0b1012'),
     'M_Glass_Library': dict(Tint='#aab6b1', Roughness=0.3, Specular=0.6, GrimeAmount=0.2),   # frosted: nothing visible inside (user, round 4)
     'M_Context_Glass': dict(Tint='#2c3438', Roughness=0.06, Specular=0.8),
+    'M_Glass_Fan': dict(Tint='#9aabb3', Roughness=0.08, Specular=0.8),   # the stair towers' fan lights, pale (MH005)
     'M_Metal_WindowBars': dict(Tint='#34373a', Roughness=0.5, Metallic=0.8),
     'M_Metal_Railing': dict(Tint='#cfcbc0', Roughness=0.45, Metallic=0.3, GrimeAmount=0.5),
     'M_Metal_Pipe': dict(Tint='#2f3231', Roughness=0.4, Metallic=0.9),

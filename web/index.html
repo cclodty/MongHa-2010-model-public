@@ -164,7 +164,7 @@ const EXTRA_VIEWS = {
   hill_food: { p: [120, 4.7, 134.8], t: [132, 8.5, 124], fov: 64 },   // fallback for bakes made before it moved into markers.json
 };
 const START_VIEW = 'gallery_deck';   // the page opens on the first-floor gallery (user)
-const NO_BAKE = new Set(['M_Glass_Residential', 'M_Shop_Glass', 'M_Glass_Library', 'M_Context_Glass', 'M_Lamp_Globe', 'M_TrafficLight_Green']);   // as web_bake.py
+const NO_BAKE = new Set(['M_Glass_Residential', 'M_Shop_Glass', 'M_Glass_Library', 'M_Context_Glass', 'M_Glass_Fan', 'M_Lamp_Globe', 'M_TrafficLight_Green']);   // as web_bake.py
 
 // ---------------------------------------------------------------- renderer, sky, environment
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -357,6 +357,8 @@ function material(name, kind, lm, mask) {
     if (GLASS[name]) {
       m = new THREE.MeshStandardMaterial({ color: 0x07090a, roughness: 0.05, metalness: 0, envMap, envMapIntensity: SKY_K,
         emissive: 0xffffff, emissiveMap: tex(GLASS[name][0], 1), emissiveIntensity: GLASS[name][1] });
+    } else if (name === 'M_Glass_Fan') {   // the stair towers' fan lights: pale, the sky in them (MH005)
+      m = new THREE.MeshStandardMaterial({ color: 0x9aabb3, roughness: 0.15, metalness: 0, envMap, envMapIntensity: SKY_K });
     } else if (name === 'M_Glass_Library') {   // frosted: nothing of the inside shows, only a soft glow and the sky
       m = new THREE.MeshStandardMaterial({ color: 0x9aa7a3, roughness: 0.32, metalness: 0, envMap, envMapIntensity: SKY_K * 0.8,
         emissive: 0xdfe6e2, emissiveIntensity: 0.32 });
