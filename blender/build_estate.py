@@ -898,7 +898,8 @@ def light_well(mb, fr, xm):
         for zq in (za - t / 2, zb + t / 2):
             box(mb, fr, xq - 0.2, xq + 0.2, RFS, hw + 0.45, zq - 0.2, zq + 0.2, MAT['white'])    # corner posts
     for xa_, xb_, za_, zb_ in ((wa - 0.05, wa, za, zb), (wb, wb + 0.05, za, zb), (wa, wb, za - 0.05, za), (wa, wb, zb, zb + 0.05)):
-        box(mb, fr, xa_, xb_, GF, RFS, za_, zb_, MAT['white'])                                     # shaft walls
+        box(mb, fr, xa_, xb_, GF, ROOF, za_, zb_, MAT['white'])   # shaft walls, up to the roof slab round the well (they
+        #                                                            ran on into it, and both baked black there)
     box(mb, fr, wa, wb, GF, GF + 0.02, za, zb, MAT['screed'])
     box(mb, fr, xm - 0.09, xm + 0.09, GF, RFS + 0.95, za, zb, MAT['white'])                       # partition
     keep, irng = irng, WELL_RNG
@@ -912,6 +913,9 @@ def light_well(mb, fr, xm):
     irng = keep
 
 
+PIL_DONE = set()   # courtyard pilasters built: (row, first layout, row-local x)
+
+
 def build_block(mb, row, it):
     fr, bw = row['fr'], row['bw']
     x0, x1, n = it['x0'], it['x1'], it['n']
@@ -919,6 +923,9 @@ def build_block(mb, row, it):
     rec = it.get('rec', 0.0)   # a recessed corner bay: everything on the street side stands back by rec
     gal = bool(row.get('gallery'))
     sides = {-1: row['outer'], 1: 'court' if gal else 'street'}
+    k_it = next(k for k, j in enumerate(row['items']) if j is it)   # ends not against a tower or another block
+    open0 = k_it == 0 or row['items'][k_it - 1]['t'] == 'g'
+    open1 = k_it == len(row['items']) - 1 or row['items'][k_it + 1]['t'] == 'g'
     zA = (-HZ + 0.3 if sides[-1] == 'street' else -(HZ - ARC)) + rec
     zB = HZ - 0.3 if sides[1] == 'street' else HZ - ARC
     spd = 0.6 if rec else REC  # how far the post office's and the nursery's fronts sit behind their piers
@@ -1045,21 +1052,26 @@ def build_block(mb, row, it):
         else:        # slim white pilasters standing off the courtyard wall, gallery deck to roof (the end ones within the row),
             #          stepping back above the railing under the top floor to stand only a little proud of it (MH002)
             for i in range(n + 1):
-                if in_court(row, x0 + i * bw) or not row.get('first'):
+                key = (row['id'], bool(row.get('first')), round(x0 + i * bw, 3))   # once where two blocks meet (a corner
+                if (in_court(row, x0 + i * bw) or not row.get('first')) and key not in PIL_DONE:   # bay): built twice, both
+                    PIL_DONE.add(key)                                                               # baked black
                     xi = X(x0 + i * bw, s)
-                    pa, pb, yh = max(xi - 0.17, 0.0), min(xi + 0.17, row['L']), YT - 1.85
+                    pa, pb, yh = max(xi - 0.17, 0.01), min(xi + 0.17, row['L'] - 0.01), YT - 1.85
                     box(mb, sf, pa, pb, GF - 0.3, yh, ZL + 0.2, ZC + 0.85, MAT['white'], skip=('py',))
                     prism_x(mb, sf, [(ZL + 0.2, yh), (ZC + 0.85, yh), (ZC + FIN_TOP, YT), (ZL + 0.2, YT)], pa, pb, MAT['white'])
                     box(mb, sf, pa, pb, YT, ROOF + 0.3, ZL + 0.2, ZC + FIN_TOP, MAT['white'], skip=('ny',))   # (MH002)
-        # sloped terracotta tile band and its white cap
-        xa, xb = sorted((X(x0, s), X(x1, s)))
+        # sloped terracotta tile band and its white cap; at an open end the band stops a hair short (the roof slab's end
+        # lay in its end's plane and both baked black, user 2026-10-24)
+        xa, xb = sorted((X(x0 + 0.01 * open0, s), X(x1 - 0.01 * open1, s)))
         prism_x(mb, sf, [(ZC, ROOF + 0.3), (HZ + 0.95, ROOF + 0.3), (HZ + 0.5, TOP), (ZC, TOP)], xa, xb, MAT['rooftile'])
+        xa, xb = sorted((X(x0, s), X(x1, s)))
         box(mb, sf, xa, xb, RFS, TOP, ZC - 0.17, ZC - 0.01, MAT['white'])               # white inner face of the parapet (MH001)
         box(mb, sf, xa, xb, TOP, TOP + 0.12, ZC - 0.17, HZ + 0.6, MAT['white'])
         post = sides[s] == 'court'   # every bay has its own tile cap; the white pilasters run up through the band and, on the
         for i in range(1, n):        # courtyard side only, stand above the parapet as short posts (MH002, MH001)
             xi = X(x0 + i * bw, s)
-            box(mb, sf, xi - 0.2, xi + 0.2, ROOF + 0.3, TOP + (0.55 if post else 0.14), ZC - 0.2, HZ + 0.98, MAT['white'])
+            box(mb, sf, xi - 0.2, xi + 0.2, ROOF + 0.31, TOP + (0.55 if post else 0.14), ZC - 0.2, HZ + 0.98, MAT['white'])
+            #   (their feet just inside the band: in the plane of its underside both baked black)
     # roof (MH001): chunky white vent posts, one per bay near the courtyard side and most bays one near the street side,
     # set at odd places along the bay; a thin red line runs along the roof towards the street side
     vr = random.Random(ROW_SEED[row['id']] * 1000 + int(x0 * 10))
@@ -1094,11 +1106,12 @@ def build_block(mb, row, it):
         dn = 1 if x0 < 0.01 else -1   # the recessed bay at the start of the row: its neighbour lies towards +x
         step_wall(mb, fr, x1 if dn > 0 else x0, dn, rec, poster=row['id'] == 'front' and dn < 0)
         xi = x1 if dn > 0 else x0   # its own tile cap: a white post on the courtyard side where it meets the next block (MH001)
-        box(mb, fr, xi - 0.2, xi + 0.2, ROOF + 0.3, TOP + 0.55, ZC - 0.2, HZ + 0.98, MAT['white'])
+        box(mb, fr, xi - 0.2, xi + 0.2, ROOF + 0.31, TOP + 0.55, ZC - 0.2, HZ + 0.98, MAT['white'])
         xe = sorted(((EX0 - fr.o.x) * fr.ex.x, (EX1 - fr.o.x) * fr.ex.x))   # row-local x of the side rows' outer walls
         for a, b in ((x0, min(x1, xe[0])), (max(x0, xe[1]), x1)):          # the part standing out past them: its upper
             if b - a > 0.05:                                                 # floors in the bay's colour (passage_bay),
-                box(mb, fr, a, b, 0, GF - 0.3, HZ - 0.2, HZ, MAT['white'])  # the ground floor closed in white
+                box(mb, fr, a + 0.01, b - 0.01, 0, GF - 0.3, HZ - 0.2, HZ + 0.01, MAT['white'])   # the ground floor closed
+                #   in white, a hair proud of the arcade's closing block, which lies in its planes (baked black)
                 side_cap(SCRATCH, fr, a, b)                                  # (the white cap it had, for STEP_RNG)
 
 
@@ -1148,10 +1161,11 @@ def end_wall(mb, o, ez, gap=None):
     """White wall across a passage between blocks, facing ez, centred on site point o at ground level: small windows and floor
     bands on every floor (MH001). gap: local x range left open (the slot in front of a corner stair tower)."""
     ez = Vector(ez)
-    ef = Fr(o, tuple(Vector((0, 1, 0)).cross(ez)), tuple(ez))
-    spans = [(-HZ, gap[0]), (gap[1], HZ)] if gap else [(-HZ, HZ)]
+    ef = Fr(Vector(o) + ez * 0.02, tuple(Vector((0, 1, 0)).cross(ez)), tuple(ez))   # 2 cm proud of the block's end face: in
+    spans = [(-HZ, gap[0]), (gap[1], HZ)] if gap else [(-HZ, HZ)]                    # its plane both baked black (user, 2026-10-24)
     for a, b in spans:
-        box(mb, ef, a, b, GF - 0.3, ROOF, -0.2, 0.0, MAT['white'])
+        box(mb, ef, a, b, GF - 0.3, ROOF, -0.22, 0.0, MAT['white'], skip=('ny',))   # (its back where it was: the end
+        #   pilaster's side at -0.18; no underside, which lay in the first-floor slab's)
     for f in range(NF):
         y = GF + FH * f
         for xw in [-(HZ - 1.6) + k * (2 * HZ - 3.2) / 4 for k in range(5)]:
@@ -1172,7 +1186,7 @@ def gable(mb, fr, w, base):
     prism_z(mb, fr, prof, -0.35, 0.0, MAT['white'])
     rf = r * 0.78
     half = [(x, y) for x, y in arc(0, base + gr, rf, 0, math.pi, 20)]
-    mb.poly([fr.p(x, y, 0.01) for x, y in half], MAT['void'])
+    mb.poly([fr.p(x, y, 0.01) for x, y in half], MAT['ctxglass'])   # glazed (MH005); the dark void baked black (user, 2026-10-24)
     m = MAT['fanred']   # its bars, arcs and frame red-brown (user, 2026-10-24; MH001, MH002, MH005)
     for i in range(11):
         a = math.pi * i / 10
@@ -1326,9 +1340,9 @@ def build_joint(mb, row, it):
     zwell = zk - 1.6   # back of the open courtyard stair well
     box(mb, fr, x0 + 0.4, x1 - 0.4, GF - 0.3, TOP - 0.3, -(zk - 1.88), zwell if jsides[1] == 'court' else zk - 1.88,
         MAT['void'], skip=('ny', 'py'))
-    box(mb, fr, x0, x1, TOP - 0.3, TOP, -zk, zk, {'py': MAT['screed'], '*': MAT['white']})
-    for s in (-1, 1):
-        sf = side_frame(fr, s)
+    box(mb, fr, x0 + 0.4, x1 - 0.4, TOP - 0.3, TOP, -zk, zk, {'py': MAT['screed'], '*': MAT['white']})   # between the side
+    for s in (-1, 1):                                       # walls (in their planes it baked black, user 2026-10-24); the
+        sf = side_frame(fr, s)                              # bands under it at either face stop at its underside
         xa, xb = sorted((X(x0, s), X(x1, s)))
         if jsides[s] == 'street':
             prism_z(mb, sf, arc(X(xc, s), GF - 1.75, 1.45, 0, math.pi, 16), HZ - 0.4, HZ + TOWER_OUT + 0.25,
@@ -1348,7 +1362,7 @@ def build_joint(mb, row, it):
                 box(mb, sf, ia, ib, yl, min(yl + 1.35, ROOF - 0.1), zk - 0.1, zk - 0.02, MAT['breeze'])   # breeze screen
                 prism_z(mb, sf, [(ia + 0.05, yl - FH / 2 - 0.3), (ib - 0.05, yl - 0.2), (ib - 0.05, yl - 0.02), (ia + 0.05, yl - FH / 2 - 0.12)],
                         zk - 1.86, zk - 0.2, MAT['soffit'])                                         # flight up to it
-            box(mb, sf, ia, ib, ROOF - 0.1, TOP, zk - 0.4, zk, MAT['white'])
+            box(mb, sf, ia, ib, ROOF - 0.1, TOP - 0.3, zk - 0.4, zk, MAT['white'])
             platform(mb, sf, ia, ib, zk, zt)
             platform(mb, sf, ia, ib, zk - 1.86, zk)   # and the floor of the stair behind it, which was missing (user, 2026-10-24)
             railing_run(mb, sf, ia, ib, GF, zt - 0.1, MAT['bars'])
@@ -1369,7 +1383,7 @@ def build_joint(mb, row, it):
                         zwell + 0.08, zk - 0.6, MAT['soffit'])                                      # flight
         for xp in (ia + 0.15, ib - 0.15):   # downpipes on the walls beside the landings
             cylv(mb, sf, xp, zk + 0.3, GF, ROOF, 0.05, 8, MAT['white'])
-        box(mb, sf, ia, ib, ROOF - 0.1, TOP, zk - 0.4, zk + 0.06, MAT['white'])
+        box(mb, sf, ia, ib, ROOF - 0.1, TOP - 0.3, zk - 0.4, zk + 0.06, MAT['white'])
         platform(mb, sf, ia, ib, zk + 0.06, HZ)
         slot_windows(mb, sf, ia, ib, (zk + 1.2, HZ - 1.2))
     for xe in (x0, x1 - 0.4):
@@ -1378,7 +1392,7 @@ def build_joint(mb, row, it):
     kind = joint_kind(row, it)
     vface = -1 if row['id'] in ('front', 'back') else 1   # side of a barrel vault's fan window
     if kind == 'V':
-        za_, zb_ = (-zk, zh) if vface > 0 else (-zh, zk)
+        za_, zb_ = (-zk + 0.02, zh) if vface > 0 else (-zh, zk - 0.02)   # its plain end just behind the low wall's face
         box(mb, fr, xc - 1.5, xc + 1.5, TOP, TOP + 1.0, za_, zb_, MAT['white'], skip=('py',))
         prism_z(mb, fr, arc(xc, TOP + 1.0, 1.5, 0, math.pi, 16), za_, zb_, MAT['white'])   # barrel vault across the core
         zm = (za_ + zb_) / 2
@@ -1685,9 +1699,9 @@ def build_library(mb):
     lib_slab(mb, lf, outline, l3a, l3, MAT['deck'], MAT['soffit'], MAT['lcream'])
     for i, (a, b) in enumerate(zip(outline, outline[1:] + outline[:1])):
         fr, ln = lib_seg(lf, a, b)
-        box(mb, fr, -ln / 2, ln / 2, l3a, L['band'], -0.25, 0.0, MAT['lcream'])
-        if ln * LIB_S > 2.0:
-            lib_band_panel(mb, fr, ln, l3a, L['band'])
+        box(mb, fr, -ln / 2, ln / 2, l3a + 0.015, L['band'], -0.25, 0.015, MAT['lcream'])   # a hair proud of the slab's edge and
+        if ln * LIB_S > 2.0:                                                                   # up from its underside: in their
+            lib_band_panel(mb, fr.sub(0, 0, 0.015), ln, l3a, L['band'])                        # planes both baked black (user)
         if i in (0, 1, 2, 3, 9):   # balcony railing round the jut (MH034)
             for y_ in (L['band'] + 0.32, L['band'] + 0.05):
                 box(mb, fr, -ln / 2, ln / 2, y_, y_ + 0.05, -0.15, -0.1, MAT['creampipe'])
@@ -1741,7 +1755,7 @@ def build_library(mb):
     for k in range(8):
         cylv(mb, lf, *oct_corner(L['col'], k), 0, f0_, 0.36, 16, MAT['mred'])
     for k in (6, 7, 0, 1):
-        cylv(mb, lf, *jut(oct_corner(L['col'], k)), 0, L['band'], 0.36, 16, MAT['mred'])
+        cylv(mb, lf, *jut(oct_corner(L['col'], k)), 0, L['band'] - 0.015, 0.36, 16, MAT['mred'])   # (tops under the band's)
 
 
 # ------------------------------------------------------------------ courtyard furniture

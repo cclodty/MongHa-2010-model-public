@@ -5,6 +5,8 @@ Run on the exported scene:
       [--sun-samples=24] [--vc-samples=160] [--denoise] [--out=export/web_bake]
 --out: write the GLBs, lightmaps and manifest there instead of web/assets (copy them over once the bake has finished,
 so a long bake never leaves web/assets half new).
+--rebake=SM_Estate_NW,SM_Estate_SE: bake and export only these families into a full bake already in --out, merging
+their entries into its manifest.json; every other object stays in the scene whole, so it still shades and lights them.
 Without a GPU (a cloud machine's CPU is ~100 times slower), bake with fewer samples and --denoise: each lightmap's sky
 and bounce light goes through OpenImageDenoise (the compositor's Denoise node, on the CPU), e.g.
   -- --samples=96 --sun-samples=24 --vc-samples=160 --denoise   (about two hours on four CPU cores)
@@ -31,6 +33,7 @@ import numpy as np
 ARGS = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 QUICK = '--quick' in ARGS
 ONLY = next((a.split('=', 1)[1].split(',') for a in ARGS if a.startswith('--only=')), None)
+REBAKE = next((a.split('=', 1)[1].split(',') for a in ARGS if a.startswith('--rebake=')), None)
 SAMPLES = int(next((a.split('=', 1)[1] for a in ARGS if a.startswith('--samples=')), 48 if QUICK else 1536))
 SUN_SAMPLES = int(next((a.split('=', 1)[1] for a in ARGS if a.startswith('--sun-samples=')), min(SAMPLES, 256)))   # sun only
 VC_SAMPLES = int(next((a.split('=', 1)[1] for a in ARGS if a.startswith('--vc-samples=')), SAMPLES))   # per-vertex light
@@ -511,6 +514,8 @@ manifest = dict(lmax=LMAX, vc_encoding='sqrt', lm_encoding='srgb', objects={}, s
                 horizon=SKY['horizon_rgb_web'], views=MARK['views'])
 for o in src:
     family = o.name
+    if REBAKE and family not in REBAKE:
+        continue   # kept whole: it still casts its shadows and bounce light on the families re-baked
     parts = split(o)
     for suffix, ob0 in parts.items():
         pieces = split_halves(ob0, SPLIT_LM[family]) if (suffix == '_LM' and family in SPLIT_LM) else [ob0]
@@ -550,6 +555,13 @@ for fam in families:
                               export_cameras=False, export_lights=False, export_extras=False, export_yup=True)
     manifest['files'].append(dict(family=fam, glb=fam + '.glb', bytes=os.path.getsize(path)))
     print('EXPORTED', fam, os.path.getsize(path) // 1024, 'KB')
+if REBAKE:   # into the full bake already in OUT: its other families' entries stay as they were
+    full = json.load(open(os.path.join(OUT, 'manifest.json'), encoding='utf-8'))
+    full['objects'] = {n: e for n, e in full['objects'].items() if e['family'] not in REBAKE} | manifest['objects']
+    full['files'] = sorted([f for f in full['files'] if f['family'] not in REBAKE] + manifest['files'], key=lambda f: f['family'])
+    full['materials'] = manifest['materials']
+    full['rebaked'] = sorted(set(full.get('rebaked', [])) | set(REBAKE))
+    manifest = full
 with open(os.path.join(OUT, 'manifest.json'), 'w', encoding='utf-8') as fh:
     json.dump(manifest, fh, ensure_ascii=False, indent=1)
 print('WEB_BAKE_DONE')
